@@ -1,0 +1,11 @@
+standalone:
+  script:
+  - scripts/tests/test.sh
+  only:
+  - branches
+
+cluster:
+  script:
+  - scripts/tests/test.sh cluster
+  only:
+  - branches
