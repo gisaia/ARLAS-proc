@@ -15,6 +15,13 @@ else
     TOTAL_EXECUTOR_CORES=2
 fi
 
+# CHECK ALV2 DISCLAIMER
+if [ $(find ./*/src -name "*.scala" -exec grep -L Licensed {} \; | wc -l) -gt 0 ]; then
+    echo "ALv2 disclaimer is missing in the following files :"
+    find ./*/src -name "*.scala" -exec grep -L Licensed {} \;
+    exit -1
+fi
+
 function docker_clean {
     echo "===> Shutdown docker stack"
     docker-compose -f scripts/tests/docker-compose-${MODE}.yml down --remove-orphans
