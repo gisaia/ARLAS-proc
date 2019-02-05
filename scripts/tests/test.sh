@@ -88,6 +88,7 @@ sparkJobSubmit() {
             --id mmsi \
             --lon longitude \
             --lat latitude \
+            --gap 3600 \
             --dynamic latitude,longitude,sog,cog,heading,rot,draught \
             --timeformat "yyyy-MM-dd'T'HH:mm:ss.SSSX"
 }
