@@ -19,19 +19,16 @@
 
 package io.arlas.data.transform
 
+import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
-import java.time.{ZoneOffset, ZonedDateTime}
 
-import io.arlas.data.extract.transformations.{
-  arlasPartitionColumn,
-  arlasTimestampColumn,
-  withArlasPartition,
-  withArlasTimestamp
-}
+import io.arlas.data.extract.transformations._
 import io.arlas.data.model.{DataModel, RunOptions}
-import io.arlas.data.transform.transformations.{arlasSequenceIdColumn, doPipelineTransform}
+import io.arlas.data.transform.transformations.doPipelineTransform
 import io.arlas.data.{DataFrameTester, TestSparkSession}
 import org.apache.spark.sql.DataFrame
+import org.apache.spark.sql.functions.lit
+import org.apache.spark.sql.types.StringType
 import org.scalatest.{FlatSpec, Matchers}
 
 class TransformationWithoutEdgingPeriodTest
@@ -41,9 +38,6 @@ class TransformationWithoutEdgingPeriodTest
     with DataFrameTester {
 
   import spark.implicits._
-
-  val timeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ssXXX")
-  timeFormatter.withZone(ZoneOffset.UTC)
 
   val source = testData
 
@@ -173,10 +167,11 @@ class TransformationWithoutEdgingPeriodTest
     val actualDF = sourceDF
       .transform(withArlasTimestamp(dataModel))
       .transform(withArlasPartition(dataModel))
+      .withColumn(arlasSequenceIdColumn, lit(null).cast(StringType))
+      .transform(fillSequenceId(dataModel))
 
     val transformedDf: DataFrame = doPipelineTransform(
       actualDF,
-      new WithSequenceIdTransformer(dataModel),
       new WithoutEdgingPeriod(dataModel, runOptions, spark)
     ).drop(arlasTimestampColumn, arlasPartitionColumn)
 

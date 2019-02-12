@@ -28,6 +28,8 @@ import io.arlas.data.transform.transformations._
 import io.arlas.data.{DataFrameTester, TestSparkSession}
 import org.apache.commons.math3.analysis.interpolation.SplineInterpolator
 import org.apache.spark.sql.DataFrame
+import org.apache.spark.sql.functions.lit
+import org.apache.spark.sql.types.StringType
 import org.scalatest.{FlatSpec, Matchers}
 
 class TransformationWithSequenceResampledTest
@@ -109,11 +111,11 @@ class TransformationWithSequenceResampledTest
     val actualDF = sourceDF
       .transform(withArlasTimestamp(dataModel))
       .transform(withArlasPartition(dataModel))
+      .withColumn(arlasSequenceIdColumn, lit(null).cast(StringType))
+      .transform(fillSequenceId(dataModel))
 
     val transformedDf: DataFrame =
-      doPipelineTransform(actualDF,
-                          new WithSequenceIdTransformer(dataModel),
-                          new WithSequenceResampledTransformer(dataModel, spark))
+      doPipelineTransform(actualDF, new WithSequenceResampledTransformer(dataModel, spark))
         .drop(arlasTimestampColumn, arlasPartitionColumn)
 
     val expectedDF = expected

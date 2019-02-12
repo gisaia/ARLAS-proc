@@ -19,11 +19,19 @@
 
 package io.arlas.data.extract
 
-import io.arlas.data.model.{DataModel, RunOptions}
-import io.arlas.data.utils.DataFrameHelper._
+import java.time.{Instant, ZoneOffset, ZonedDateTime}
+import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
+
 import io.arlas.data.extract.transformations._
+import io.arlas.data.model.{DataModel, RunOptions}
 import io.arlas.data.utils.BasicApp
-import org.apache.spark.sql.{SaveMode, SparkSession}
+import io.arlas.data.utils.DataFrameHelper._
+import org.apache.spark.sql.functions.{col, lit, min}
+import org.apache.spark.sql.types.StringType
+import org.apache.spark.sql._
+
+import scala.util.{Failure, Success, Try}
 
 object CSVExtractor extends BasicApp {
 
@@ -37,16 +45,55 @@ object CSVExtractor extends BasicApp {
       .csv(runOptions.source)
       .transform(withValidColumnNames())
       .transform(withValidDynamicColumnsType(dataModel))
-    //TODO try to support schema infering without time column issues
-
-    csvDf
       .transform(withArlasTimestamp(dataModel))
       .transform(withArlasPartition(dataModel))
+
+    val minimumDate = ZonedDateTime.ofInstant(
+      Instant.ofEpochSecond(csvDf.select(min(arlasTimestampColumn)).head().getLong(0)),
+      ZoneOffset.UTC)
+
+    unionWithParquetData(spark, runOptions, dataModel, csvDf, minimumDate)
+      .where(col(arlasTimestampColumn) >= minimumDate.toEpochSecond)
       .write
       .option("compression", "snappy")
       .option("parquet.block.size", PARQUET_BLOCK_SIZE.toString)
       .mode(SaveMode.Append)
       .partitionBy(arlasPartitionColumn)
       .parquet(runOptions.target)
+  }
+
+  def unionWithParquetData(spark: SparkSession,
+                           runOptions: RunOptions,
+                           dataModel: DataModel,
+                           sourceDF: DataFrame,
+                           minDate: ZonedDateTime): DataFrame = {
+
+    val startDate = minDate.truncatedTo(ChronoUnit.DAYS).minusSeconds(2 * dataModel.sequenceGap)
+    val endDate = minDate.truncatedTo(ChronoUnit.DAYS)
+    val startSeconds = startDate.toEpochSecond
+    val stopSeconds = endDate.toEpochSecond
+
+    Try(spark.read.parquet(runOptions.target)) match {
+      case Success(result_df) => {
+        val df = result_df
+          .where(
+            col(arlasPartitionColumn) >= Integer.valueOf(
+              startDate.format(DateTimeFormatter.ofPattern("yyyyMMdd")))
+              && col(arlasPartitionColumn) < Integer.valueOf(
+                endDate.format(DateTimeFormatter.ofPattern("yyyyMMdd"))))
+          .where(
+            col(arlasTimestampColumn) >= startSeconds && col(arlasTimestampColumn) <= stopSeconds)
+
+        sourceDF
+          .withColumn(arlasSequenceIdColumn, lit(null).cast(StringType))
+          .unionByName(df)
+          .transform(fillSequenceId(dataModel))
+      }
+      case Failure(f) => {
+        sourceDF
+          .withColumn(arlasSequenceIdColumn, lit(null).cast(StringType))
+          .transform(fillSequenceId(dataModel))
+      }
+    }
   }
 }

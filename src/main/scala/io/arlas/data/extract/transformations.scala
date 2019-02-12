@@ -19,19 +19,20 @@
 
 package io.arlas.data.extract
 
-import java.time.{ZoneOffset, ZonedDateTime}
 import java.time.format.{DateTimeFormatter, DateTimeParseException}
+import java.time.{ZoneOffset, ZonedDateTime}
 
 import io.arlas.data.model.DataModel
 import org.apache.spark.sql.DataFrame
-import org.apache.spark.sql.expressions.UserDefinedFunction
+import org.apache.spark.sql.expressions.{UserDefinedFunction, Window}
 import org.apache.spark.sql.functions._
-import org.apache.spark.sql.types.{IntegerType}
+import org.apache.spark.sql.types.IntegerType
 
 object transformations {
 
   val arlasTimestampColumn = "arlas_timestamp"
   val arlasPartitionColumn = "arlas_partition"
+  val arlasSequenceIdColumn = "arlas_sequence_id"
 
   def getUdf(timeFormat: String): UserDefinedFunction = udf { date: String =>
     val timeFormatter = DateTimeFormatter.ofPattern(timeFormat)
@@ -67,4 +68,17 @@ object transformations {
                               "yyyyMMdd").cast(IntegerType))
   }
 
+  def fillSequenceId(dataModel: DataModel)
+                    (df: DataFrame): DataFrame = {
+    val window = Window.partitionBy(dataModel.idColumn).orderBy(arlasTimestampColumn)
+    val gap = col(arlasTimestampColumn) - lag(arlasTimestampColumn, 1).over(window)
+    val sequenceId = when(col("gap").isNull || col("gap") > dataModel.sequenceGap, concat(col(dataModel.idColumn), lit("#"), col(arlasTimestampColumn)))
+
+    df
+      .withColumn("gap", gap)
+      .withColumn("row_sequence_id", when(col(arlasSequenceIdColumn).isNull, sequenceId).otherwise(col(arlasSequenceIdColumn)))
+      .withColumn(arlasSequenceIdColumn,
+        last("row_sequence_id", ignoreNulls = true).over(window.rowsBetween(Window.unboundedPreceding, 0)))
+      .drop("row_sequence_id", "gap")
+  }
 }

@@ -59,7 +59,7 @@ docker run --network gisaia-network --rm busybox sh -c 'i=1; until nc -w 2 gisai
 echo "===> ScyllaDB is up and running"
 
 sparkJobSubmit() {
-    echo "  => submit $1 from $2 to $3"
+    echo "  => submit $1 from $2 to $3 between $4 to $5"
     docker run --rm \
        --network gisaia-network \
        -w /opt/work \
@@ -83,23 +83,29 @@ sparkJobSubmit() {
            /opt/work/target/arlas-data.jar \
             --source "$2" \
             --target "$3" \
-            --start 2018-01-01T00:00:00+00:00\
-            --stop 2018-01-01T12:00:00+00:00\
+            --start "$4" \
+            --stop "$5" \
             --id mmsi \
             --lon longitude \
             --lat latitude \
-            --gap 3600 \
+            --gap 120 \
             --dynamic latitude,longitude,sog,cog,heading,rot,draught \
             --timeformat "yyyy-MM-dd'T'HH:mm:ss.SSSX"
 }
-echo "===> CSV Extractor run"
-sparkJobSubmit "io.arlas.data.extract.CSVExtractor" "/opt/work/scripts/tests/resources/*.csv" "/opt/work/target/tmp/parquet"
+echo "===> CSV Extractor 1 run"
+sparkJobSubmit "io.arlas.data.extract.CSVExtractor" "/opt/work/scripts/tests/resources/ais-sample-data-1.csv" "/opt/work/target/tmp/parquet" "2018-01-01T00:00:00+00:00" "2018-01-01T23:59:59+00:00"
 
-echo "===> Transformer run"
-sparkJobSubmit "io.arlas.data.transform.Transformer" "/opt/work/target/tmp/parquet" "ais_ks.ais_table"
+echo "===> Transformer 1 run"
+sparkJobSubmit "io.arlas.data.transform.Transformer" "/opt/work/target/tmp/parquet" "ais_ks.ais_table" "2018-01-01T00:00:00+00:00" "2018-01-01T23:59:59+00:00"
+
+echo "===> CSV Extractor 2 run"
+sparkJobSubmit "io.arlas.data.extract.CSVExtractor" "/opt/work/scripts/tests/resources/ais-sample-data-2.csv" "/opt/work/target/tmp/parquet" "2018-01-02T00:00:00+00:00" "2018-01-02T23:59:59+00:00"
+
+echo "===> Transformer 2 run"
+sparkJobSubmit "io.arlas.data.transform.Transformer" "/opt/work/target/tmp/parquet" "ais_ks.ais_table" "2018-01-02T00:00:00+00:00" "2018-01-02T23:59:59+00:00"
 
 echo "===> Check result"
-mkdir tmp
+mkdir -p tmp
 docker run --net gisaia-network --rm --entrypoint cqlsh scylladb/scylla:2.2.0 \
     -e 'SELECT COUNT(*) FROM ais_ks.ais_table' gisaia-scylla-db >>tmp/test-output.txt 2>&1
 docker run --net gisaia-network --rm --entrypoint cqlsh scylladb/scylla:2.2.0 \
