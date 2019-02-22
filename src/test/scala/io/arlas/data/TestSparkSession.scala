@@ -27,7 +27,7 @@ trait TestSparkSession {
       .builder()
       .master("local")
       .appName("Arlas Spark Test")
-      .config("spark.driver.memory","512m")
+      .config("spark.driver.memory", "512m")
       .getOrCreate()
   }
 }

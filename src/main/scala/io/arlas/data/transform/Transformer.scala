@@ -33,7 +33,9 @@ object Transformer extends BasicApp with CassandraApp {
 
   override def getName: String = "Transformer"
 
-  override def run(spark: SparkSession, dataModel: DataModel, runOptions: RunOptions): Unit = {
+  override def run(spark: SparkSession,
+                   dataModel: DataModel,
+                   runOptions: RunOptions): Unit = {
 
     createCassandraKeyspace(spark, runOptions)
 
@@ -58,7 +60,8 @@ object Transformer extends BasicApp with CassandraApp {
   }
 
   def loadData(spark: SparkSession, runOptions: RunOptions): DataFrame = {
-    val start = runOptions.start.getOrElse(ZonedDateTime.now(ZoneOffset.UTC).minusHours(1))
+    val start = runOptions.start.getOrElse(
+      ZonedDateTime.now(ZoneOffset.UTC).minusHours(1))
     val stop = runOptions.stop.getOrElse(ZonedDateTime.now(ZoneOffset.UTC))
     val startSeconds = start.toEpochSecond
     val stopSeconds = stop.toEpochSecond
@@ -66,8 +69,7 @@ object Transformer extends BasicApp with CassandraApp {
     var df: DataFrame = null
     if (runOptions.source.contains("/")) {
       df = spark.read.parquet(runOptions.source)
-    }
-    else {
+    } else {
       val ks = runOptions.source.split('.')(0)
       val ta = runOptions.source.split('.')(1)
 
@@ -77,9 +79,14 @@ object Transformer extends BasicApp with CassandraApp {
         .load()
     }
 
-    df = df.where(col(arlasPartitionColumn) >= Integer.valueOf(start.format(DateTimeFormatter.ofPattern("yyyyMMdd")))
-      && col(arlasPartitionColumn) <= Integer.valueOf(stop.format(DateTimeFormatter.ofPattern("yyyyMMdd"))))
-      .where(col(arlasTimestampColumn) >= startSeconds && col(arlasTimestampColumn) <= stopSeconds)
+    df = df
+      .where(
+        col(arlasPartitionColumn) >= Integer.valueOf(
+          start.format(DateTimeFormatter.ofPattern("yyyyMMdd")))
+          && col(arlasPartitionColumn) <= Integer.valueOf(
+            stop.format(DateTimeFormatter.ofPattern("yyyyMMdd"))))
+      .where(col(arlasTimestampColumn) >= startSeconds && col(
+        arlasTimestampColumn) <= stopSeconds)
 
     df
   }

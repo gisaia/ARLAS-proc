@@ -22,7 +22,10 @@ package io.arlas.data.load
 import java.time.format.DateTimeFormatter
 import java.time.{ZoneOffset, ZonedDateTime}
 
-import io.arlas.data.extract.transformations.{arlasPartitionColumn, arlasTimestampColumn}
+import io.arlas.data.extract.transformations.{
+  arlasPartitionColumn,
+  arlasTimestampColumn
+}
 import io.arlas.data.model.{DataModel, RunOptions}
 import io.arlas.data.utils.{BasicApp, CassandraApp}
 import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
@@ -33,10 +36,13 @@ object Loader extends BasicApp with CassandraApp {
 
   override def getName: String = "Loader Application"
 
-  override def run(spark: SparkSession, dataModel: DataModel, runOptions: RunOptions): Unit = {
+  override def run(spark: SparkSession,
+                   dataModel: DataModel,
+                   runOptions: RunOptions): Unit = {
     spark.sparkContext.setLogLevel("Error")
 
-    val start = runOptions.start.getOrElse(ZonedDateTime.now(ZoneOffset.UTC).minusHours(1))
+    val start = runOptions.start.getOrElse(
+      ZonedDateTime.now(ZoneOffset.UTC).minusHours(1))
     val stop = runOptions.stop.getOrElse(ZonedDateTime.now(ZoneOffset.UTC))
     val startSeconds = start.toEpochSecond
     val stopSeconds = stop.toEpochSecond
@@ -47,8 +53,7 @@ object Loader extends BasicApp with CassandraApp {
     var df: DataFrame = null
     if (source.contains("/")) {
       df = spark.read.parquet(source)
-    }
-    else {
+    } else {
       val ks = source.split('.')(0)
       val ta = source.split('.')(1)
 
@@ -61,9 +66,13 @@ object Loader extends BasicApp with CassandraApp {
     }
 
     df = df
-      .where(col(arlasPartitionColumn) >= Integer.valueOf(start.format(DateTimeFormatter.ofPattern("yyyyMMdd")))
-        && col(arlasPartitionColumn) <= Integer.valueOf(stop.format(DateTimeFormatter.ofPattern("yyyyMMdd"))))
-      .where(col(arlasTimestampColumn) >= startSeconds && col(arlasTimestampColumn) <= stopSeconds)
+      .where(
+        col(arlasPartitionColumn) >= Integer.valueOf(
+          start.format(DateTimeFormatter.ofPattern("yyyyMMdd")))
+          && col(arlasPartitionColumn) <= Integer.valueOf(
+            stop.format(DateTimeFormatter.ofPattern("yyyyMMdd"))))
+      .where(col(arlasTimestampColumn) >= startSeconds && col(
+        arlasTimestampColumn) <= stopSeconds)
 
     var csvName = s"${runOptions.target}/${csvResultName}_period"
 
@@ -74,8 +83,7 @@ object Loader extends BasicApp with CassandraApp {
       csvName = s"${runOptions.target}/${csvResultName}_${id}"
     }
 
-    df
-      .coalesce(1)
+    df.coalesce(1)
       .write
       .format("com.databricks.spark.csv")
       .mode(SaveMode.Overwrite)
@@ -83,11 +91,12 @@ object Loader extends BasicApp with CassandraApp {
       .csv(csvName)
   }
 
-  override def getArgs(map: Loader.ArgumentMap, list: List[String]): Loader.ArgumentMap = {
+  override def getArgs(map: Loader.ArgumentMap,
+                       list: List[String]): Loader.ArgumentMap = {
     list match {
-      case Nil => map
+      case Nil                           => map
       case "--id-value" :: value :: tail => id = value
-      case argument :: tail => println("Unknown argument " + argument)
+      case argument :: tail              => println("Unknown argument " + argument)
     }
     super.getArgs(map, list)
   }

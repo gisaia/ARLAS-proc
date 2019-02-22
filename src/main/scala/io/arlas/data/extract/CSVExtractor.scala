@@ -29,7 +29,9 @@ object CSVExtractor extends BasicApp {
 
   override def getName: String = "CSV Extractor"
 
-  override def run(spark: SparkSession, dataModel: DataModel, runOptions: RunOptions): Unit = {
+  override def run(spark: SparkSession,
+                   dataModel: DataModel,
+                   runOptions: RunOptions): Unit = {
     val PARQUET_BLOCK_SIZE: Int = 32 * 1024 * 1024
 
     val csvDf = spark.read
