@@ -66,8 +66,7 @@ object Transformer extends BasicApp with CassandraApp {
     var df: DataFrame = null
     if (runOptions.source.contains("/")) {
       df = spark.read.parquet(runOptions.source)
-    }
-    else {
+    } else {
       val ks = runOptions.source.split('.')(0)
       val ta = runOptions.source.split('.')(1)
 
@@ -77,8 +76,12 @@ object Transformer extends BasicApp with CassandraApp {
         .load()
     }
 
-    df = df.where(col(arlasPartitionColumn) >= Integer.valueOf(start.format(DateTimeFormatter.ofPattern("yyyyMMdd")))
-      && col(arlasPartitionColumn) <= Integer.valueOf(stop.format(DateTimeFormatter.ofPattern("yyyyMMdd"))))
+    df = df
+      .where(
+        col(arlasPartitionColumn) >= Integer.valueOf(
+          start.format(DateTimeFormatter.ofPattern("yyyyMMdd")))
+          && col(arlasPartitionColumn) <= Integer.valueOf(
+            stop.format(DateTimeFormatter.ofPattern("yyyyMMdd"))))
       .where(col(arlasTimestampColumn) >= startSeconds && col(arlasTimestampColumn) <= stopSeconds)
 
     df

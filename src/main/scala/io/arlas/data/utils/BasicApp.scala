@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory
 trait BasicApp {
   @transient lazy val logger = LoggerFactory.getLogger(this.getClass)
 
-  def getName : String
+  def getName: String
 
   val usage = s"""
     Usage: ${this.getClass}
@@ -47,7 +47,7 @@ trait BasicApp {
 
   def run(spark: SparkSession, dataModel: DataModel, runOptions: RunOptions): Unit
 
-  def initSparkSession() : SparkSession = {
+  def initSparkSession(): SparkSession = {
     SparkSession
       .builder()
       .appName(getName)
@@ -56,10 +56,11 @@ trait BasicApp {
 
   def main(args: Array[String]): Unit = {
 
-    val (sourcePath, targetPath, startStr, stopStr) = (args(0), args(1), args(2), args(3))
+    val (sourcePath, targetPath, startStr, stopStr) =
+      (args(0), args(1), args(2), args(3))
     if (args.length == 0) println(usage)
     val arglist = args.toList
-    val options = getArgs(Map(),arglist)
+    val options = getArgs(Map(), arglist)
     logger.info(s"""App arguments : \n${options}""")
 
     val dataModel = getDataModel(options)
@@ -75,7 +76,7 @@ trait BasicApp {
   }
 
   type ArgumentMap = Map[String, String]
-  def getArgs(map : ArgumentMap, list: List[String]) : ArgumentMap = {
+  def getArgs(map: ArgumentMap, list: List[String]): ArgumentMap = {
     list match {
       case Nil => map
       case "--id" :: value :: tail =>
@@ -104,45 +105,51 @@ trait BasicApp {
         getArgs(map ++ Map("source" -> value), tail)
       case "--target" :: value :: tail =>
         getArgs(map ++ Map("target" -> value), tail)
-      case argument :: tail => println("Unknown argument " + argument)
+      case argument :: tail =>
+        println("Unknown argument " + argument)
         getArgs(map, list.tail)
     }
   }
 
-  def getDataModel(arguments: ArgumentMap) : DataModel = {
-    DataModel(arguments.getOrElse("id", "id"),
+  def getDataModel(arguments: ArgumentMap): DataModel = {
+    DataModel(
+      arguments.getOrElse("id", "id"),
       arguments.getOrElse("timestamp", "timestamp"),
       arguments.getOrElse("timeformat", "yyyy-MM-dd'T'HH:mm:ssXXX"),
       arguments.getOrElse("lat", "lat"),
       arguments.getOrElse("lon", "lon"),
       arguments.getOrElse("dynamic", "lat,lon").split(","),
-      arguments.getOrElse("gap", "3600").toInt)
+      arguments.getOrElse("gap", "3600").toInt
+    )
   }
 
-  def getRunOptions(arguments: ArgumentMap) : RunOptions = {
-    RunOptions(arguments.get("source") match {
-      case Some(source) => source
-      case None => throw new RuntimeException("Missing source argument")
-    },
+  def getRunOptions(arguments: ArgumentMap): RunOptions = {
+    RunOptions(
+      arguments.get("source") match {
+        case Some(source) => source
+        case None         => throw new RuntimeException("Missing source argument")
+      },
       arguments.get("target") match {
         case Some(target) => target
-        case None => throw new RuntimeException("Missing source argument")
+        case None         => throw new RuntimeException("Missing source argument")
       },
       arguments.get("start") match {
-        case Some(startStr) => Some(ZonedDateTime.parse(startStr, DateTimeFormatter.ISO_OFFSET_DATE_TIME))
+        case Some(startStr) =>
+          Some(ZonedDateTime.parse(startStr, DateTimeFormatter.ISO_OFFSET_DATE_TIME))
         case None => None
       },
       arguments.get("stop") match {
-        case Some(stopStr) => Some(ZonedDateTime.parse(stopStr, DateTimeFormatter.ISO_OFFSET_DATE_TIME))
+        case Some(stopStr) =>
+          Some(ZonedDateTime.parse(stopStr, DateTimeFormatter.ISO_OFFSET_DATE_TIME))
         case None => None
       },
       arguments.get("warmingPeriod") match {
         case Some(warmingPeriod) => Some(warmingPeriod.toLong)
-        case None => None
+        case None                => None
       },
       arguments.get("endingPeriod") match {
         case Some(endingPeriod) => Some(endingPeriod.toLong)
-        case None => None
+        case None               => None
       }
     )
   }

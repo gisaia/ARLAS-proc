@@ -29,6 +29,10 @@ ARLAS-proc runs with Scala 2.11 (Java 8) and is built/packaged with [sbt](https:
 You will need to fork the main ARLAS-proc repository and clone it to your local machine. See
 [github help page](https://help.github.com/articles/fork-a-repo) for help.
 
+#### Code formatting
+
+The scala code in ARLAS-proc project is formatted using [Scalafmt](https://scalameta.org/scalafmt/) which easily formats the code `on save`. This tool uses a special configuration file [.scalafmt.conf](.scalafmt.conf)  
+
 #### Submitting your changes
 
 When your code is ready, you will have to:

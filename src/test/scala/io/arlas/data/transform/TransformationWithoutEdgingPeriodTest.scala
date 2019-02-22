@@ -22,14 +22,23 @@ package io.arlas.data.transform
 import java.time.format.DateTimeFormatter
 import java.time.{ZoneOffset, ZonedDateTime}
 
-import io.arlas.data.extract.transformations.{arlasPartitionColumn, arlasTimestampColumn, withArlasPartition, withArlasTimestamp}
+import io.arlas.data.extract.transformations.{
+  arlasPartitionColumn,
+  arlasTimestampColumn,
+  withArlasPartition,
+  withArlasTimestamp
+}
 import io.arlas.data.model.{DataModel, RunOptions}
 import io.arlas.data.transform.transformations.{arlasSequenceIdColumn, doPipelineTransform}
 import io.arlas.data.{DataFrameTester, TestSparkSession}
 import org.apache.spark.sql.DataFrame
 import org.scalatest.{FlatSpec, Matchers}
 
-class TransformationWithoutEdgingPeriodTest extends FlatSpec with Matchers with TestSparkSession with DataFrameTester {
+class TransformationWithoutEdgingPeriodTest
+    extends FlatSpec
+    with Matchers
+    with TestSparkSession
+    with DataFrameTester {
 
   import spark.implicits._
 
@@ -40,7 +49,8 @@ class TransformationWithoutEdgingPeriodTest extends FlatSpec with Matchers with 
 
   val seq_A_1_first_30 = Seq(
     ("ObjectA", "01/06/2018 00:00:00+02:00", 55.921028, 17.320418, "ObjectA#1527804000"),
-    ("ObjectA", "01/06/2018 00:00:10+02:00", 55.920875, 17.319322, "ObjectA#1527804000"))
+    ("ObjectA", "01/06/2018 00:00:10+02:00", 55.920875, 17.319322, "ObjectA#1527804000")
+  )
 
   val seq_A_1_middle = Seq(
     ("ObjectA", "01/06/2018 00:00:31+02:00", 55.920583, 17.31733, "ObjectA#1527804000"),
@@ -71,7 +81,8 @@ class TransformationWithoutEdgingPeriodTest extends FlatSpec with Matchers with 
   val seq_A_1_last_30 = Seq(
     ("ObjectA", "01/06/2018 00:04:31+02:00", 55.917155, 17.293157, "ObjectA#1527804000"),
     ("ObjectA", "01/06/2018 00:04:40+02:00", 55.917027, 17.292233, "ObjectA#1527804000"),
-    ("ObjectA", "01/06/2018 00:04:51+02:00", 55.916883, 17.291198, "ObjectA#1527804000"))
+    ("ObjectA", "01/06/2018 00:04:51+02:00", 55.916883, 17.291198, "ObjectA#1527804000")
+  )
 
   val seq_A_2_first_30 = Seq(
     ("ObjectA", "01/06/2018 00:10:01+02:00", 55.912597, 17.259977, "ObjectA#1527804601"),
@@ -144,16 +155,20 @@ class TransformationWithoutEdgingPeriodTest extends FlatSpec with Matchers with 
 
   def performTestByPeriod(warmingPeriod: Int, endingPeriod: Int, expectedDF: DataFrame) = {
 
-    val dataModel = new DataModel(timeFormat = "dd/MM/yyyy HH:mm:ssXXX", sequenceGap = 300)
+    val dataModel =
+      new DataModel(timeFormat = "dd/MM/yyyy HH:mm:ssXXX", sequenceGap = 300)
 
     val oldTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ssXXX")
     val sourceDF = source.toDF("id", "timestamp", "lat", "lon")
 
-    var runOptions = new RunOptions(source = "", target = "",
+    var runOptions = new RunOptions(
+      source = "",
+      target = "",
       start = Some(ZonedDateTime.parse("01/06/2018 00:00:00+02:00", oldTimeFormatter)),
       stop = Some(ZonedDateTime.parse("01/06/2018 00:15:00+02:00", oldTimeFormatter)),
       warmingPeriod = Some(warmingPeriod),
-      endingPeriod = Some(endingPeriod))
+      endingPeriod = Some(endingPeriod)
+    )
 
     val actualDF = sourceDF
       .transform(withArlasTimestamp(dataModel))
@@ -163,7 +178,6 @@ class TransformationWithoutEdgingPeriodTest extends FlatSpec with Matchers with 
       actualDF,
       new WithSequenceIdTransformer(dataModel),
       new WithoutEdgingPeriod(dataModel, runOptions, spark)
-
     ).drop(arlasTimestampColumn, arlasPartitionColumn)
 
     assertDataFrameEquality(transformedDf, expectedDF)
@@ -175,8 +189,8 @@ class TransformationWithoutEdgingPeriodTest extends FlatSpec with Matchers with 
       (seq_A_1_middle ++
         seq_A_2_middle ++
         seq_B_1_middle ++
-        seq_B_2_middle
-        ).toDF("id", "timestamp", "lat", "lon", arlasSequenceIdColumn)
+        seq_B_2_middle)
+        .toDF("id", "timestamp", "lat", "lon", arlasSequenceIdColumn)
 
     performTestByPeriod(30, 30, expectedDF)
   }
@@ -186,8 +200,8 @@ class TransformationWithoutEdgingPeriodTest extends FlatSpec with Matchers with 
       (seq_A_1_middle ++ seq_A_1_last_30 ++
         seq_A_2_middle ++ seq_A_2_last_30 ++
         seq_B_1_middle ++ seq_B_1_last_30 ++
-        seq_B_2_middle ++ seq_B_2_last_30
-        ).toDF("id", "timestamp", "lat", "lon", arlasSequenceIdColumn)
+        seq_B_2_middle ++ seq_B_2_last_30)
+        .toDF("id", "timestamp", "lat", "lon", arlasSequenceIdColumn)
 
     performTestByPeriod(30, 0, expectedDF)
   }
@@ -197,8 +211,8 @@ class TransformationWithoutEdgingPeriodTest extends FlatSpec with Matchers with 
       (seq_A_1_first_30 ++ seq_A_1_middle ++
         seq_A_2_first_30 ++ seq_A_2_middle ++
         seq_B_1_first_30 ++ seq_B_1_middle ++
-        seq_B_2_first_30 ++ seq_B_2_middle
-        ).toDF("id", "timestamp", "lat", "lon", arlasSequenceIdColumn)
+        seq_B_2_first_30 ++ seq_B_2_middle)
+        .toDF("id", "timestamp", "lat", "lon", arlasSequenceIdColumn)
 
     performTestByPeriod(0, 30, expectedDF)
   }
@@ -208,8 +222,8 @@ class TransformationWithoutEdgingPeriodTest extends FlatSpec with Matchers with 
       (seq_A_1_first_30 ++ seq_A_1_middle ++ seq_A_1_last_30 ++
         seq_A_2_first_30 ++ seq_A_2_middle ++ seq_A_2_last_30 ++
         seq_B_1_first_30 ++ seq_B_1_middle ++ seq_B_1_last_30 ++
-        seq_B_2_first_30 ++ seq_B_2_middle ++ seq_B_2_last_30
-        ).toDF("id", "timestamp", "lat", "lon", arlasSequenceIdColumn)
+        seq_B_2_first_30 ++ seq_B_2_middle ++ seq_B_2_last_30)
+        .toDF("id", "timestamp", "lat", "lon", arlasSequenceIdColumn)
 
     performTestByPeriod(0, 0, expectedDF)
   }
