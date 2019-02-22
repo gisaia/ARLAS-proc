@@ -28,90 +28,96 @@ import io.arlas.data.transform.transformations._
 import io.arlas.data.extract.transformations._
 import org.apache.spark.sql.DataFrame
 
-class TransformationWithSequenceIdTest extends FlatSpec with Matchers with TestSparkSession with DataFrameTester {
+class TransformationWithSequenceIdTest
+    extends FlatSpec
+    with Matchers
+    with TestSparkSession
+    with DataFrameTester {
 
   import spark.implicits._
 
   val source = testData
 
-  val expected =  Seq(
-    ("ObjectA","01/06/2018 00:00:00+02:00",55.921028,17.320418,"ObjectA#1527804000"),
-    ("ObjectA","01/06/2018 00:00:10+02:00",55.920875,17.319322,"ObjectA#1527804000"),
-    ("ObjectA","01/06/2018 00:00:31+02:00",55.920583,17.31733,"ObjectA#1527804000"),
-    ("ObjectA","01/06/2018 00:00:40+02:00",55.920437,17.316335,"ObjectA#1527804000"),
-    ("ObjectA","01/06/2018 00:00:59+02:00",55.920162,17.314437,"ObjectA#1527804000"),
-    ("ObjectA","01/06/2018 00:01:19+02:00",55.91987,17.312425,"ObjectA#1527804000"),
-    ("ObjectA","01/06/2018 00:01:40+02:00",55.91956,17.310317,"ObjectA#1527804000"),
-    ("ObjectA","01/06/2018 00:01:49+02:00",55.919417,17.30939,"ObjectA#1527804000"),
-    ("ObjectA","01/06/2018 00:01:59+02:00",55.919267,17.308382,"ObjectA#1527804000"),
-    ("ObjectA","01/06/2018 00:02:00+02:00",55.919267,17.308382,"ObjectA#1527804000"),
-    ("ObjectA","01/06/2018 00:02:19+02:00",55.918982,17.306395,"ObjectA#1527804000"),
-    ("ObjectA","01/06/2018 00:02:20+02:00",55.918982,17.306395,"ObjectA#1527804000"),
-    ("ObjectA","01/06/2018 00:02:31+02:00",55.91882,17.305205,"ObjectA#1527804000"),
-    ("ObjectA","01/06/2018 00:02:40+02:00",55.918697,17.304312,"ObjectA#1527804000"),
-    ("ObjectA","01/06/2018 00:02:51+02:00",55.918558,17.303307,"ObjectA#1527804000"),
-    ("ObjectA","01/06/2018 00:02:59+02:00",55.918435,17.302402,"ObjectA#1527804000"),
-    ("ObjectA","01/06/2018 00:03:00+02:00",55.918435,17.302402,"ObjectA#1527804000"),
-    ("ObjectA","01/06/2018 00:03:10+02:00",55.918285,17.301295,"ObjectA#1527804000"),
-    ("ObjectA","01/06/2018 00:03:19+02:00",55.918163,17.300385,"ObjectA#1527804000"),
-    ("ObjectA","01/06/2018 00:03:20+02:00",55.918163,17.300385,"ObjectA#1527804000"),
-    ("ObjectA","01/06/2018 00:03:31+02:00",55.917997,17.29917,"ObjectA#1527804000"),
-    ("ObjectA","01/06/2018 00:03:51+02:00",55.917727,17.29726,"ObjectA#1527804000"),
-    ("ObjectA","01/06/2018 00:04:00+02:00",55.9176,17.296363,"ObjectA#1527804000"),
-    ("ObjectA","01/06/2018 00:04:10+02:00",55.917447,17.295262,"ObjectA#1527804000"),
-    ("ObjectA","01/06/2018 00:04:19+02:00",55.917322,17.294355,"ObjectA#1527804000"),
-    ("ObjectA","01/06/2018 00:04:31+02:00",55.917155,17.293157,"ObjectA#1527804000"),
-    ("ObjectA","01/06/2018 00:04:40+02:00",55.917027,17.292233,"ObjectA#1527804000"),
-    ("ObjectA","01/06/2018 00:04:51+02:00",55.916883,17.291198,"ObjectA#1527804000"),
-    ("ObjectA","01/06/2018 00:10:01+02:00",55.912597,17.259977,"ObjectA#1527804601"),
-    ("ObjectA","01/06/2018 00:10:01+02:00",55.912597,17.259977,"ObjectA#1527804601"),
-    ("ObjectA","01/06/2018 00:10:11+02:00",55.912463,17.258973,"ObjectA#1527804601"),
-    ("ObjectA","01/06/2018 00:10:21+02:00",55.912312,17.25786,"ObjectA#1527804601"),
-    ("ObjectA","01/06/2018 00:10:30+02:00",55.91219,17.256948,"ObjectA#1527804601"),
-    ("ObjectA","01/06/2018 00:10:41+02:00",55.912043,17.25584,"ObjectA#1527804601"),
-    ("ObjectA","01/06/2018 00:10:51+02:00",55.911913,17.254835,"ObjectA#1527804601"),
-    ("ObjectA","01/06/2018 00:11:01+02:00",55.911793,17.253932,"ObjectA#1527804601"),
-    ("ObjectA","01/06/2018 00:11:01+02:00",55.911793,17.253932,"ObjectA#1527804601"),
-    ("ObjectA","01/06/2018 00:11:11+02:00",55.911653,17.252918,"ObjectA#1527804601"),
-    ("ObjectA","01/06/2018 00:11:19+02:00",55.911528,17.252012,"ObjectA#1527804601"),
-    ("ObjectA","01/06/2018 00:11:30+02:00",55.911378,17.250905,"ObjectA#1527804601"),
-    ("ObjectA","01/06/2018 00:11:39+02:00",55.911263,17.249997,"ObjectA#1527804601"),
-    ("ObjectA","01/06/2018 00:11:51+02:00",55.911108,17.248792,"ObjectA#1527804601"),
-    ("ObjectA","01/06/2018 00:12:01+02:00",55.910995,17.247897,"ObjectA#1527804601"),
-    ("ObjectA","01/06/2018 00:12:11+02:00",55.91086,17.246888,"ObjectA#1527804601"),
-    ("ObjectA","01/06/2018 00:12:19+02:00",55.910738,17.245978,"ObjectA#1527804601"),
-    ("ObjectA","01/06/2018 00:12:30+02:00",55.910592,17.244872,"ObjectA#1527804601"),
-    ("ObjectA","01/06/2018 00:12:39+02:00",55.910472,17.243963,"ObjectA#1527804601"),
-    ("ObjectA","01/06/2018 00:12:51+02:00",55.910308,17.242745,"ObjectA#1527804601"),
-    ("ObjectB","01/06/2018 00:00:00+02:00",56.590177,11.830633,"ObjectB#1527804000"),
-    ("ObjectB","01/06/2018 00:00:10+02:00",56.590058,11.83063,"ObjectB#1527804000"),
-    ("ObjectB","01/06/2018 00:00:21+02:00",56.58993,11.830625,"ObjectB#1527804000"),
-    ("ObjectB","01/06/2018 00:00:29+02:00",56.589837,11.83062,"ObjectB#1527804000"),
-    ("ObjectB","01/06/2018 00:00:40+02:00",56.58971,11.830603,"ObjectB#1527804000"),
-    ("ObjectB","01/06/2018 00:00:50+02:00",56.589603,11.830595,"ObjectB#1527804000"),
-    ("ObjectB","01/06/2018 00:01:00+02:00",56.58949,11.83058,"ObjectB#1527804000"),
-    ("ObjectB","01/06/2018 00:07:31+02:00",56.584978,11.830578,"ObjectB#1527804451"),
-    ("ObjectB","01/06/2018 00:07:41+02:00",56.584867,11.830587,"ObjectB#1527804451"),
-    ("ObjectB","01/06/2018 00:07:50+02:00",56.584767,11.830597,"ObjectB#1527804451"),
-    ("ObjectB","01/06/2018 00:08:00+02:00",56.584652,11.830608,"ObjectB#1527804451"),
-    ("ObjectB","01/06/2018 00:08:10+02:00",56.584535,11.83062,"ObjectB#1527804451"),
-    ("ObjectB","01/06/2018 00:08:21+02:00",56.584412,11.830625,"ObjectB#1527804451"),
-    ("ObjectB","01/06/2018 00:08:31+02:00",56.5843,11.830632,"ObjectB#1527804451"),
-    ("ObjectB","01/06/2018 00:08:41+02:00",56.584183,11.830645,"ObjectB#1527804451"),
-    ("ObjectB","01/06/2018 00:08:50+02:00",56.584083,11.830653,"ObjectB#1527804451"),
-    ("ObjectB","01/06/2018 00:09:00+02:00",56.58398,11.830665,"ObjectB#1527804451"),
-    ("ObjectB","01/06/2018 00:09:11+02:00",56.583827,11.830682,"ObjectB#1527804451"),
-    ("ObjectB","01/06/2018 00:09:21+02:00",56.58372,11.830692,"ObjectB#1527804451"),
-    ("ObjectB","01/06/2018 00:09:31+02:00",56.583603,11.830705,"ObjectB#1527804451"),
-    ("ObjectB","01/06/2018 00:09:41+02:00",56.583485,11.83071,"ObjectB#1527804451"),
-    ("ObjectB","01/06/2018 00:09:50+02:00",56.583383,11.830713,"ObjectB#1527804451"),
-    ("ObjectB","01/06/2018 00:10:00+02:00",56.58327,11.830705,"ObjectB#1527804451")
+  val expected = Seq(
+    ("ObjectA", "01/06/2018 00:00:00+02:00", 55.921028, 17.320418, "ObjectA#1527804000"),
+    ("ObjectA", "01/06/2018 00:00:10+02:00", 55.920875, 17.319322, "ObjectA#1527804000"),
+    ("ObjectA", "01/06/2018 00:00:31+02:00", 55.920583, 17.31733, "ObjectA#1527804000"),
+    ("ObjectA", "01/06/2018 00:00:40+02:00", 55.920437, 17.316335, "ObjectA#1527804000"),
+    ("ObjectA", "01/06/2018 00:00:59+02:00", 55.920162, 17.314437, "ObjectA#1527804000"),
+    ("ObjectA", "01/06/2018 00:01:19+02:00", 55.91987, 17.312425, "ObjectA#1527804000"),
+    ("ObjectA", "01/06/2018 00:01:40+02:00", 55.91956, 17.310317, "ObjectA#1527804000"),
+    ("ObjectA", "01/06/2018 00:01:49+02:00", 55.919417, 17.30939, "ObjectA#1527804000"),
+    ("ObjectA", "01/06/2018 00:01:59+02:00", 55.919267, 17.308382, "ObjectA#1527804000"),
+    ("ObjectA", "01/06/2018 00:02:00+02:00", 55.919267, 17.308382, "ObjectA#1527804000"),
+    ("ObjectA", "01/06/2018 00:02:19+02:00", 55.918982, 17.306395, "ObjectA#1527804000"),
+    ("ObjectA", "01/06/2018 00:02:20+02:00", 55.918982, 17.306395, "ObjectA#1527804000"),
+    ("ObjectA", "01/06/2018 00:02:31+02:00", 55.91882, 17.305205, "ObjectA#1527804000"),
+    ("ObjectA", "01/06/2018 00:02:40+02:00", 55.918697, 17.304312, "ObjectA#1527804000"),
+    ("ObjectA", "01/06/2018 00:02:51+02:00", 55.918558, 17.303307, "ObjectA#1527804000"),
+    ("ObjectA", "01/06/2018 00:02:59+02:00", 55.918435, 17.302402, "ObjectA#1527804000"),
+    ("ObjectA", "01/06/2018 00:03:00+02:00", 55.918435, 17.302402, "ObjectA#1527804000"),
+    ("ObjectA", "01/06/2018 00:03:10+02:00", 55.918285, 17.301295, "ObjectA#1527804000"),
+    ("ObjectA", "01/06/2018 00:03:19+02:00", 55.918163, 17.300385, "ObjectA#1527804000"),
+    ("ObjectA", "01/06/2018 00:03:20+02:00", 55.918163, 17.300385, "ObjectA#1527804000"),
+    ("ObjectA", "01/06/2018 00:03:31+02:00", 55.917997, 17.29917, "ObjectA#1527804000"),
+    ("ObjectA", "01/06/2018 00:03:51+02:00", 55.917727, 17.29726, "ObjectA#1527804000"),
+    ("ObjectA", "01/06/2018 00:04:00+02:00", 55.9176, 17.296363, "ObjectA#1527804000"),
+    ("ObjectA", "01/06/2018 00:04:10+02:00", 55.917447, 17.295262, "ObjectA#1527804000"),
+    ("ObjectA", "01/06/2018 00:04:19+02:00", 55.917322, 17.294355, "ObjectA#1527804000"),
+    ("ObjectA", "01/06/2018 00:04:31+02:00", 55.917155, 17.293157, "ObjectA#1527804000"),
+    ("ObjectA", "01/06/2018 00:04:40+02:00", 55.917027, 17.292233, "ObjectA#1527804000"),
+    ("ObjectA", "01/06/2018 00:04:51+02:00", 55.916883, 17.291198, "ObjectA#1527804000"),
+    ("ObjectA", "01/06/2018 00:10:01+02:00", 55.912597, 17.259977, "ObjectA#1527804601"),
+    ("ObjectA", "01/06/2018 00:10:01+02:00", 55.912597, 17.259977, "ObjectA#1527804601"),
+    ("ObjectA", "01/06/2018 00:10:11+02:00", 55.912463, 17.258973, "ObjectA#1527804601"),
+    ("ObjectA", "01/06/2018 00:10:21+02:00", 55.912312, 17.25786, "ObjectA#1527804601"),
+    ("ObjectA", "01/06/2018 00:10:30+02:00", 55.91219, 17.256948, "ObjectA#1527804601"),
+    ("ObjectA", "01/06/2018 00:10:41+02:00", 55.912043, 17.25584, "ObjectA#1527804601"),
+    ("ObjectA", "01/06/2018 00:10:51+02:00", 55.911913, 17.254835, "ObjectA#1527804601"),
+    ("ObjectA", "01/06/2018 00:11:01+02:00", 55.911793, 17.253932, "ObjectA#1527804601"),
+    ("ObjectA", "01/06/2018 00:11:01+02:00", 55.911793, 17.253932, "ObjectA#1527804601"),
+    ("ObjectA", "01/06/2018 00:11:11+02:00", 55.911653, 17.252918, "ObjectA#1527804601"),
+    ("ObjectA", "01/06/2018 00:11:19+02:00", 55.911528, 17.252012, "ObjectA#1527804601"),
+    ("ObjectA", "01/06/2018 00:11:30+02:00", 55.911378, 17.250905, "ObjectA#1527804601"),
+    ("ObjectA", "01/06/2018 00:11:39+02:00", 55.911263, 17.249997, "ObjectA#1527804601"),
+    ("ObjectA", "01/06/2018 00:11:51+02:00", 55.911108, 17.248792, "ObjectA#1527804601"),
+    ("ObjectA", "01/06/2018 00:12:01+02:00", 55.910995, 17.247897, "ObjectA#1527804601"),
+    ("ObjectA", "01/06/2018 00:12:11+02:00", 55.91086, 17.246888, "ObjectA#1527804601"),
+    ("ObjectA", "01/06/2018 00:12:19+02:00", 55.910738, 17.245978, "ObjectA#1527804601"),
+    ("ObjectA", "01/06/2018 00:12:30+02:00", 55.910592, 17.244872, "ObjectA#1527804601"),
+    ("ObjectA", "01/06/2018 00:12:39+02:00", 55.910472, 17.243963, "ObjectA#1527804601"),
+    ("ObjectA", "01/06/2018 00:12:51+02:00", 55.910308, 17.242745, "ObjectA#1527804601"),
+    ("ObjectB", "01/06/2018 00:00:00+02:00", 56.590177, 11.830633, "ObjectB#1527804000"),
+    ("ObjectB", "01/06/2018 00:00:10+02:00", 56.590058, 11.83063, "ObjectB#1527804000"),
+    ("ObjectB", "01/06/2018 00:00:21+02:00", 56.58993, 11.830625, "ObjectB#1527804000"),
+    ("ObjectB", "01/06/2018 00:00:29+02:00", 56.589837, 11.83062, "ObjectB#1527804000"),
+    ("ObjectB", "01/06/2018 00:00:40+02:00", 56.58971, 11.830603, "ObjectB#1527804000"),
+    ("ObjectB", "01/06/2018 00:00:50+02:00", 56.589603, 11.830595, "ObjectB#1527804000"),
+    ("ObjectB", "01/06/2018 00:01:00+02:00", 56.58949, 11.83058, "ObjectB#1527804000"),
+    ("ObjectB", "01/06/2018 00:07:31+02:00", 56.584978, 11.830578, "ObjectB#1527804451"),
+    ("ObjectB", "01/06/2018 00:07:41+02:00", 56.584867, 11.830587, "ObjectB#1527804451"),
+    ("ObjectB", "01/06/2018 00:07:50+02:00", 56.584767, 11.830597, "ObjectB#1527804451"),
+    ("ObjectB", "01/06/2018 00:08:00+02:00", 56.584652, 11.830608, "ObjectB#1527804451"),
+    ("ObjectB", "01/06/2018 00:08:10+02:00", 56.584535, 11.83062, "ObjectB#1527804451"),
+    ("ObjectB", "01/06/2018 00:08:21+02:00", 56.584412, 11.830625, "ObjectB#1527804451"),
+    ("ObjectB", "01/06/2018 00:08:31+02:00", 56.5843, 11.830632, "ObjectB#1527804451"),
+    ("ObjectB", "01/06/2018 00:08:41+02:00", 56.584183, 11.830645, "ObjectB#1527804451"),
+    ("ObjectB", "01/06/2018 00:08:50+02:00", 56.584083, 11.830653, "ObjectB#1527804451"),
+    ("ObjectB", "01/06/2018 00:09:00+02:00", 56.58398, 11.830665, "ObjectB#1527804451"),
+    ("ObjectB", "01/06/2018 00:09:11+02:00", 56.583827, 11.830682, "ObjectB#1527804451"),
+    ("ObjectB", "01/06/2018 00:09:21+02:00", 56.58372, 11.830692, "ObjectB#1527804451"),
+    ("ObjectB", "01/06/2018 00:09:31+02:00", 56.583603, 11.830705, "ObjectB#1527804451"),
+    ("ObjectB", "01/06/2018 00:09:41+02:00", 56.583485, 11.83071, "ObjectB#1527804451"),
+    ("ObjectB", "01/06/2018 00:09:50+02:00", 56.583383, 11.830713, "ObjectB#1527804451"),
+    ("ObjectB", "01/06/2018 00:10:00+02:00", 56.58327, 11.830705, "ObjectB#1527804451")
   )
 
   "withSequenceId transformation" should "add column sequence_id to DataFrame" in {
 
-    val dataModel = new DataModel(timeFormat = "dd/MM/yyyy HH:mm:ssXXX", sequenceGap = 300)
-    val sourceDF = source.toDF("id", "timestamp", "lat", "lon")
+    val dataModel =
+      new DataModel(timeFormat = "dd/MM/yyyy HH:mm:ssXXX", sequenceGap = 300)
+    val sourceDF = source
+      .toDF("id", "timestamp", "lat", "lon")
       .transform(withArlasTimestamp(dataModel))
       .transform(withArlasPartition(dataModel))
 
@@ -119,17 +125,26 @@ class TransformationWithSequenceIdTest extends FlatSpec with Matchers with TestS
       sourceDF,
       new WithSequenceIdTransformer(dataModel)
     ).drop(arlasTimestampColumn, arlasPartitionColumn)
-    val expectedDF =  expected.toDF("id", "timestamp", "lat", "lon", arlasSequenceIdColumn)
+    val expectedDF =
+      expected.toDF("id", "timestamp", "lat", "lon", arlasSequenceIdColumn)
 
     assertDataFrameEquality(actualDF, expectedDF)
   }
 
   "withSequenceId transformation" should "be able to work with custom data model columns" in {
 
-    val dataModel = new DataModel(idColumn="identifier",timestampColumn="t", latColumn = "latitude", lonColumn = "longitude",
-      dynamicFields = Array("latitude","longitude"), timeFormat = "dd/MM/yyyy HH:mm:ssXXX", sequenceGap = 300)
+    val dataModel = new DataModel(
+      idColumn = "identifier",
+      timestampColumn = "t",
+      latColumn = "latitude",
+      lonColumn = "longitude",
+      dynamicFields = Array("latitude", "longitude"),
+      timeFormat = "dd/MM/yyyy HH:mm:ssXXX",
+      sequenceGap = 300
+    )
 
-    val sourceDF = source.toDF("identifier", "t", "latitude", "longitude")
+    val sourceDF = source
+      .toDF("identifier", "t", "latitude", "longitude")
       .transform(withArlasTimestamp(dataModel))
       .transform(withArlasPartition(dataModel))
 
@@ -138,21 +153,31 @@ class TransformationWithSequenceIdTest extends FlatSpec with Matchers with TestS
       new WithSequenceIdTransformer(dataModel)
     ).drop(arlasTimestampColumn, arlasPartitionColumn)
 
-    val expectedDF =  expected.toDF("identifier", "t", "latitude", "longitude", arlasSequenceIdColumn)
+    val expectedDF =
+      expected.toDF("identifier", "t", "latitude", "longitude", arlasSequenceIdColumn)
 
     assertDataFrameEquality(actualDF, expectedDF)
   }
 
   "withSequenceId transformation" should "consider timestamp without timezone as UTC" in {
 
-    val dataModel = new DataModel(timeFormat = "dd/MM/yyyy HH:mm:ss", sequenceGap = 300)
+    val dataModel =
+      new DataModel(timeFormat = "dd/MM/yyyy HH:mm:ss", sequenceGap = 300)
 
     val oldTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ssXXX")
     val newTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")
 
     //remove date offset from source's timestamp column and shift date for 2 hours to come back to UTC
     val sourceDF = source
-      .map(row => (row._1, LocalDateTime.parse(row._2,oldTimeFormatter).minusHours(2).format(newTimeFormatter), row._3, row._4))
+      .map(
+        row =>
+          (row._1,
+           LocalDateTime
+             .parse(row._2, oldTimeFormatter)
+             .minusHours(2)
+             .format(newTimeFormatter),
+           row._3,
+           row._4))
       .toDF("id", "timestamp", "lat", "lon")
       .transform(withArlasTimestamp(dataModel))
       .transform(withArlasPartition(dataModel))
@@ -160,8 +185,17 @@ class TransformationWithSequenceIdTest extends FlatSpec with Matchers with TestS
       sourceDF,
       new WithSequenceIdTransformer(dataModel)
     ).drop(arlasTimestampColumn, arlasPartitionColumn)
-    val expectedDF =  expected
-      .map(row => (row._1, LocalDateTime.parse(row._2,oldTimeFormatter).minusHours(2).format(newTimeFormatter), row._3, row._4, row._5))
+    val expectedDF = expected
+      .map(
+        row =>
+          (row._1,
+           LocalDateTime
+             .parse(row._2, oldTimeFormatter)
+             .minusHours(2)
+             .format(newTimeFormatter),
+           row._3,
+           row._4,
+           row._5))
       .toDF("id", "timestamp", "lat", "lon", arlasSequenceIdColumn)
 
     assertDataFrameEquality(actualDF, expectedDF)

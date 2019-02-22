@@ -33,17 +33,18 @@ object transformations {
   val arlasTimestampColumn = "arlas_timestamp"
   val arlasPartitionColumn = "arlas_partition"
 
-  def getUdf(timeFormat: String) : UserDefinedFunction = udf{ date: String =>
+  def getUdf(timeFormat: String): UserDefinedFunction = udf { date: String =>
     val timeFormatter = DateTimeFormatter.ofPattern(timeFormat)
     date match {
       case null => None
       case d => {
-        try
-          Some(ZonedDateTime.parse(date, timeFormatter).toEpochSecond)
+        try Some(ZonedDateTime.parse(date, timeFormatter).toEpochSecond)
         catch {
           case dtpe: DateTimeParseException => {
-            try
-              Some(ZonedDateTime.parse(date, timeFormatter.withZone(ZoneOffset.UTC)).toEpochSecond)
+            try Some(
+              ZonedDateTime
+                .parse(date, timeFormatter.withZone(ZoneOffset.UTC))
+                .toEpochSecond)
             catch {
               case _: Exception => None
             }
@@ -54,16 +55,16 @@ object transformations {
     }
   }
 
-  def withArlasTimestamp(dataModel: DataModel)
-                        (df: DataFrame): DataFrame = {
+  def withArlasTimestamp(dataModel: DataModel)(df: DataFrame): DataFrame = {
 
     val timestampConversion = getUdf(dataModel.timeFormat)
-    df.withColumn(arlasTimestampColumn,timestampConversion(col(dataModel.timestampColumn)))
+    df.withColumn(arlasTimestampColumn, timestampConversion(col(dataModel.timestampColumn)))
   }
 
-  def withArlasPartition(dataModel: DataModel)
-                        (df: DataFrame): DataFrame = {
-    df.withColumn(arlasPartitionColumn,date_format(to_date(col(dataModel.timestampColumn),dataModel.timeFormat),"yyyyMMdd").cast(IntegerType))
+  def withArlasPartition(dataModel: DataModel)(df: DataFrame): DataFrame = {
+    df.withColumn(arlasPartitionColumn,
+                  date_format(to_date(col(dataModel.timestampColumn), dataModel.timeFormat),
+                              "yyyyMMdd").cast(IntegerType))
   }
 
 }

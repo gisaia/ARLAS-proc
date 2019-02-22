@@ -37,7 +37,10 @@ trait CassandraApp {
     val connector = CassandraConnector.apply(spark.sparkContext.getConf)
     val session = connector.openSession
     try {
-      session.execute(String.format("CREATE KEYSPACE IF NOT EXISTS %s WITH replication = {'class': 'SimpleStrategy', 'replication_factor':1}", keySpace))
+      session.execute(
+        String.format(
+          "CREATE KEYSPACE IF NOT EXISTS %s WITH replication = {'class': 'SimpleStrategy', 'replication_factor':1}",
+          keySpace))
     } finally if (session != null) session.close()
   }
 
@@ -49,8 +52,7 @@ trait CassandraApp {
         partitionKeyColumns = Some(Seq(arlasPartitionColumn)),
         clusteringKeyColumns = Some(Seq(dataModel.idColumn, arlasTimestampColumn))
       )
-    }
-    catch {
+    } catch {
       case aee: AlreadyExistsException => {
         print("Already existed table")
       }

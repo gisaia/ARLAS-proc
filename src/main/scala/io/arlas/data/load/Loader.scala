@@ -47,8 +47,7 @@ object Loader extends BasicApp with CassandraApp {
     var df: DataFrame = null
     if (source.contains("/")) {
       df = spark.read.parquet(source)
-    }
-    else {
+    } else {
       val ks = source.split('.')(0)
       val ta = source.split('.')(1)
 
@@ -61,8 +60,11 @@ object Loader extends BasicApp with CassandraApp {
     }
 
     df = df
-      .where(col(arlasPartitionColumn) >= Integer.valueOf(start.format(DateTimeFormatter.ofPattern("yyyyMMdd")))
-        && col(arlasPartitionColumn) <= Integer.valueOf(stop.format(DateTimeFormatter.ofPattern("yyyyMMdd"))))
+      .where(
+        col(arlasPartitionColumn) >= Integer.valueOf(
+          start.format(DateTimeFormatter.ofPattern("yyyyMMdd")))
+          && col(arlasPartitionColumn) <= Integer.valueOf(
+            stop.format(DateTimeFormatter.ofPattern("yyyyMMdd"))))
       .where(col(arlasTimestampColumn) >= startSeconds && col(arlasTimestampColumn) <= stopSeconds)
 
     var csvName = s"${runOptions.target}/${csvResultName}_period"
@@ -74,8 +76,7 @@ object Loader extends BasicApp with CassandraApp {
       csvName = s"${runOptions.target}/${csvResultName}_${id}"
     }
 
-    df
-      .coalesce(1)
+    df.coalesce(1)
       .write
       .format("com.databricks.spark.csv")
       .mode(SaveMode.Overwrite)
@@ -85,9 +86,9 @@ object Loader extends BasicApp with CassandraApp {
 
   override def getArgs(map: Loader.ArgumentMap, list: List[String]): Loader.ArgumentMap = {
     list match {
-      case Nil => map
+      case Nil                           => map
       case "--id-value" :: value :: tail => id = value
-      case argument :: tail => println("Unknown argument " + argument)
+      case argument :: tail              => println("Unknown argument " + argument)
     }
     super.getArgs(map, list)
   }
