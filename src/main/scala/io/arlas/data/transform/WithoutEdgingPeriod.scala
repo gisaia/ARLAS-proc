@@ -21,9 +21,12 @@ package io.arlas.data.transform
 
 import java.time.{Instant, ZoneOffset, ZonedDateTime}
 
-import io.arlas.data.extract.transformations.{arlasPartitionColumn, arlasTimestampColumn}
+import io.arlas.data.extract.transformations.{
+  arlasPartitionColumn,
+  arlasTimestampColumn,
+  arlasSequenceIdColumn
+}
 import io.arlas.data.model.{DataModel, RunOptions}
-import io.arlas.data.transform.transformations.arlasSequenceIdColumn
 import org.apache.spark.sql.{DataFrame, Dataset, Row, SparkSession}
 
 class WithoutEdgingPeriod(dataModel: DataModel, runOptions: RunOptions, spark: SparkSession)

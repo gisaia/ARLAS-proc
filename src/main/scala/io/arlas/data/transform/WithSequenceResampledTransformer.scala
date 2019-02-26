@@ -19,10 +19,13 @@
 
 package io.arlas.data.transform
 
-import io.arlas.data.extract.transformations.{arlasPartitionColumn, arlasTimestampColumn}
+import io.arlas.data.extract.transformations.{
+  arlasPartitionColumn,
+  arlasTimestampColumn,
+  arlasSequenceIdColumn
+}
 import io.arlas.data.math.interpolations.splineInterpolateAndResample
 import io.arlas.data.model.DataModel
-import io.arlas.data.transform.transformations.arlasSequenceIdColumn
 import org.apache.spark.sql.{DataFrame, Dataset, Row, SparkSession}
 
 class WithSequenceResampledTransformer(dataModel: DataModel, spark: SparkSession)

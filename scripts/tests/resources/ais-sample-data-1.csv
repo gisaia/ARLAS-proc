@@ -13,6 +13,10 @@ timestamp,type_of_mobile,mmsi,latitude,longitude,navigational_status,rot,sog,cog
 2018-01-01T03:09:17.000Z,Base Station,265513250,56.112430,11.666634,,,14.6,5.35,,,,,,,,,Undefined,,,,AIS
 2018-01-01T03:09:22.000Z,Base Station,265513250,56.148124,11.390748,,,14.9,5.8,,,,,,,,,Undefined,,,,AIS
 2018-01-01T03:09:26.000Z,Base Station,265513250,56.080822,11.026482,,,15.2,6.25,,,,,,,,,Undefined,,,,AIS
+2018-01-01T23:55:13.000Z,Base Station,265513250,56.174596,11.885253,,,14.3,4.9,,,,,,,,,Undefined,,,,AIS
+2018-01-01T23:56:17.000Z,Base Station,265513250,56.112430,11.666634,,,14.6,5.35,,,,,,,,,Undefined,,,,AIS
+2018-01-01T23:58:22.000Z,Base Station,265513250,56.148124,11.390748,,,14.9,5.8,,,,,,,,,Undefined,,,,AIS
+2018-01-01T23:59:26.000Z,Base Station,265513250,56.080822,11.026482,,,15.2,6.25,,,,,,,,,Undefined,,,,AIS
 2018-01-01T05:01:00.000Z,Class A,211457860,54.3,9.8,Under way using engine,,78.8,17.8,,,,,Undefined,,,,Undefined,,,,AIS
 2018-01-01T05:01:07.000Z,Class A,211457860,54.4,9.9,Under way using engine,,80.8,19.6,,,,,Undefined,,,,,,,,AIS
 2018-01-01T05:01:18.000Z,Class A,211457860,54.5,10,Under way using engine,,82.8,21.4,,,,,Undefined,,,,,,,,AIS
@@ -26,4 +30,7 @@ timestamp,type_of_mobile,mmsi,latitude,longitude,navigational_status,rot,sog,cog
 2018-01-01T05:08:14.000Z,Class A,211457860,55.3,10.8,Under way using engine,,98.8,35.8,53,Unknown,,,Undefined,,,,Undefined,,,,AIS
 2018-01-01T05:08:19.000Z,Class A,211457860,55.4,10.9,Under way using engine,,100.8,37.6,,Unknown,,,Undefined,,,,Undefined,,,,AIS
 2018-01-01T05:08:24.000Z,Class A,211457860,55.5,11,Under way using engine,,102.8,39.4,,Unknown,,,Undefined,,,,Undefined,,,,AIS
-2018-01-01T05:08:29.000Z,Class A,211457860,55.5,11,Under way using engine,,102.8,39.4,,Unknown,,,Undefined,,,,Undefined,,,,AIS
+2018-01-01T23:55:29.000Z,Class A,211457860,55.5,11,Under way using engine,,102.8,39.4,,Unknown,,,Undefined,,,,Undefined,,,,AIS
+2018-01-01T23:57:29.000Z,Class A,211457860,55.5,11,Under way using engine,,102.8,39.4,,Unknown,,,Undefined,,,,Undefined,,,,AIS
+2018-01-01T23:58:29.000Z,Class A,211457860,55.5,11,Under way using engine,,102.8,39.4,,Unknown,,,Undefined,,,,Undefined,,,,AIS
+2018-01-01T23:59:29.000Z,Class A,211457860,55.5,11,Under way using engine,,102.8,39.4,,Unknown,,,Undefined,,,,Undefined,,,,AIS

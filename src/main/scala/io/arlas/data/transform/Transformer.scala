@@ -21,10 +21,9 @@ package io.arlas.data.transform
 
 import java.time.format.DateTimeFormatter
 import java.time.{ZoneOffset, ZonedDateTime}
-
+import io.arlas.data.transform.transformations.doPipelineTransform
 import io.arlas.data.extract.transformations._
 import io.arlas.data.model.{DataModel, RunOptions}
-import io.arlas.data.transform.transformations._
 import io.arlas.data.utils.{BasicApp, CassandraApp}
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
@@ -42,7 +41,6 @@ object Transformer extends BasicApp with CassandraApp {
     // transform raw data
     var transformedDf: DataFrame = doPipelineTransform(
       df,
-      new WithSequenceIdTransformer(dataModel),
       new WithSequenceResampledTransformer(dataModel, spark),
       new WithoutEdgingPeriod(dataModel, runOptions, spark)
     )
