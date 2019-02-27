@@ -21,15 +21,15 @@ package io.arlas.data.transform
 
 import io.arlas.data.model.DataModel
 import io.arlas.data.utils.DataFrameException
-import org.apache.spark.ml.Transformer
+import org.apache.spark.ml.{Transformer => SparkTransformer}
 import org.apache.spark.ml.param.ParamMap
 import org.apache.spark.ml.util.Identifiable
 import org.apache.spark.sql.types.StructType
 
 abstract class ArlasTransformer(val dataModel: DataModel, val requiredCols: Vector[String])
-    extends Transformer {
+    extends SparkTransformer {
 
-  override def copy(extra: ParamMap): Transformer = {
+  override def copy(extra: ParamMap): SparkTransformer = {
     defaultCopy(extra)
   }
 
