@@ -1,19 +1,26 @@
 #!/usr/bin/env bash
 
-set -e -o pipefail
+function docker_clean {
+    echo "===> Shutdown docker stack"
+    docker-compose -f scripts/tests/docker-compose-${MODE}.yml down --remove-orphans
+    docker run --rm \
+        -v $PWD:/opt/work \
+        -v $HOME/.m2:/root/.m2 \
+        -v $HOME/.ivy2:/root/.ivy2 \
+        gisaia/sbt:1.2.7_jdk8 \
+        /bin/bash -c 'sbt clean; rm -rf target project/target project/project spark-warehouse tmp'
+}
 
-if [[ "${DEBUG}" == true ]]; then
-  set -x
-fi
+clean_exit() {
+    ARG=$?
+	echo "===> Exit stage ${STAGE} = ${ARG}"
+    docker_clean
+    exit $ARG
+}
 
-if [ "${1}" = "cluster" ]
-then
-    MODE="cluster"
-    TOTAL_EXECUTOR_CORES=4
-else
-    MODE="standalone"
-    TOTAL_EXECUTOR_CORES=2
-fi
+trap clean_exit EXIT
+
+docker_clean
 
 echo "===> Build sbt project"
 docker run --rm \
@@ -23,8 +30,14 @@ docker run --rm \
         gisaia/sbt:1.2.7_jdk8 \
         /bin/bash -c 'sbt clean test package; mv target/scala-2.11/arlas-data*.jar target/arlas-data.jar'
 
+echo "===> Start Spark and ScyllaDB clusters"
+docker-compose -f scripts/tests/docker-compose-${MODE}.yml up -d
 
-sparkJobSubmit() {
+echo "===> Waiting for ScyllaDB"
+docker run --network gisaia-network --rm busybox sh -c 'i=1; until nc -w 2 gisaia-scylla-db 9042; do if [ $i -lt 30 ]; then sleep 1; else break; fi; i=$(($i + 1)); done'
+echo "===> ScyllaDB is up and running"
+
+submit_spark_job() {
     echo "  => submit $1 from $2 to $3 between $4 to $5"
     docker run --rm \
        --network gisaia-network \
@@ -60,26 +73,3 @@ sparkJobSubmit() {
             --dynamic latitude,longitude,sog,cog,heading,rot,draught \
             --timeformat "yyyy-MM-dd'T'HH:mm:ss.SSSX"
 }
-
-echo "===> Elasticsearch loader run 1"
-sparkJobSubmit "io.arlas.data.load.ESLoader" "ais_ks.ais_table" "ais_filtered_data/point" "2018-01-01T00:00:00+00:00" "2018-01-01T23:59:59+00:00"
-
-echo "===> Elasticsearch loader run 2"
-sparkJobSubmit "io.arlas.data.load.ESLoader" "ais_ks.ais_table" "ais_filtered_data/point" "2018-01-02T00:00:00+00:00" "2018-01-02T23:59:59+00:00"
-
-echo "===> Check result"
-mkdir -p tmp
-
-docker exec -it gisaia-elasticsearch curl -X GET 'localhost:9200/ais_filtered_data/_search?pretty=true&filter_path=hits'  -H 'Content-Type: application/json' -d '{"size" : 100,"query" : {"match_all" : {}}, "sort" : [ { "_id" : {"order": "desc"}}]}' >>tmp/test-output-es.txt 2>&1
-
-OUTPUT_DIFFS=`diff -bB tmp/test-output-es.txt ./scripts/tests/test-output-es.txt` || echo "test output checking"
-if [ -z "${OUTPUT_DIFFS}" ]; then
-   echo "test is OK"
-else
-   echo "test is KO"
-   echo "Missing some lines in output :"
-   echo ${OUTPUT_DIFFS}
-fi
-
-docker exec -it gisaia-elasticsearch curl -X DELETE "localhost:9200/ais_filtered_data"
-rm -rf tmp
