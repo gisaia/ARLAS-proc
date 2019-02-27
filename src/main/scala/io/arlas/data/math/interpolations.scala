@@ -71,7 +71,7 @@ object interpolations {
             (column -> function)
           }
         } catch {
-          case e => {
+          case e: Throwable => {
             val function = (ts: Long) => null
             (column -> function)
           }
