@@ -56,6 +56,22 @@ services:
         - /tmp/data/scylla-db:/var/lib/scylla-db
       networks:
         - gisaia-network
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:${ELASTIC_VERSION:-6.4.0}
+    hostname: gisaia-elasticsearch
+    container_name: gisaia-elasticsearch
+    environment:
+    - cluster.name=docker-cluster
+    - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    - xpack.security.enabled=false
+    - xpack.monitoring.enabled=false
+    - xpack.graph.enabled=false
+    - xpack.watcher.enabled=false
+    ports:
+    - 19200:9200
+    - 19300:9300
+    networks:
+    - gisaia-network
 networks:
   gisaia-network:
     name: gisaia-network

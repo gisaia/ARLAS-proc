@@ -12,11 +12,15 @@ val cassandra = Seq(sparkCassandraConnector)
 
 val scalaTest = "org.scalatest" %% "scalatest" % "2.2.5"
 
+val elasticSearch = "org.elasticsearch" %% "elasticsearch-spark-20" % "6.4.0" % "provided"
+val elastic = Seq(elasticSearch)
+
 lazy val arlasData = (project in file("."))
   .settings(
     name := "arlas-data",
     libraryDependencies ++= spark,
     libraryDependencies ++= cassandra,
+    libraryDependencies ++= elastic,
     libraryDependencies += scalaTest % Test
   )
 
