@@ -19,17 +19,16 @@
 
 package io.arlas.data.extract
 
-import java.time.{Instant, ZoneOffset, ZonedDateTime}
 import java.time.format.DateTimeFormatter
-import java.time.temporal.ChronoUnit
+import java.time.{Instant, ZoneOffset, ZonedDateTime}
 
 import io.arlas.data.extract.transformations._
 import io.arlas.data.model.{DataModel, RunOptions}
 import io.arlas.data.utils.BasicApp
 import io.arlas.data.utils.DataFrameHelper._
+import org.apache.spark.sql._
 import org.apache.spark.sql.functions.{col, lit, min}
 import org.apache.spark.sql.types.StringType
-import org.apache.spark.sql._
 
 import scala.util.{Failure, Success, Try}
 
@@ -48,12 +47,10 @@ object CSVExtractor extends BasicApp {
       .transform(withArlasTimestamp(dataModel))
       .transform(withArlasPartition(dataModel))
 
-    val minimumDate = ZonedDateTime.ofInstant(
-      Instant.ofEpochSecond(csvDf.select(min(arlasTimestampColumn)).head().getLong(0)),
-      ZoneOffset.UTC)
+    val minimumDate = csvDf.select(min(arlasTimestampColumn)).head().getLong(0)
 
     unionWithParquetData(spark, runOptions, dataModel, csvDf, minimumDate)
-      .where(col(arlasTimestampColumn) >= minimumDate.toEpochSecond)
+      .where(col(arlasTimestampColumn) >= minimumDate)
       .write
       .option("compression", "snappy")
       .option("parquet.block.size", PARQUET_BLOCK_SIZE.toString)
@@ -66,10 +63,13 @@ object CSVExtractor extends BasicApp {
                            runOptions: RunOptions,
                            dataModel: DataModel,
                            sourceDF: DataFrame,
-                           minDate: ZonedDateTime): DataFrame = {
+                           minDate: Long): DataFrame = {
 
-    val startDate = minDate.truncatedTo(ChronoUnit.DAYS).minusSeconds(2 * dataModel.sequenceGap)
-    val endDate = minDate.truncatedTo(ChronoUnit.DAYS)
+    val startDate = ZonedDateTime
+      .ofInstant(Instant.ofEpochSecond(minDate), ZoneOffset.UTC)
+      .minusSeconds(2 * dataModel.sequenceGap)
+    val endDate = ZonedDateTime
+      .ofInstant(Instant.ofEpochSecond(minDate), ZoneOffset.UTC)
     val startSeconds = startDate.toEpochSecond
     val stopSeconds = endDate.toEpochSecond
 
