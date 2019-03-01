@@ -40,7 +40,7 @@ sbt package
 # Deploy jar
 # Ensure to provide your Google Cloud Storage credentials
 # @see : https://github.com/Tapad/sbt-gcs#credentials
-sbt [-DgcsProject=arlas-lsfp] [-DgcsBucket=arlas-data] [-DgcsBucketPath=/artifacts] gcs:publish
+sbt [-DgcsProject=arlas-lsfp] [-DgcsBucket=arlas-proc] [-DgcsBucketPath=/artifacts] gcs:publish
 ```
 
 # Integration tests

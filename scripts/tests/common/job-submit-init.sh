@@ -28,7 +28,7 @@ docker run --rm \
         -v $HOME/.m2:/root/.m2 \
         -v $HOME/.ivy2:/root/.ivy2 \
         gisaia/sbt:1.2.7_jdk8 \
-        /bin/bash -c 'sbt clean test package; mv target/scala-2.11/arlas-data*.jar target/arlas-data.jar'
+        /bin/bash -c 'sbt clean test package; mv target/scala-2.11/arlas-proc*.jar target/arlas-proc.jar'
 
 echo "===> Start Spark and ScyllaDB clusters"
 docker-compose -f scripts/tests/docker-compose-${MODE}.yml up -d
@@ -61,7 +61,7 @@ submit_spark_job() {
            --conf spark.es.nodes="gisaia-elasticsearch" \
            --conf spark.es.index.auto.create="true" \
            --packages datastax:spark-cassandra-connector:2.3.1-s_2.11,org.elasticsearch:elasticsearch-spark-20_2.11:6.4.0 \
-           /opt/work/target/arlas-data.jar \
+           /opt/work/target/arlas-proc.jar \
             --source "$2" \
             --target "$3" \
             --start "$4" \
