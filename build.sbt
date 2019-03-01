@@ -15,9 +15,9 @@ val scalaTest = "org.scalatest" %% "scalatest" % "2.2.5"
 val elasticSearch = "org.elasticsearch" %% "elasticsearch-spark-20" % "6.4.0" % "provided"
 val elastic = Seq(elasticSearch)
 
-lazy val arlasData = (project in file("."))
+lazy val arlasProc = (project in file("."))
   .settings(
-    name := "arlas-data",
+    name := "arlas-proc",
     libraryDependencies ++= spark,
     libraryDependencies ++= cassandra,
     libraryDependencies ++= elastic,
@@ -27,4 +27,4 @@ lazy val arlasData = (project in file("."))
 // publish artifact to GCP
 enablePlugins(GcsPlugin)
 gcsProjectId := sys.props.getOrElse("gcsProject", default = "arlas-lsfp")
-gcsBucket := sys.props.getOrElse("gcsBucket", default = "arlas-data")+sys.props.getOrElse("gcsBucketPath", default = "/artifacts")
+gcsBucket := sys.props.getOrElse("gcsBucket", default = "arlas-proc")+sys.props.getOrElse("gcsBucketPath", default = "/artifacts")
