@@ -23,6 +23,7 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
 import io.arlas.data.extract.transformations._
+import io.arlas.data.transform.transformations._
 import io.arlas.data.model.{DataModel, RunOptions}
 import io.arlas.data.transform.transformations.doPipelineTransform
 import io.arlas.data.{DataFrameTester, TestSparkSession}
@@ -155,7 +156,7 @@ class TransformationWithoutEdgingPeriodTest
     val oldTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ssXXX")
     val sourceDF = source.toDF("id", "timestamp", "lat", "lon")
 
-    var runOptions = new RunOptions(
+    val runOptions = new RunOptions(
       source = "",
       target = "",
       start = Some(ZonedDateTime.parse("01/06/2018 00:00:00+02:00", oldTimeFormatter)),
@@ -168,10 +169,10 @@ class TransformationWithoutEdgingPeriodTest
       .transform(withArlasTimestamp(dataModel))
       .transform(withArlasPartition(dataModel))
       .withColumn(arlasSequenceIdColumn, lit(null).cast(StringType))
-      .transform(fillSequenceId(dataModel))
 
     val transformedDf: DataFrame = doPipelineTransform(
       actualDF,
+      new WithSequenceId(dataModel),
       new WithoutEdgingPeriod(dataModel, runOptions, spark)
     ).drop(arlasTimestampColumn, arlasPartitionColumn)
 

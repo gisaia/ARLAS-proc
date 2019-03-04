@@ -19,16 +19,17 @@
 
 package io.arlas.data.transform
 
-import io.arlas.data.extract.transformations.{
-  arlasPartitionColumn,
-  arlasTimestampColumn,
-  arlasSequenceIdColumn
-}
+import java.time.{ZoneOffset, ZonedDateTime}
+
+import io.arlas.data.extract.transformations.{arlasPartitionColumn, arlasTimestampColumn}
+import io.arlas.data.transform.transformations._
 import io.arlas.data.math.interpolations.splineInterpolateAndResample
-import io.arlas.data.model.DataModel
+import io.arlas.data.model.{DataModel, RunOptions}
 import org.apache.spark.sql.{DataFrame, Dataset, Row, SparkSession}
 
-class WithSequenceResampledTransformer(dataModel: DataModel, spark: SparkSession)
+class WithSequenceResampledTransformer(dataModel: DataModel,
+                                       runOptions: RunOptions,
+                                       spark: SparkSession)
     extends ArlasTransformer(
       dataModel,
       Vector(arlasTimestampColumn, arlasPartitionColumn, arlasSequenceIdColumn)) {
@@ -40,6 +41,10 @@ class WithSequenceResampledTransformer(dataModel: DataModel, spark: SparkSession
     val columns = dataset.columns
     val schema = dataset.schema
 
+    // write transformed data
+    val minSequenceStopEpochSeconds =
+      runOptions.start.getOrElse(ZonedDateTime.now(ZoneOffset.UTC).minusHours(1)).toEpochSecond
+
     //added toDf()
     val interpolatedRows = dataset
       .toDF()
@@ -49,7 +54,7 @@ class WithSequenceResampledTransformer(dataModel: DataModel, spark: SparkSession
       .reduceByKey(_ ++ _)
       .flatMap {
         case (_, sequence) =>
-          splineInterpolateAndResample(dataModel, sequence, columns)
+          splineInterpolateAndResample(dataModel, sequence, columns, minSequenceStopEpochSeconds)
       }
       .map(entry => Row.fromSeq(columns.map(entry.getOrElse(_, null)).toSeq))
 

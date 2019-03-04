@@ -30,7 +30,8 @@ object interpolations {
 
   def splineInterpolateAndResample(dataModel: DataModel,
                                    rawSequence: List[Map[String, Any]],
-                                   columns: Array[String]): List[Map[String, Any]] = {
+                                   columns: Array[String],
+                                   minSequenceStopEpochSeconds: Long): List[Map[String, Any]] = {
 
     // sort sequence and drop duplicates
     val orderedRawSequence = rawSequence
@@ -45,65 +46,73 @@ object interpolations {
       (tsSequence.min - tsSequence.min % dataModel.timeSampling + dataModel.timeSampling).toLong
     val maxTs =
       (tsSequence.max - tsSequence.max % dataModel.timeSampling).toLong
-    val resampledSequence = List.range(minTs, maxTs, dataModel.timeSampling)
 
-    // get interpolation functions for each column (dynamics and static)
-    val interpolator = new SplineInterpolator()
-    val interpolators = columns
-      .map(column => {
-        //TODO remove try block and improve code to be resilient to exceptions
-        //TODO support dynamic columns with null cells
-        try {
-          if (dataModel.dynamicFields.contains(column)) {
-            val values = orderedRawSequence
-              .map(row => row.getOrElse(column, 0.0d).toString.toDouble)
-              .toArray
-            val interpolatedFunction =
-              interpolator.interpolate(tsSequence, values)
-            val function = (ts: Long) => interpolatedFunction.value(ts.toDouble)
-            (column -> function)
-          } else {
-            val value = orderedRawSequence
-              .map(row => row.getOrElse(column, null))
-              .filter(_ != null)
-              .head
-            val function = (ts: Long) => value.toString
-            (column -> function)
+    // ensure that sequence is at least part of the job period
+    if (maxTs > minSequenceStopEpochSeconds) {
+      val resampledSequence = List.range(minTs, maxTs, dataModel.timeSampling)
+
+      // get interpolation functions for each column (dynamics and static)
+      val interpolator = new SplineInterpolator()
+      val interpolators = columns
+        .map(column => {
+          //TODO remove try block and improve code to be resilient to exceptions
+          //TODO support dynamic columns with null cells
+          try {
+            if (dataModel.dynamicFields.contains(column)) {
+              val values = orderedRawSequence
+                .map(row => row.getOrElse(column, 0.0d).toString.toDouble)
+                .toArray
+              val interpolatedFunction =
+                interpolator.interpolate(tsSequence, values)
+              val function = (ts: Long) => interpolatedFunction.value(ts.toDouble)
+              (column -> function)
+            } else {
+              val value = orderedRawSequence
+                .map(row => row.getOrElse(column, null))
+                .filter(_ != null)
+                .head
+              val function = (ts: Long) => value.toString
+              (column -> function)
+            }
+          } catch {
+            case e: Throwable => {
+              val function = (ts: Long) => null
+              (column -> function)
+            }
           }
-        } catch {
-          case e: Throwable => {
-            val function = (ts: Long) => null
-            (column -> function)
-          }
-        }
 
-      })
-      .toMap
+        })
+        .toMap
 
-    // create resampled and interpolated row sequence
-    val timeFormatter = DateTimeFormatter.ofPattern(dataModel.timeFormat)
-    resampledSequence
-      .map(timestamp => {
-        columns
-          .map(column =>
-            column -> {
-              if (column.equals(arlasTimestampColumn)) {
-                timestamp
-              } else if (column.equals(arlasPartitionColumn)) {
-                val interpolator =
-                  interpolators.getOrElse(column, (_: Long) => null)
-                Integer.valueOf(interpolator(timestamp).toString)
-              } else if (column.equals(dataModel.timestampColumn)) {
-                ZonedDateTime
-                  .ofInstant(Instant.ofEpochSecond(timestamp), ZoneOffset.UTC)
-                  .format(timeFormatter)
-              } else {
-                val interpolator =
-                  interpolators.getOrElse(column, (_: Long) => null)
-                interpolator(timestamp)
-              }
-          })
-          .toMap
-      })
+      // create resampled and interpolated row sequence
+      val timeFormatter = DateTimeFormatter.ofPattern(dataModel.timeFormat)
+      val partitionFormatter = DateTimeFormatter.ofPattern("yyyyMMdd")
+      resampledSequence
+        .map(timestamp => {
+          columns
+            .map(column =>
+              column -> {
+                if (column.equals(arlasTimestampColumn)) {
+                  timestamp
+                } else if (column.equals(arlasPartitionColumn)) {
+                  Integer.valueOf(
+                    ZonedDateTime
+                      .ofInstant(Instant.ofEpochSecond(timestamp), ZoneOffset.UTC)
+                      .format(partitionFormatter))
+                } else if (column.equals(dataModel.timestampColumn)) {
+                  ZonedDateTime
+                    .ofInstant(Instant.ofEpochSecond(timestamp), ZoneOffset.UTC)
+                    .format(timeFormatter)
+                } else {
+                  val interpolator =
+                    interpolators.getOrElse(column, (_: Long) => null)
+                  interpolator(timestamp)
+                }
+            })
+            .toMap
+        })
+    } else {
+      List()
+    }
   }
 }
