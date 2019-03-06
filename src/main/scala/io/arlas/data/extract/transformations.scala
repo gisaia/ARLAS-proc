@@ -33,6 +33,7 @@ object transformations {
   val arlasTimestampColumn = "arlas_timestamp"
   val arlasPartitionColumn = "arlas_partition"
   val arlasSequenceIdColumn = "arlas_sequence_id"
+  val arlasDistanceColumn = "arlas_distance"
 
   def getUdf(timeFormat: String): UserDefinedFunction = udf { date: String =>
     val timeFormatter = DateTimeFormatter.ofPattern(timeFormat)
