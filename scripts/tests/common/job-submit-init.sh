@@ -60,7 +60,9 @@ submit_spark_job() {
            --conf spark.rpc.netty.dispatcher.numThreads="2" \
            --conf spark.es.nodes="gisaia-elasticsearch" \
            --conf spark.es.index.auto.create="true" \
-           --packages datastax:spark-cassandra-connector:2.3.1-s_2.11,org.elasticsearch:elasticsearch-spark-20_2.11:6.4.0 \
+           --packages datastax:spark-cassandra-connector:2.3.1-s_2.11,org.elasticsearch:elasticsearch-spark-20_2.11:6.4.0,org.geotools:gt-referencing:20.1,org.geotools:gt-geometry:20.1,org.geotools:gt-epsg-hsql:20.1 \
+           --exclude-packages javax.media:jai_core \
+           --repositories http://repo.boundlessgeo.com/main,http://download.osgeo.org/webdav/geotools/,http://central.maven.org/maven2/ \
            /opt/work/target/arlas-proc.jar \
             --source "$2" \
             --target "$3" \

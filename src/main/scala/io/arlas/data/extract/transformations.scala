@@ -33,6 +33,7 @@ object transformations {
   val arlasTimestampColumn = "arlas_timestamp"
   val arlasPartitionColumn = "arlas_partition"
   val arlasSequenceIdColumn = "arlas_sequence_id"
+  val arlasDistanceColumn = "arlas_distance"
 
   def getUdf(timeFormat: String): UserDefinedFunction = udf { date: String =>
     val timeFormatter = DateTimeFormatter.ofPattern(timeFormat)
@@ -68,17 +69,19 @@ object transformations {
                               "yyyyMMdd").cast(IntegerType))
   }
 
-  def fillSequenceId(dataModel: DataModel)
-                    (df: DataFrame): DataFrame = {
+  def fillSequenceId(dataModel: DataModel)(df: DataFrame): DataFrame = {
     val window = Window.partitionBy(dataModel.idColumn).orderBy(arlasTimestampColumn)
     val gap = col(arlasTimestampColumn) - lag(arlasTimestampColumn, 1).over(window)
-    val sequenceId = when(col("gap").isNull || col("gap") > dataModel.sequenceGap, concat(col(dataModel.idColumn), lit("#"), col(arlasTimestampColumn)))
+    val sequenceId = when(col("gap").isNull || col("gap") > dataModel.sequenceGap,
+                          concat(col(dataModel.idColumn), lit("#"), col(arlasTimestampColumn)))
 
-    df
-      .withColumn("gap", gap)
-      .withColumn("row_sequence_id", when(col(arlasSequenceIdColumn).isNull, sequenceId).otherwise(col(arlasSequenceIdColumn)))
+    df.withColumn("gap", gap)
+      .withColumn(
+        "row_sequence_id",
+        when(col(arlasSequenceIdColumn).isNull, sequenceId).otherwise(col(arlasSequenceIdColumn)))
       .withColumn(arlasSequenceIdColumn,
-        last("row_sequence_id", ignoreNulls = true).over(window.rowsBetween(Window.unboundedPreceding, 0)))
+                  last("row_sequence_id", ignoreNulls = true).over(
+                    window.rowsBetween(Window.unboundedPreceding, 0)))
       .drop("row_sequence_id", "gap")
   }
 }
