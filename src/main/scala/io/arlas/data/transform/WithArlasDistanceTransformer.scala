@@ -22,9 +22,9 @@ package io.arlas.data.transform
 import io.arlas.data.extract.transformations.{
   arlasDistanceColumn,
   arlasPartitionColumn,
-  arlasSequenceIdColumn,
   arlasTimestampColumn
 }
+import io.arlas.data.transform.transformations.arlasSequenceIdColumn
 import io.arlas.data.model.{DataModel, RunOptions}
 import org.apache.spark.sql.api.java.UDF4
 import org.apache.spark.sql.expressions.Window

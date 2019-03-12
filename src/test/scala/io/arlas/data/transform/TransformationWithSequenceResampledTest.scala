@@ -23,7 +23,7 @@ import java.time._
 import java.time.format.DateTimeFormatter
 
 import io.arlas.data.extract.transformations._
-import io.arlas.data.model.DataModel
+import io.arlas.data.model.{DataModel, RunOptions}
 import io.arlas.data.transform.transformations._
 import io.arlas.data.{DataFrameTester, TestSparkSession}
 import org.apache.commons.math3.analysis.interpolation.SplineInterpolator
@@ -108,17 +108,66 @@ class TransformationWithSequenceResampledTest
 
     val sourceDF = source.toDF("id", "timestamp", "lat", "lon")
 
+    val timeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ssXXX")
+    val runOptions = new RunOptions(
+      source = "",
+      target = "",
+      start = Some(ZonedDateTime.parse("01/06/2018 00:00:00+02:00", timeFormatter)),
+      stop = Some(ZonedDateTime.parse("01/06/2018 00:15:00+02:00", timeFormatter)),
+      warmingPeriod = Some(0l),
+      endingPeriod = Some(0l)
+    )
+
     val actualDF = sourceDF
       .transform(withArlasTimestamp(dataModel))
       .transform(withArlasPartition(dataModel))
       .withColumn(arlasSequenceIdColumn, lit(null).cast(StringType))
-      .transform(fillSequenceId(dataModel))
 
     val transformedDf: DataFrame =
-      doPipelineTransform(actualDF, new WithSequenceResampledTransformer(dataModel, spark))
+      doPipelineTransform(actualDF,
+                          new WithSequenceId(dataModel),
+                          new WithSequenceResampledTransformer(dataModel, runOptions, spark))
         .drop(arlasTimestampColumn, arlasPartitionColumn)
 
     val expectedDF = expected
+      .toDF("id", "timestamp", "lat", "lon", arlasSequenceIdColumn)
+
+    assertDataFrameEquality(transformedDf, expectedDF)
+  }
+
+  "withSequenceResampled transformation" should " ignore sequences finished before runOption.start" in {
+
+    val dataModel =
+      new DataModel(timeFormat = "dd/MM/yyyy HH:mm:ssXXX", sequenceGap = 300)
+
+    val sourceDF = source.toDF("id", "timestamp", "lat", "lon")
+
+    val timeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ssXXX")
+    val runOptions = new RunOptions(
+      source = "",
+      target = "",
+      start = Some(ZonedDateTime.parse("01/06/2018 00:09:59+02:00", timeFormatter)),
+      stop = Some(ZonedDateTime.parse("01/06/2018 00:15:00+02:00", timeFormatter)),
+      warmingPeriod = Some(0l),
+      endingPeriod = Some(0l)
+    )
+
+    val actualDF = sourceDF
+      .transform(withArlasTimestamp(dataModel))
+      .transform(withArlasPartition(dataModel))
+      .withColumn(arlasSequenceIdColumn, lit(null).cast(StringType))
+
+    val transformedDf: DataFrame =
+      doPipelineTransform(actualDF,
+                          new WithSequenceId(dataModel),
+                          new WithSequenceResampledTransformer(dataModel, runOptions, spark))
+        .drop(arlasTimestampColumn, arlasPartitionColumn)
+
+    val expectedDF = expected
+      .filter {
+        case (id, timestamp, lat, lon, sequenceId) =>
+          sequenceId.equals("ObjectA#1527804601") || sequenceId.equals("ObjectB#1527804451")
+      }
       .toDF("id", "timestamp", "lat", "lon", arlasSequenceIdColumn)
 
     assertDataFrameEquality(transformedDf, expectedDF)

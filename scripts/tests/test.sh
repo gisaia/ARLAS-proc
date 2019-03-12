@@ -92,14 +92,14 @@ docker run --net gisaia-network --rm --entrypoint cqlsh scylladb/scylla:2.2.0 \
     -e 'SELECT COUNT(*) FROM ais_ks.ais_table' gisaia-scylla-db >>tmp/test-scylla-output.txt 2>&1
 docker run --net gisaia-network --rm --entrypoint cqlsh scylladb/scylla:2.2.0 \
     -e 'SELECT * FROM ais_ks.ais_table' gisaia-scylla-db >>tmp/test-scylla-output.txt 2>&1
-tail -n +0 tmp/test-scylla-output.txt
-OUTPUT_DIFFS=`grep -v -f <(grep . < tmp/test-scylla-output.txt) ./scripts/tests/output/scylladb.txt` || echo "test output checking"
+OUTPUT_DIFFS=`diff -bB <(sort tmp/test-scylla-output.txt) <(sort ./scripts/tests/output/scylladb.txt)` || echo "test output checking"
 if [ -z "${OUTPUT_DIFFS}" ]; then
    echo "ScyllaDB test is OK"
 else
    echo "ScyllaDB test is KO"
-   echo "Missing some lines in output :"
-   echo ${OUTPUT_DIFFS}
+   echo "Diff betwwen actual and expected output :"
+   diff -bB <(sort tmp/test-scylla-output.txt) <(sort ./scripts/tests/output/scylladb.txt)
+   exit -1
 fi
 
 #######################################################################
@@ -108,12 +108,12 @@ fi
 echo "===> Check Elasticsearch results"
 
 docker exec -it gisaia-elasticsearch curl -X GET 'localhost:9200/ais_filtered_data/_search?pretty=true&filter_path=hits'  -H 'Content-Type: application/json' -d '{"size" : 100,"query" : {"match_all" : {}}, "sort" : [ { "_id" : {"order": "desc"}}]}' >>tmp/test-elasticsearch-output.txt 2>&1
-head -100 tmp/test-elasticsearch-output.txt
-OUTPUT_DIFFS=`diff -bB tmp/test-elasticsearch-output.txt ./scripts/tests/output/elasticsearch.txt` || echo "test output checking"
+OUTPUT_DIFFS=`diff -bB <(sort tmp/test-elasticsearch-output.txt) <(sort ./scripts/tests/output/elasticsearch.txt)` || echo "test output checking"
 if [ -z "${OUTPUT_DIFFS}" ]; then
    echo "Elasticsearch test is OK"
 else
    echo "Elasticsearch test is KO"
-   echo "Missing some lines in output :"
-   echo ${OUTPUT_DIFFS}
+   echo "Diff betwwen actual and expected output :"
+   diff -bB <(sort tmp/test-elasticsearch-output.txt) <(sort ./scripts/tests/output/elasticsearch.txt)
+   exit -1
 fi

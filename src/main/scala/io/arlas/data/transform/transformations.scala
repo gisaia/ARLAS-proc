@@ -24,6 +24,8 @@ import org.apache.spark.sql.DataFrame
 
 object transformations {
 
+  val arlasSequenceIdColumn = "arlas_sequence_id"
+
   /**
     * Create a pipeline and apply within the Transforms to the dataframe
     * @param df

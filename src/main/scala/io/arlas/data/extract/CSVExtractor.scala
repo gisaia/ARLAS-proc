@@ -19,18 +19,11 @@
 
 package io.arlas.data.extract
 
-import java.time.format.DateTimeFormatter
-import java.time.{Instant, ZoneOffset, ZonedDateTime}
-
 import io.arlas.data.extract.transformations._
 import io.arlas.data.model.{DataModel, RunOptions}
 import io.arlas.data.utils.BasicApp
 import io.arlas.data.utils.DataFrameHelper._
 import org.apache.spark.sql._
-import org.apache.spark.sql.functions.{col, lit, min}
-import org.apache.spark.sql.types.StringType
-
-import scala.util.{Failure, Success, Try}
 
 object CSVExtractor extends BasicApp {
 
@@ -47,53 +40,11 @@ object CSVExtractor extends BasicApp {
       .transform(withArlasTimestamp(dataModel))
       .transform(withArlasPartition(dataModel))
 
-    val minimumDate = csvDf.select(min(arlasTimestampColumn)).head().getLong(0)
-
-    unionWithParquetData(spark, runOptions, dataModel, csvDf, minimumDate)
-      .where(col(arlasTimestampColumn) >= minimumDate)
-      .write
+    csvDf.write
       .option("compression", "snappy")
       .option("parquet.block.size", PARQUET_BLOCK_SIZE.toString)
       .mode(SaveMode.Append)
       .partitionBy(arlasPartitionColumn)
       .parquet(runOptions.target)
-  }
-
-  def unionWithParquetData(spark: SparkSession,
-                           runOptions: RunOptions,
-                           dataModel: DataModel,
-                           sourceDF: DataFrame,
-                           minDate: Long): DataFrame = {
-
-    val startDate = ZonedDateTime
-      .ofInstant(Instant.ofEpochSecond(minDate), ZoneOffset.UTC)
-      .minusSeconds(2 * dataModel.sequenceGap)
-    val endDate = ZonedDateTime
-      .ofInstant(Instant.ofEpochSecond(minDate), ZoneOffset.UTC)
-    val startSeconds = startDate.toEpochSecond
-    val stopSeconds = endDate.toEpochSecond
-
-    Try(spark.read.parquet(runOptions.target)) match {
-      case Success(result_df) => {
-        val df = result_df
-          .where(
-            col(arlasPartitionColumn) >= Integer.valueOf(
-              startDate.format(DateTimeFormatter.ofPattern("yyyyMMdd")))
-              && col(arlasPartitionColumn) < Integer.valueOf(
-                endDate.format(DateTimeFormatter.ofPattern("yyyyMMdd"))))
-          .where(
-            col(arlasTimestampColumn) >= startSeconds && col(arlasTimestampColumn) <= stopSeconds)
-
-        sourceDF
-          .withColumn(arlasSequenceIdColumn, lit(null).cast(StringType))
-          .unionByName(df)
-          .transform(fillSequenceId(dataModel))
-      }
-      case Failure(f) => {
-        sourceDF
-          .withColumn(arlasSequenceIdColumn, lit(null).cast(StringType))
-          .transform(fillSequenceId(dataModel))
-      }
-    }
   }
 }

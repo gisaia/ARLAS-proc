@@ -23,32 +23,26 @@ import com.datastax.driver.core.exceptions.AlreadyExistsException
 import com.datastax.spark.connector._
 import com.datastax.spark.connector.cql.CassandraConnector
 import io.arlas.data.extract.transformations.{arlasPartitionColumn, arlasTimestampColumn}
-import io.arlas.data.model.{DataModel, RunOptions}
+import io.arlas.data.model.DataModel
 import org.apache.spark.sql.{DataFrame, SparkSession}
 
 trait CassandraApp {
-  var keySpace: String = "ks"
-  var resultTable: String = "result_table"
 
-  def createCassandraKeyspace(spark: SparkSession, runOptions: RunOptions): Unit = {
-    keySpace = runOptions.target.split('.')(0)
-    resultTable = runOptions.target.split('.')(1)
-
-    val connector = CassandraConnector.apply(spark.sparkContext.getConf)
-    val session = connector.openSession
-    try {
+  def createCassandraKeyspaceIfNotExists(spark: SparkSession, keyspace: String): Unit = {
+    CassandraConnector(spark.sparkContext.getConf).withSessionDo { session =>
       session.execute(
-        String.format(
-          "CREATE KEYSPACE IF NOT EXISTS %s WITH replication = {'class': 'SimpleStrategy', 'replication_factor':1}",
-          keySpace))
-    } finally if (session != null) session.close()
+        s"CREATE KEYSPACE IF NOT EXISTS ${keyspace} WITH replication = {'class': 'SimpleStrategy', 'replication_factor':1}")
+    }
   }
 
-  def createCassandraTable(df: DataFrame, dataModel: DataModel): Unit = {
+  def createCassandraTableIfNotExists(df: DataFrame,
+                                      dataModel: DataModel,
+                                      keyspace: String,
+                                      table: String): Unit = {
     try {
       df.createCassandraTable(
-        keySpace,
-        resultTable,
+        keyspace,
+        table,
         partitionKeyColumns = Some(Seq(arlasPartitionColumn)),
         clusteringKeyColumns = Some(Seq(dataModel.idColumn, arlasTimestampColumn))
       )
@@ -56,6 +50,14 @@ trait CassandraApp {
       case aee: AlreadyExistsException => {
         print("Already existed table")
       }
+    }
+  }
+
+  def isCassandraTableCreated(spark: SparkSession, keyspace: String, table: String): Boolean = {
+    CassandraConnector(spark.sparkContext.getConf).withSessionDo { session =>
+      val ks = session.getCluster.getMetadata().getKeyspace(keyspace)
+      val t = ks.getTable(table)
+      t != null
     }
   }
 }
