@@ -68,8 +68,8 @@ services:
     - xpack.graph.enabled=false
     - xpack.watcher.enabled=false
     ports:
-    - 19200:9200
-    - 19300:9300
+    - 9200:9200
+    - 9300:9300
     networks:
     - gisaia-network
 networks:

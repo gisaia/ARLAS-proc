@@ -25,6 +25,7 @@ import java.time.format.DateTimeFormatter
 import io.arlas.data.extract.transformations.{
   arlasPartitionColumn,
   arlasTimestampColumn,
+  arlasSequenceIdColumn,
   withArlasPartition,
   withArlasTimestamp
 }
@@ -32,8 +33,6 @@ import io.arlas.data.transform.transformations._
 import io.arlas.data.model.DataModel
 import io.arlas.data.{DataFrameTester, TestSparkSession}
 import org.apache.spark.sql.DataFrame
-import org.apache.spark.sql.functions.lit
-import org.apache.spark.sql.types.StringType
 import org.scalatest.{FlatSpec, Matchers}
 
 class TransformationWithSequenceIdTest

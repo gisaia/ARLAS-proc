@@ -22,10 +22,10 @@ package io.arlas.data.transform
 import io.arlas.data.extract.transformations.{
   arlasDistanceColumn,
   arlasPartitionColumn,
-  arlasTimestampColumn
+  arlasTimestampColumn,
+  arlasSequenceIdColumn
 }
-import io.arlas.data.transform.transformations.arlasSequenceIdColumn
-import io.arlas.data.model.{DataModel, RunOptions}
+import io.arlas.data.model.DataModel
 import org.apache.spark.sql.api.java.UDF4
 import org.apache.spark.sql.expressions.Window
 import org.apache.spark.sql.functions._
@@ -35,9 +35,7 @@ import org.geotools.geometry.jts.JTS
 import org.geotools.referencing.CRS
 import org.locationtech.jts.geom.Coordinate
 
-class WithArlasDistanceTransformer(dataModel: DataModel,
-                                   runOptions: RunOptions,
-                                   spark: SparkSession)
+class WithArlasDistanceTransformer(dataModel: DataModel, spark: SparkSession)
     extends ArlasTransformer(dataModel, Vector(arlasTimestampColumn, arlasPartitionColumn)) {
 
   override def transform(dataset: Dataset[_]): DataFrame = {

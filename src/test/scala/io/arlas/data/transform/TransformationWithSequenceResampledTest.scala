@@ -126,7 +126,7 @@ class TransformationWithSequenceResampledTest
     val transformedDf: DataFrame =
       doPipelineTransform(actualDF,
                           new WithSequenceId(dataModel),
-                          new WithSequenceResampledTransformer(dataModel, runOptions, spark))
+                          new WithSequenceResampledTransformer(dataModel, runOptions.start, spark))
         .drop(arlasTimestampColumn, arlasPartitionColumn)
 
     val expectedDF = expected
@@ -160,7 +160,7 @@ class TransformationWithSequenceResampledTest
     val transformedDf: DataFrame =
       doPipelineTransform(actualDF,
                           new WithSequenceId(dataModel),
-                          new WithSequenceResampledTransformer(dataModel, runOptions, spark))
+                          new WithSequenceResampledTransformer(dataModel, runOptions.start, spark))
         .drop(arlasTimestampColumn, arlasPartitionColumn)
 
     val expectedDF = expected

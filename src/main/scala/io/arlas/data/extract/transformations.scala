@@ -26,13 +26,14 @@ import io.arlas.data.model.DataModel
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.expressions.{UserDefinedFunction, Window}
 import org.apache.spark.sql.functions._
-import org.apache.spark.sql.types.IntegerType
+import org.apache.spark.sql.types.{IntegerType, StringType}
 
 object transformations {
 
   val arlasTimestampColumn = "arlas_timestamp"
   val arlasPartitionColumn = "arlas_partition"
   val arlasDistanceColumn = "arlas_distance"
+  val arlasSequenceIdColumn = "arlas_sequence_id"
 
   def getUdf(timeFormat: String): UserDefinedFunction = udf { date: String =>
     val timeFormatter = DateTimeFormatter.ofPattern(timeFormat)
@@ -66,5 +67,9 @@ object transformations {
     df.withColumn(arlasPartitionColumn,
                   date_format(to_date(col(dataModel.timestampColumn), dataModel.timeFormat),
                               "yyyyMMdd").cast(IntegerType))
+  }
+
+  def withEmptyArlasSequenceId(dataModel: DataModel)(df: DataFrame): DataFrame = {
+    df.withColumn(arlasSequenceIdColumn, lit(null).cast(StringType))
   }
 }

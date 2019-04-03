@@ -49,9 +49,9 @@ object Transformer extends BasicApp with CassandraApp {
     val transformedDf: DataFrame = doPipelineTransform(
       df,
       new WithSequenceId(dataModel),
-      new WithSequenceResampledTransformer(dataModel, runOptions, spark),
+      new WithSequenceResampledTransformer(dataModel, runOptions.start, spark),
       new WithoutEdgingPeriod(dataModel, runOptions, spark),
-      new WithArlasDistanceTransformer(dataModel, runOptions, spark)
+      new WithArlasDistanceTransformer(dataModel, spark)
     )
 
     createCassandraTableIfNotExists(transformedDf, dataModel, targetKeyspace, targetTable)
