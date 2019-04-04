@@ -43,8 +43,8 @@ submit_spark_job() {
        --network gisaia-network \
        -w /opt/work \
        -v ${PWD}:/opt/work \
-       -v $HOME/.m2:/root/.m2 \
-       -v $HOME/.ivy2:/root/.ivy2 \
+       -v ${HOME}/.m2:/root/.m2 \
+       -v ${HOME}/.ivy2:/root/.ivy2 \
        --link gisaia-spark-master \
        -p "4040:4040" \
        gisaia/spark:2.3.1 \
