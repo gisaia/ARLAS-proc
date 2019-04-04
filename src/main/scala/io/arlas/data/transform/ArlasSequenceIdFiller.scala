@@ -19,17 +19,13 @@
 
 package io.arlas.data.transform
 
-import io.arlas.data.extract.transformations.{
-  arlasPartitionColumn,
-  arlasTimestampColumn,
-  arlasSequenceIdColumn
-}
 import io.arlas.data.model.DataModel
+import io.arlas.data.transform.ArlasTransformerColumns._
 import org.apache.spark.sql.expressions.Window
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.{DataFrame, Dataset}
 
-class WithSequenceId(dataModel: DataModel)
+class ArlasSequenceIdFiller(dataModel: DataModel)
     extends ArlasTransformer(
       dataModel,
       Vector(arlasTimestampColumn, arlasPartitionColumn, arlasSequenceIdColumn)) {

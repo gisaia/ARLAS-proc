@@ -21,18 +21,14 @@ package io.arlas.data.transform
 
 import java.time.{ZoneOffset, ZonedDateTime}
 
-import io.arlas.data.extract.transformations.{
-  arlasPartitionColumn,
-  arlasTimestampColumn,
-  arlasSequenceIdColumn
-}
 import io.arlas.data.math.interpolations.splineInterpolateAndResample
-import io.arlas.data.model.{DataModel, RunOptions}
+import io.arlas.data.model.DataModel
+import io.arlas.data.transform.ArlasTransformerColumns._
 import org.apache.spark.sql.{DataFrame, Dataset, Row, SparkSession}
 
-class WithSequenceResampledTransformer(dataModel: DataModel,
-                                       start: Option[ZonedDateTime],
-                                       spark: SparkSession)
+class ArlasSequenceResampler(dataModel: DataModel,
+                             start: Option[ZonedDateTime],
+                             spark: SparkSession)
     extends ArlasTransformer(
       dataModel,
       Vector(arlasTimestampColumn, arlasPartitionColumn, arlasSequenceIdColumn)) {

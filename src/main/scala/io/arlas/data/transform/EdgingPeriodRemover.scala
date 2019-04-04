@@ -21,13 +21,14 @@ package io.arlas.data.transform
 
 import java.time.{Instant, ZoneOffset, ZonedDateTime}
 
-import io.arlas.data.extract.transformations.{arlasPartitionColumn, arlasTimestampColumn}
-import io.arlas.data.extract.transformations._
 import io.arlas.data.model.{DataModel, RunOptions}
+import io.arlas.data.transform.ArlasTransformerColumns._
 import org.apache.spark.sql.{DataFrame, Dataset, Row, SparkSession}
 
-class WithoutEdgingPeriod(dataModel: DataModel, runOptions: RunOptions, spark: SparkSession)
-    extends ArlasTransformer(dataModel, Vector(arlasTimestampColumn, arlasPartitionColumn)) {
+class EdgingPeriodRemover(dataModel: DataModel, runOptions: RunOptions, spark: SparkSession)
+    extends ArlasTransformer(
+      dataModel,
+      Vector(arlasTimestampColumn, arlasPartitionColumn, arlasSequenceIdColumn)) {
 
   override def transform(dataset: Dataset[_]): DataFrame = {
 

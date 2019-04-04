@@ -23,7 +23,7 @@ import java.time.format.DateTimeFormatter
 import java.time.{Instant, ZoneOffset, ZonedDateTime}
 
 import io.arlas.data.model.DataModel
-import io.arlas.data.extract.transformations._
+import io.arlas.data.transform.ArlasTransformerColumns._
 import org.apache.commons.math3.analysis.interpolation.SplineInterpolator
 
 object interpolations {

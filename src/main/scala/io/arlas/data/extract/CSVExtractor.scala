@@ -19,10 +19,11 @@
 
 package io.arlas.data.extract
 
-import io.arlas.data.extract.transformations._
 import io.arlas.data.model.{DataModel, RunOptions}
+import io.arlas.data.sql._
+import io.arlas.data.transform.ArlasTransformerColumns._
+import io.arlas.data.transform.{DataFrameValidator, WithArlasPartition, WithArlasTimestamp}
 import io.arlas.data.utils.BasicApp
-import io.arlas.data.utils.DataFrameHelper._
 import org.apache.spark.sql._
 
 object CSVExtractor extends BasicApp {
@@ -35,10 +36,9 @@ object CSVExtractor extends BasicApp {
     val csvDf = spark.read
       .option("header", "true")
       .csv(runOptions.source)
-      .transform(withValidColumnNames())
-      .transform(withValidDynamicColumnsType(dataModel))
-      .transform(withArlasTimestamp(dataModel))
-      .transform(withArlasPartition(dataModel))
+      .enrichWithArlas(new DataFrameValidator(dataModel),
+                       new WithArlasTimestamp(dataModel),
+                       new WithArlasPartition(dataModel))
 
     csvDf.write
       .option("compression", "snappy")

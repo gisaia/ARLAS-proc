@@ -19,23 +19,18 @@
 
 package io.arlas.data.transform
 
-import io.arlas.data.extract.transformations.{
-  arlasDistanceColumn,
-  arlasPartitionColumn,
-  arlasTimestampColumn,
-  arlasSequenceIdColumn
-}
 import io.arlas.data.model.DataModel
+import io.arlas.data.transform.ArlasTransformerColumns._
 import org.apache.spark.sql.api.java.UDF4
 import org.apache.spark.sql.expressions.Window
 import org.apache.spark.sql.functions._
-import org.apache.spark.sql.types.DataTypes
+import org.apache.spark.sql.types._
 import org.apache.spark.sql.{DataFrame, Dataset, SparkSession}
 import org.geotools.geometry.jts.JTS
 import org.geotools.referencing.CRS
 import org.locationtech.jts.geom.Coordinate
 
-class WithArlasDistanceTransformer(dataModel: DataModel, spark: SparkSession)
+class WithArlasDistance(dataModel: DataModel, spark: SparkSession)
     extends ArlasTransformer(dataModel, Vector(arlasTimestampColumn, arlasPartitionColumn)) {
 
   override def transform(dataset: Dataset[_]): DataFrame = {
@@ -58,6 +53,10 @@ class WithArlasDistanceTransformer(dataModel: DataModel, spark: SparkSession)
           last(dataModel.lonColumn).over(window)
         )
       )
+  }
+
+  override def transformSchema(schema: StructType): StructType = {
+    checkSchema(schema).add(StructField(arlasDistanceColumn, DoubleType, false))
   }
 
   private val distance = new UDF4[Double, Double, Double, Double, Double]() {

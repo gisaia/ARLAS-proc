@@ -17,23 +17,24 @@
  * under the License.
  */
 
-package io.arlas.data.extract
+package io.arlas.data.transform
 
 import java.time.format.{DateTimeFormatter, DateTimeParseException}
 import java.time.{ZoneOffset, ZonedDateTime}
 
 import io.arlas.data.model.DataModel
-import org.apache.spark.sql.DataFrame
-import org.apache.spark.sql.expressions.{UserDefinedFunction, Window}
+import io.arlas.data.transform.ArlasTransformerColumns._
+import org.apache.spark.sql.expressions.UserDefinedFunction
 import org.apache.spark.sql.functions._
-import org.apache.spark.sql.types.{IntegerType, StringType}
+import org.apache.spark.sql.types.{StructField, StructType, TimestampType}
+import org.apache.spark.sql.{DataFrame, Dataset}
 
-object transformations {
+class WithArlasTimestamp(dataModel: DataModel) extends ArlasTransformer(dataModel) {
 
-  val arlasTimestampColumn = "arlas_timestamp"
-  val arlasPartitionColumn = "arlas_partition"
-  val arlasDistanceColumn = "arlas_distance"
-  val arlasSequenceIdColumn = "arlas_sequence_id"
+  override def transform(dataset: Dataset[_]): DataFrame = {
+    val timestampConversion = getUdf(dataModel.timeFormat)
+    dataset.withColumn(arlasTimestampColumn, timestampConversion(col(dataModel.timestampColumn)))
+  }
 
   def getUdf(timeFormat: String): UserDefinedFunction = udf { date: String =>
     val timeFormatter = DateTimeFormatter.ofPattern(timeFormat)
@@ -57,19 +58,7 @@ object transformations {
     }
   }
 
-  def withArlasTimestamp(dataModel: DataModel)(df: DataFrame): DataFrame = {
-
-    val timestampConversion = getUdf(dataModel.timeFormat)
-    df.withColumn(arlasTimestampColumn, timestampConversion(col(dataModel.timestampColumn)))
-  }
-
-  def withArlasPartition(dataModel: DataModel)(df: DataFrame): DataFrame = {
-    df.withColumn(arlasPartitionColumn,
-                  date_format(to_date(col(dataModel.timestampColumn), dataModel.timeFormat),
-                              "yyyyMMdd").cast(IntegerType))
-  }
-
-  def withEmptyArlasSequenceId(dataModel: DataModel)(df: DataFrame): DataFrame = {
-    df.withColumn(arlasSequenceIdColumn, lit(null).cast(StringType))
+  override def transformSchema(schema: StructType): StructType = {
+    checkSchema(schema).add(StructField(arlasTimestampColumn, TimestampType, false))
   }
 }
