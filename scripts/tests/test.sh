@@ -23,9 +23,9 @@ SCRIPT_DIRECTORY="$(cd "$(dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd)"
 source "${SCRIPT_DIRECTORY}/common/job-submit-init.sh"
 
 # CHECK ALV2 DISCLAIMER
-if [ $(find ./*/src -name "*.scala" -exec grep -L Licensed {} \; | wc -l) -gt 0 ]; then
+if [ $(find ./src -name "*.scala" -exec grep -L Licensed {} \; | wc -l) -gt 0 ]; then
     echo "ALv2 disclaimer is missing in the following files :"
-    find ./*/src -name "*.scala" -exec grep -L Licensed {} \;
+    find ./src -name "*.scala" -exec grep -L Licensed {} \;
     exit -1
 fi
 
