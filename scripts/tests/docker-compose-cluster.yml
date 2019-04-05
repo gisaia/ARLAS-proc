@@ -1,7 +1,7 @@
 version: '3.5'
 services:
   gisaia-spark-master:
-    image: gisaia/spark:latest
+    image: gisaia/spark:2.3.1
     build:
       context: .
       dockerfile: ./spark/Dockerfile
@@ -30,7 +30,7 @@ services:
     networks:
       - gisaia-network
   gisaia-spark-worker-1:
-      image: gisaia/spark:latest
+      image: gisaia/spark:2.3.1
       build:
         context: .
         dockerfile: ./spark/Dockerfile
@@ -59,7 +59,7 @@ services:
       networks:
         - gisaia-network
   gisaia-spark-worker-2:
-      image: gisaia/spark:latest
+      image: gisaia/spark:2.3.1
       build:
         context: .
         dockerfile: ./spark/Dockerfile

@@ -43,9 +43,11 @@ submit_spark_job() {
        --network gisaia-network \
        -w /opt/work \
        -v ${PWD}:/opt/work \
+       -v $HOME/.m2:/root/.m2 \
+       -v $HOME/.ivy2:/root/.ivy2 \
        --link gisaia-spark-master \
        -p "4040:4040" \
-       gisaia/spark:latest \
+       gisaia/spark:2.3.1 \
        spark-submit \
            --class "$1" \
            --deploy-mode "client" \
@@ -60,6 +62,7 @@ submit_spark_job() {
            --conf spark.rpc.netty.dispatcher.numThreads="2" \
            --conf spark.es.nodes="gisaia-elasticsearch" \
            --conf spark.es.index.auto.create="true" \
+           --conf spark.driver.extraJavaOptions="-Dlog4j.configuration=file:///opt/work/scripts/tests/spark/log4j.properties" \
            --packages datastax:spark-cassandra-connector:2.3.1-s_2.11,org.elasticsearch:elasticsearch-spark-20_2.11:6.4.0,org.geotools:gt-referencing:20.1,org.geotools:gt-geometry:20.1,org.geotools:gt-epsg-hsql:20.1 \
            --exclude-packages javax.media:jai_core \
            --repositories http://repo.boundlessgeo.com/main,http://download.osgeo.org/webdav/geotools/,http://central.maven.org/maven2/ \
