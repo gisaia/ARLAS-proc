@@ -22,13 +22,12 @@ package io.arlas.data.load
 import java.time.format.DateTimeFormatter
 import java.time.{ZoneOffset, ZonedDateTime}
 
-import io.arlas.data.extract.transformations.{arlasPartitionColumn, arlasTimestampColumn}
 import io.arlas.data.model.{DataModel, RunOptions}
+import io.arlas.data.transform.ArlasTransformerColumns._
 import io.arlas.data.utils.BasicApp
-import org.apache.spark.sql.functions.col
+import org.apache.spark.sql.functions.{col, _}
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.elasticsearch.spark.sql._
-import org.apache.spark.sql.functions._
 
 object ESLoader extends BasicApp {
   override def getName: String = "Elasticsearch loader application"

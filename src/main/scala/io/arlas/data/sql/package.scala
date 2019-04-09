@@ -18,11 +18,12 @@
  */
 
 package io.arlas.data
+
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
-import io.arlas.data.extract.transformations.{arlasPartitionColumn, arlasTimestampColumn}
 import io.arlas.data.model._
+import io.arlas.data.transform.ArlasTransformerColumns._
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.functions.col
 

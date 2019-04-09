@@ -22,11 +22,11 @@ package io.arlas.data.load
 import java.time.format.DateTimeFormatter
 import java.time.{ZoneOffset, ZonedDateTime}
 
-import io.arlas.data.extract.transformations.{arlasPartitionColumn, arlasTimestampColumn}
 import io.arlas.data.model.{DataModel, RunOptions}
+import io.arlas.data.transform.ArlasTransformerColumns._
 import io.arlas.data.utils.{BasicApp, CassandraApp}
-import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
 import org.apache.spark.sql.functions.col
+import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
 
 object Loader extends BasicApp with CassandraApp {
   var id = ""

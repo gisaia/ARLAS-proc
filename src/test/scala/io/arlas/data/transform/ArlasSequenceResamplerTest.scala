@@ -22,17 +22,14 @@ package io.arlas.data.transform
 import java.time._
 import java.time.format.DateTimeFormatter
 
-import io.arlas.data.extract.transformations._
 import io.arlas.data.model.{DataModel, RunOptions}
-import io.arlas.data.transform.transformations._
+import io.arlas.data.sql._
+import io.arlas.data.transform.ArlasTransformerColumns._
 import io.arlas.data.{DataFrameTester, TestSparkSession}
 import org.apache.commons.math3.analysis.interpolation.SplineInterpolator
-import org.apache.spark.sql.DataFrame
-import org.apache.spark.sql.functions.lit
-import org.apache.spark.sql.types.StringType
 import org.scalatest.{FlatSpec, Matchers}
 
-class TransformationWithSequenceResampledTest
+class ArlasSequenceResamplerTest
     extends FlatSpec
     with Matchers
     with TestSparkSession
@@ -118,16 +115,10 @@ class TransformationWithSequenceResampledTest
       endingPeriod = Some(0l)
     )
 
-    val actualDF = sourceDF
-      .transform(withArlasTimestamp(dataModel))
-      .transform(withArlasPartition(dataModel))
-      .withColumn(arlasSequenceIdColumn, lit(null).cast(StringType))
-
-    val transformedDf: DataFrame =
-      doPipelineTransform(actualDF,
-                          new WithSequenceId(dataModel),
-                          new WithSequenceResampledTransformer(dataModel, runOptions.start, spark))
-        .drop(arlasTimestampColumn, arlasPartitionColumn)
+    val transformedDf = sourceDF
+      .asArlasBasicData(dataModel)
+      .asArlasResampledData(spark, dataModel, runOptions.start)
+      .drop(arlasTimestampColumn, arlasPartitionColumn)
 
     val expectedDF = expected
       .toDF("id", "timestamp", "lat", "lon", arlasSequenceIdColumn)
@@ -152,16 +143,10 @@ class TransformationWithSequenceResampledTest
       endingPeriod = Some(0l)
     )
 
-    val actualDF = sourceDF
-      .transform(withArlasTimestamp(dataModel))
-      .transform(withArlasPartition(dataModel))
-      .withColumn(arlasSequenceIdColumn, lit(null).cast(StringType))
-
-    val transformedDf: DataFrame =
-      doPipelineTransform(actualDF,
-                          new WithSequenceId(dataModel),
-                          new WithSequenceResampledTransformer(dataModel, runOptions.start, spark))
-        .drop(arlasTimestampColumn, arlasPartitionColumn)
+    val transformedDf = sourceDF
+      .asArlasBasicData(dataModel)
+      .asArlasResampledData(spark, dataModel, runOptions.start)
+      .drop(arlasTimestampColumn, arlasPartitionColumn)
 
     val expectedDF = expected
       .filter {

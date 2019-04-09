@@ -22,20 +22,14 @@ package io.arlas.data.transform
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-import io.arlas.data.extract.transformations.{
-  arlasPartitionColumn,
-  arlasTimestampColumn,
-  arlasSequenceIdColumn,
-  withArlasPartition,
-  withArlasTimestamp
-}
-import io.arlas.data.transform.transformations._
 import io.arlas.data.model.DataModel
+import io.arlas.data.sql._
+import io.arlas.data.transform.ArlasTransformerColumns._
 import io.arlas.data.{DataFrameTester, TestSparkSession}
 import org.apache.spark.sql.DataFrame
 import org.scalatest.{FlatSpec, Matchers}
 
-class TransformationWithSequenceIdTest
+class ArlasSequenceIdFillerTest
     extends FlatSpec
     with Matchers
     with TestSparkSession
@@ -44,7 +38,7 @@ class TransformationWithSequenceIdTest
   import spark.implicits._
 
   var source = Seq(
-    // null ==> WithSequenceId transformation should generate new sequenceId
+    // null ==> SequenceIdFiller transformation should generate new sequenceId
     ("02/01/2018 00:00:00+02:00", 265513250, 55.915727, 12.621154, null),
     ("02/01/2018 00:00:30+02:00", 265513250, 55.916692, 12.620489, null),
     ("02/01/2018 00:01:23+02:00", 265513250, 55.918345, 12.629845, null),
@@ -53,7 +47,7 @@ class TransformationWithSequenceIdTest
     ("02/01/2018 03:00:12+02:00", 265513250, 55.926692, 12.650489, "265513250#1514862000"),
     ("02/01/2018 03:00:23+02:00", 265513250, 55.928345, 12.649845, null),
     ("02/01/2018 03:00:34+02:00", 265513250, 55.973415, 12.645524, null),
-    // existence sequenceId ==> WithSequenceId transformation should not overwrite this; NOTE: 1514862999 is wrong timestamp value
+    // existence sequenceId ==> SequenceIdFiller transformation should not overwrite this; NOTE: 1514862999 is wrong timestamp value
     ("02/01/2018 03:06:11+02:00", 265513260, 56.013067, 12.644289, "265513260#1514862999"),
     ("02/01/2018 03:06:23+02:00", 265513260, 56.035357, 12.645459, null),
     ("02/01/2018 03:06:34+02:00", 265513260, 56.073053, 12.585218, null),
@@ -93,13 +87,11 @@ class TransformationWithSequenceIdTest
 
     val sourceDF = source
       .toDF("timestamp", "id", "lat", "lon", arlasSequenceIdColumn)
-      .transform(withArlasTimestamp(dataModel))
-      .transform(withArlasPartition(dataModel))
+      .asArlasBasicData(dataModel)
 
-    val transformedDF: DataFrame = doPipelineTransform(
-      sourceDF,
-      new WithSequenceId(dataModel)
-    ).drop(arlasTimestampColumn, arlasPartitionColumn)
+    val transformedDF: DataFrame = sourceDF
+      .enrichWithArlas(new ArlasSequenceIdFiller(dataModel))
+      .drop(arlasTimestampColumn, arlasPartitionColumn)
 
     val expectedDF = expected.toDF("timestamp", "id", "lat", "lon", arlasSequenceIdColumn)
 
@@ -120,13 +112,11 @@ class TransformationWithSequenceIdTest
 
     val sourceDF = source
       .toDF("t", "identifier", "latitude", "longitude", arlasSequenceIdColumn)
-      .transform(withArlasTimestamp(dataModel))
-      .transform(withArlasPartition(dataModel))
+      .asArlasBasicData(dataModel)
 
-    val transformedDF: DataFrame = doPipelineTransform(
-      sourceDF,
-      new WithSequenceId(dataModel)
-    ).drop(arlasTimestampColumn, arlasPartitionColumn)
+    val transformedDF: DataFrame = sourceDF
+      .enrichWithArlas(new ArlasSequenceIdFiller(dataModel))
+      .drop(arlasTimestampColumn, arlasPartitionColumn)
 
     val expectedDF =
       expected.toDF("t", "identifier", "latitude", "longitude", arlasSequenceIdColumn)
@@ -153,13 +143,11 @@ class TransformationWithSequenceIdTest
            row._4,
            row._5))
       .toDF("timestamp", "id", "lat", "lon", arlasSequenceIdColumn)
-      .transform(withArlasTimestamp(dataModel))
-      .transform(withArlasPartition(dataModel))
+      .asArlasBasicData(dataModel)
 
-    val transformedDF: DataFrame = doPipelineTransform(
-      sourceDF,
-      new WithSequenceId(dataModel)
-    ).drop(arlasTimestampColumn, arlasPartitionColumn)
+    val transformedDF: DataFrame = sourceDF
+      .enrichWithArlas(new ArlasSequenceIdFiller(dataModel))
+      .drop(arlasTimestampColumn, arlasPartitionColumn)
 
     val expectedDF = expected
       .map(

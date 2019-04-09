@@ -19,9 +19,9 @@
 
 package io.arlas.data.sql
 
-import io.arlas.data.extract.transformations.{arlasPartitionColumn, arlasTimestampColumn}
 import io.arlas.data.load.ESLoader.arlasElasticsearchIdColumn
 import io.arlas.data.model.DataModel
+import io.arlas.data.transform.ArlasTransformerColumns._
 import io.arlas.data.utils.CassandraApp
 import org.apache.spark.sql.functions.{col, concat, lit}
 import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}

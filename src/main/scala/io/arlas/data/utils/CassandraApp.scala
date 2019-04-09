@@ -22,8 +22,8 @@ package io.arlas.data.utils
 import com.datastax.driver.core.exceptions.AlreadyExistsException
 import com.datastax.spark.connector._
 import com.datastax.spark.connector.cql.CassandraConnector
-import io.arlas.data.extract.transformations.{arlasPartitionColumn, arlasTimestampColumn}
 import io.arlas.data.model.DataModel
+import io.arlas.data.transform.ArlasTransformerColumns._
 import org.apache.spark.sql.{DataFrame, SparkSession}
 
 trait CassandraApp {

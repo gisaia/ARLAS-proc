@@ -22,17 +22,14 @@ package io.arlas.data.transform
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
-import io.arlas.data.extract.transformations._
-import io.arlas.data.transform.transformations._
 import io.arlas.data.model.{DataModel, RunOptions}
-import io.arlas.data.transform.transformations.doPipelineTransform
+import io.arlas.data.sql._
+import io.arlas.data.transform.ArlasTransformerColumns._
 import io.arlas.data.{DataFrameTester, TestSparkSession}
 import org.apache.spark.sql.DataFrame
-import org.apache.spark.sql.functions.lit
-import org.apache.spark.sql.types.StringType
 import org.scalatest.{FlatSpec, Matchers}
 
-class TransformationWithoutEdgingPeriodTest
+class EdgingPeriodRemoverTest
     extends FlatSpec
     with Matchers
     with TestSparkSession
@@ -165,16 +162,12 @@ class TransformationWithoutEdgingPeriodTest
       endingPeriod = Some(endingPeriod)
     )
 
-    val actualDF = sourceDF
-      .transform(withArlasTimestamp(dataModel))
-      .transform(withArlasPartition(dataModel))
-      .withColumn(arlasSequenceIdColumn, lit(null).cast(StringType))
-
-    val transformedDf: DataFrame = doPipelineTransform(
-      actualDF,
-      new WithSequenceId(dataModel),
-      new WithoutEdgingPeriod(dataModel, runOptions, spark)
-    ).drop(arlasTimestampColumn, arlasPartitionColumn)
+    val transformedDf: DataFrame = sourceDF
+      .asArlasBasicData(dataModel)
+      .enrichWithArlas(new WithEmptyArlasSequenceId(dataModel),
+                       new ArlasSequenceIdFiller(dataModel))
+      .enrichWithArlas(new EdgingPeriodRemover(dataModel, runOptions, spark))
+      .drop(arlasTimestampColumn, arlasPartitionColumn)
 
     assertDataFrameEquality(transformedDf, expectedDF)
 

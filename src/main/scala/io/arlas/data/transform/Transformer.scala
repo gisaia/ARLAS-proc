@@ -22,14 +22,13 @@ package io.arlas.data.transform
 import java.time.format.DateTimeFormatter
 import java.time.{Instant, ZoneOffset, ZonedDateTime}
 
-import io.arlas.data.transform.transformations._
-import io.arlas.data.extract.transformations._
 import io.arlas.data.model.{DataModel, RunOptions}
+import io.arlas.data.transform.ArlasTransformerColumns._
+import io.arlas.data.sql._
 import io.arlas.data.utils.{BasicApp, CassandraApp}
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types.StringType
 import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
-import io.arlas.data.transform.transformations.doPipelineTransform
 
 object Transformer extends BasicApp with CassandraApp {
 
@@ -46,12 +45,11 @@ object Transformer extends BasicApp with CassandraApp {
     val df = readData(spark, runOptions, dataModel)
 
     // transform raw data
-    val transformedDf: DataFrame = doPipelineTransform(
-      df,
-      new WithSequenceId(dataModel),
-      new WithSequenceResampledTransformer(dataModel, runOptions.start, spark),
-      new WithoutEdgingPeriod(dataModel, runOptions, spark),
-      new WithArlasDistanceTransformer(dataModel, spark)
+    val transformedDf: DataFrame = df.enrichWithArlas(
+      new ArlasSequenceIdFiller(dataModel),
+      new ArlasSequenceResampler(dataModel, runOptions.start, spark),
+      new EdgingPeriodRemover(dataModel, runOptions, spark),
+      new WithArlasDistance(dataModel, spark)
     )
 
     createCassandraTableIfNotExists(transformedDf, dataModel, targetKeyspace, targetTable)
