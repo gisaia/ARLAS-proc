@@ -26,3 +26,8 @@ before_install:
 - sudo sysctl -w vm.max_map_count=262144
 
 script: scripts/tests/test.sh ${MODE}
+
+branches:
+  only:
+  - master
+  - develop
