@@ -2,8 +2,10 @@ ThisBuild / version      := "0.3.0-SNAPSHOT"
 ThisBuild / scalaVersion := "2.11.8"
 ThisBuild / organization := "io.arlas"
 
-resolvers += "Boundless" at "http://repo.boundlessgeo.com/main"
 resolvers += "osgeo" at "http://download.osgeo.org/webdav/geotools/"
+resolvers += "boundless" at "http://repo.boundlessgeo.com/main"
+resolvers += "geotoolkit" at "http://maven.geotoolkit.org/"
+resolvers += "jboss" at "https://repository.jboss.org/maven2/"
 
 val sparkSQL = "org.apache.spark" %% "spark-sql" % "2.3.1" % "provided"
 val sparkMLlib = "org.apache.spark" %% "spark-mllib" % "2.3.1" % "provided"
