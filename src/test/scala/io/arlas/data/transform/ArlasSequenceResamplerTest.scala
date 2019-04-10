@@ -22,7 +22,7 @@ package io.arlas.data.transform
 import java.time._
 import java.time.format.DateTimeFormatter
 
-import io.arlas.data.model.{DataModel, RunOptions}
+import io.arlas.data.model.{DataModel, Period, RunOptions}
 import io.arlas.data.sql._
 import io.arlas.data.transform.ArlasTransformerColumns._
 import io.arlas.data.{DataFrameTester, TestSparkSession}
@@ -109,15 +109,15 @@ class ArlasSequenceResamplerTest
     val runOptions = new RunOptions(
       source = "",
       target = "",
-      start = Some(ZonedDateTime.parse("01/06/2018 00:00:00+02:00", timeFormatter)),
-      stop = Some(ZonedDateTime.parse("01/06/2018 00:15:00+02:00", timeFormatter)),
+      Period(Some(ZonedDateTime.parse("01/06/2018 00:00:00+02:00", timeFormatter)),
+             Some(ZonedDateTime.parse("01/06/2018 00:15:00+02:00", timeFormatter))),
       warmingPeriod = Some(0l),
       endingPeriod = Some(0l)
     )
 
     val transformedDf = sourceDF
       .asArlasBasicData(dataModel)
-      .asArlasResampledData(spark, dataModel, runOptions.start)
+      .asArlasResampledData(spark, dataModel, runOptions.period.start)
       .drop(arlasTimestampColumn, arlasPartitionColumn)
 
     val expectedDF = expected
@@ -137,15 +137,15 @@ class ArlasSequenceResamplerTest
     val runOptions = new RunOptions(
       source = "",
       target = "",
-      start = Some(ZonedDateTime.parse("01/06/2018 00:09:59+02:00", timeFormatter)),
-      stop = Some(ZonedDateTime.parse("01/06/2018 00:15:00+02:00", timeFormatter)),
+      Period(Some(ZonedDateTime.parse("01/06/2018 00:09:59+02:00", timeFormatter)),
+             Some(ZonedDateTime.parse("01/06/2018 00:15:00+02:00", timeFormatter))),
       warmingPeriod = Some(0l),
       endingPeriod = Some(0l)
     )
 
     val transformedDf = sourceDF
       .asArlasBasicData(dataModel)
-      .asArlasResampledData(spark, dataModel, runOptions.start)
+      .asArlasResampledData(spark, dataModel, runOptions.period.start)
       .drop(arlasTimestampColumn, arlasPartitionColumn)
 
     val expectedDF = expected

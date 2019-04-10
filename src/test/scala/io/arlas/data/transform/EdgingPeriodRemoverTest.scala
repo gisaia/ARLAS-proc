@@ -22,7 +22,7 @@ package io.arlas.data.transform
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
-import io.arlas.data.model.{DataModel, RunOptions}
+import io.arlas.data.model.{DataModel, Period, RunOptions}
 import io.arlas.data.sql._
 import io.arlas.data.transform.ArlasTransformerColumns._
 import io.arlas.data.{DataFrameTester, TestSparkSession}
@@ -156,8 +156,8 @@ class EdgingPeriodRemoverTest
     val runOptions = new RunOptions(
       source = "",
       target = "",
-      start = Some(ZonedDateTime.parse("01/06/2018 00:00:00+02:00", oldTimeFormatter)),
-      stop = Some(ZonedDateTime.parse("01/06/2018 00:15:00+02:00", oldTimeFormatter)),
+      Period(Some(ZonedDateTime.parse("01/06/2018 00:00:00+02:00", oldTimeFormatter)),
+             Some(ZonedDateTime.parse("01/06/2018 00:15:00+02:00", oldTimeFormatter))),
       warmingPeriod = Some(warmingPeriod),
       endingPeriod = Some(endingPeriod)
     )

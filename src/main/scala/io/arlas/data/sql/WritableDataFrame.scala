@@ -19,17 +19,17 @@
 
 package io.arlas.data.sql
 
-import io.arlas.data.load.ESLoader.arlasElasticsearchIdColumn
 import io.arlas.data.model.DataModel
 import io.arlas.data.transform.ArlasTransformerColumns._
-import io.arlas.data.utils.CassandraApp
+import io.arlas.data.utils.CassandraTool
 import org.apache.spark.sql.functions.{col, concat, lit}
 import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
 import org.elasticsearch.spark.sql._
 
-class WritableDataFrame(df: DataFrame) extends TransformableDataFrame(df) with CassandraApp {
+class WritableDataFrame(df: DataFrame) extends TransformableDataFrame(df) with CassandraTool {
 
   val PARQUET_BLOCK_SIZE: Int = 32 * 1024 * 1024
+  val arlasElasticsearchIdColumn = "arlas_es_id"
 
   def writeToParquet(spark: SparkSession, target: String): Unit = {
     df.write

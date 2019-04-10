@@ -17,13 +17,11 @@
  * under the License.
  */
 
-package io.arlas.data.extract
+package io.arlas.data.app.extract
 
+import io.arlas.data.app.BasicApp
 import io.arlas.data.model.{DataModel, RunOptions}
 import io.arlas.data.sql._
-import io.arlas.data.transform.ArlasTransformerColumns._
-import io.arlas.data.transform.{DataFrameValidator, WithArlasPartition, WithArlasTimestamp}
-import io.arlas.data.utils.BasicApp
 import org.apache.spark.sql._
 
 object CSVExtractor extends BasicApp {
@@ -31,20 +29,11 @@ object CSVExtractor extends BasicApp {
   override def getName: String = "CSV Extractor"
 
   override def run(spark: SparkSession, dataModel: DataModel, runOptions: RunOptions): Unit = {
-    val PARQUET_BLOCK_SIZE: Int = 32 * 1024 * 1024
 
-    val csvDf = spark.read
-      .option("header", "true")
-      .csv(runOptions.source)
-      .enrichWithArlas(new DataFrameValidator(dataModel),
-                       new WithArlasTimestamp(dataModel),
-                       new WithArlasPartition(dataModel))
+    readFromCsv(spark, runOptions.source)
+      .asArlasBasicData(dataModel)
+      .filterOnPeriod(runOptions.period)
+      .writeToParquet(spark, runOptions.target)
 
-    csvDf.write
-      .option("compression", "snappy")
-      .option("parquet.block.size", PARQUET_BLOCK_SIZE.toString)
-      .mode(SaveMode.Append)
-      .partitionBy(arlasPartitionColumn)
-      .parquet(runOptions.target)
   }
 }
