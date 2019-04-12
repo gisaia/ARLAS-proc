@@ -41,12 +41,16 @@ object Transformer extends BasicApp with CassandraTool {
     val df = readData(spark, runOptions, dataModel)
 
     // transform raw data
-    val transformedDf: DataFrame = df.enrichWithArlas(
-      new ArlasSequenceIdFiller(dataModel),
-      new ArlasSequenceResampler(dataModel, runOptions.period.start, spark),
-      new EdgingPeriodRemover(dataModel, runOptions, spark),
-      new WithArlasDistance(dataModel, spark)
-    )
+    val transformedDf: DataFrame = df
+      .enrichWithArlas(
+        new ArlasSequenceIdFiller(dataModel),
+        new ArlasSequenceResampler(dataModel, spark),
+        new EdgingPeriodRemover(dataModel,
+                                runOptions.warmingPeriod,
+                                runOptions.endingPeriod,
+                                spark),
+        new WithArlasDistance(dataModel, spark)
+      )
 
     transformedDf.writeToScyllaDB(spark, dataModel, runOptions.target)
   }

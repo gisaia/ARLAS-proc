@@ -125,37 +125,4 @@ class ArlasSequenceResamplerTest
 
     assertDataFrameEquality(transformedDf, expectedDF)
   }
-
-  "withSequenceResampled transformation" should " ignore sequences finished before runOption.start" in {
-
-    val dataModel =
-      new DataModel(timeFormat = "dd/MM/yyyy HH:mm:ssXXX", sequenceGap = 300)
-
-    val sourceDF = source.toDF("id", "timestamp", "lat", "lon")
-
-    val timeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ssXXX")
-    val runOptions = new RunOptions(
-      source = "",
-      target = "",
-      Period(Some(ZonedDateTime.parse("01/06/2018 00:09:59+02:00", timeFormatter)),
-             Some(ZonedDateTime.parse("01/06/2018 00:15:00+02:00", timeFormatter))),
-      warmingPeriod = Some(0l),
-      endingPeriod = Some(0l)
-    )
-
-    val transformedDf = sourceDF
-      .asArlasBasicData(dataModel)
-      .asArlasResampledData(spark, dataModel, runOptions.period.start)
-      .drop(arlasTimestampColumn, arlasPartitionColumn)
-
-    val expectedDF = expected
-      .filter {
-        case (id, timestamp, lat, lon, sequenceId) =>
-          sequenceId.equals("ObjectA#1527804601") || sequenceId.equals("ObjectB#1527804451")
-      }
-      .toDF("id", "timestamp", "lat", "lon", arlasSequenceIdColumn)
-
-    assertDataFrameEquality(transformedDf, expectedDF)
-  }
-
 }

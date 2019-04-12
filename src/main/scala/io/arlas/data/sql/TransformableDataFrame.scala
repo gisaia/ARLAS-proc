@@ -41,7 +41,7 @@ class TransformableDataFrame(df: DataFrame) {
     doPipelineTransform(df,
                         new WithEmptyArlasSequenceId(dataModel),
                         new ArlasSequenceIdFiller(dataModel),
-                        new ArlasSequenceResampler(dataModel, startDate, spark))
+                        new ArlasSequenceResampler(dataModel, spark))
   }
 
   def enrichWithArlas(transformers: ArlasTransformer*): DataFrame = {
