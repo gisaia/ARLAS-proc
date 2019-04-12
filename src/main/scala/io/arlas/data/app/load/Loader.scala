@@ -17,18 +17,15 @@
  * under the License.
  */
 
-package io.arlas.data.load
+package io.arlas.data.app.load
 
-import java.time.format.DateTimeFormatter
-import java.time.{ZoneOffset, ZonedDateTime}
-
+import io.arlas.data.app.BasicApp
 import io.arlas.data.model.{DataModel, RunOptions}
-import io.arlas.data.transform.ArlasTransformerColumns._
-import io.arlas.data.utils.{BasicApp, CassandraApp}
+import io.arlas.data.sql._
 import org.apache.spark.sql.functions.col
 import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
 
-object Loader extends BasicApp with CassandraApp {
+object Loader extends BasicApp {
   var id = ""
 
   override def getName: String = "Loader Application"
@@ -36,45 +33,24 @@ object Loader extends BasicApp with CassandraApp {
   override def run(spark: SparkSession, dataModel: DataModel, runOptions: RunOptions): Unit = {
     spark.sparkContext.setLogLevel("Error")
 
-    val start = runOptions.start.getOrElse(ZonedDateTime.now(ZoneOffset.UTC).minusHours(1))
-    val stop = runOptions.stop.getOrElse(ZonedDateTime.now(ZoneOffset.UTC))
-    val startSeconds = start.toEpochSecond
-    val stopSeconds = stop.toEpochSecond
-
     val source = runOptions.source.split(",")(0)
 
-    var csvResultName = "parquet_csv_load"
-    var df: DataFrame = null
-    if (source.contains("/")) {
-      df = spark.read.parquet(source)
-    } else {
-      val ks = source.split('.')(0)
-      val ta = source.split('.')(1)
+    val csvResultName =
+      if (runOptions.source.contains("/")) { "parquet_csv_load" } else { "scylladb_csv_load" }
+    val df: DataFrame = {
+      if (runOptions.source.contains("/")) {
+        readFromParquet(spark, source)
+      } else {
+        readFromScyllaDB(spark, source)
+      }
+    }.filterOnPeriod(runOptions.period)
 
-      df = spark.read
-        .format("org.apache.spark.sql.cassandra")
-        .options(Map("table" -> ta, "keyspace" -> ks))
-        .load()
-
-      csvResultName = "scylladb_csv_load"
+    val csvName = if (!id.trim.isEmpty) { s"${runOptions.target}/${csvResultName}_period" } else {
+      s"${runOptions.target}/${csvResultName}_${id}"
     }
-
-    df = df
-      .where(
-        col(arlasPartitionColumn) >= Integer.valueOf(
-          start.format(DateTimeFormatter.ofPattern("yyyyMMdd")))
-          && col(arlasPartitionColumn) <= Integer.valueOf(
-            stop.format(DateTimeFormatter.ofPattern("yyyyMMdd"))))
-      .where(col(arlasTimestampColumn) >= startSeconds && col(arlasTimestampColumn) <= stopSeconds)
-
-    var csvName = s"${runOptions.target}/${csvResultName}_period"
-
-    if (!id.trim.isEmpty) {
-      df = df
-        .where(col(dataModel.idColumn) === id)
-
-      csvName = s"${runOptions.target}/${csvResultName}_${id}"
-    }
+    val dfFiltered = if (!id.trim.isEmpty) {
+      df.where(col(dataModel.idColumn) === id)
+    } else { df }
 
     df.coalesce(1)
       .write

@@ -17,12 +17,12 @@
  * under the License.
  */
 
-package io.arlas.data.utils
+package io.arlas.data.app
 
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
-import io.arlas.data.model.{DataModel, RunOptions}
+import io.arlas.data.model.{DataModel, Period, RunOptions}
 import org.apache.spark.sql.SparkSession
 import org.slf4j.LoggerFactory
 
@@ -69,8 +69,6 @@ trait BasicApp {
     logger.info(s"""Run options : \n${runOptions}""")
 
     val spark: SparkSession = initSparkSession
-
-    // For implicit conversions like converting RDDs to DataFrames
 
     run(spark, dataModel, runOptions)
   }
@@ -124,6 +122,17 @@ trait BasicApp {
   }
 
   def getRunOptions(arguments: ArgumentMap): RunOptions = {
+    val start = arguments.get("start") match {
+      case Some(startStr) =>
+        Some(ZonedDateTime.parse(startStr, DateTimeFormatter.ISO_OFFSET_DATE_TIME))
+      case None => None
+    }
+    val stop = arguments.get("stop") match {
+      case Some(stopStr) =>
+        Some(ZonedDateTime.parse(stopStr, DateTimeFormatter.ISO_OFFSET_DATE_TIME))
+      case None => None
+    }
+
     RunOptions(
       arguments.get("source") match {
         case Some(source) => source
@@ -133,16 +142,7 @@ trait BasicApp {
         case Some(target) => target
         case None         => throw new RuntimeException("Missing source argument")
       },
-      arguments.get("start") match {
-        case Some(startStr) =>
-          Some(ZonedDateTime.parse(startStr, DateTimeFormatter.ISO_OFFSET_DATE_TIME))
-        case None => None
-      },
-      arguments.get("stop") match {
-        case Some(stopStr) =>
-          Some(ZonedDateTime.parse(stopStr, DateTimeFormatter.ISO_OFFSET_DATE_TIME))
-        case None => None
-      },
+      Period(start, stop),
       arguments.get("warmingPeriod") match {
         case Some(warmingPeriod) => Some(warmingPeriod.toLong)
         case None                => None

@@ -17,8 +17,26 @@
  * under the License.
  */
 
-package io.arlas.data.model
+package io.arlas.data.app.load
 
-import java.time.ZonedDateTime
+import io.arlas.data.app.BasicApp
+import io.arlas.data.model.{DataModel, RunOptions}
+import io.arlas.data.sql.{readFromParquet, readFromScyllaDB, _}
+import org.apache.spark.sql.{DataFrame, SparkSession}
 
-case class Period(start: Option[ZonedDateTime], stop: Option[ZonedDateTime])
+object ESLoader extends BasicApp {
+  override def getName: String = "Elasticsearch loader application"
+
+  override def run(spark: SparkSession, dataModel: DataModel, runOptions: RunOptions): Unit = {
+
+    val df: DataFrame = {
+      if (runOptions.source.contains("/")) {
+        readFromParquet(spark, runOptions.source)
+      } else {
+        readFromScyllaDB(spark, runOptions.source)
+      }
+    }.filterOnPeriod(runOptions.period)
+
+    df.writeToElasticsearch(spark, dataModel, runOptions.target)
+  }
+}

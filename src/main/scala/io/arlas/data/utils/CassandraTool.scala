@@ -26,7 +26,7 @@ import io.arlas.data.model.DataModel
 import io.arlas.data.transform.ArlasTransformerColumns._
 import org.apache.spark.sql.{DataFrame, SparkSession}
 
-trait CassandraApp {
+trait CassandraTool {
 
   def createCassandraKeyspaceIfNotExists(spark: SparkSession, keyspace: String): Unit = {
     CassandraConnector(spark.sparkContext.getConf).withSessionDo { session =>
@@ -48,7 +48,7 @@ trait CassandraApp {
       )
     } catch {
       case aee: AlreadyExistsException => {
-        print("Already existed table")
+        //already existing
       }
     }
   }
@@ -56,8 +56,7 @@ trait CassandraApp {
   def isCassandraTableCreated(spark: SparkSession, keyspace: String, table: String): Boolean = {
     CassandraConnector(spark.sparkContext.getConf).withSessionDo { session =>
       val ks = session.getCluster.getMetadata().getKeyspace(keyspace)
-      val t = ks.getTable(table)
-      t != null
+      if (ks != null) { ks.getTable(table) != null } else false
     }
   }
 }

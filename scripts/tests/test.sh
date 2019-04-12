@@ -35,7 +35,7 @@ fi
 
 echo "===> CSV Extractor run 1"
 submit_spark_job \
-            "io.arlas.data.extract.CSVExtractor" \
+            "io.arlas.data.app.extract.CSVExtractor" \
             "/opt/work/scripts/tests/resources/ais-sample-data-1.csv" \
             "/opt/work/target/tmp/parquet" \
             "2018-01-01T00:00:00+00:00" \
@@ -43,7 +43,7 @@ submit_spark_job \
 
 echo "===> Transformer run 1"
 submit_spark_job \
-            "io.arlas.data.transform.Transformer" \
+            "io.arlas.data.app.transform.Transformer" \
             "/opt/work/target/tmp/parquet" \
             "ais_ks.ais_table" \
             "2018-01-01T00:00:00+00:00" \
@@ -51,7 +51,7 @@ submit_spark_job \
 
 echo "===> CSV Extractor run 2"
 submit_spark_job \
-            "io.arlas.data.extract.CSVExtractor" \
+            "io.arlas.data.app.extract.CSVExtractor" \
             "/opt/work/scripts/tests/resources/ais-sample-data-2.csv" \
             "/opt/work/target/tmp/parquet" \
             "2018-01-02T00:00:00+00:00" \
@@ -59,7 +59,7 @@ submit_spark_job \
 
 echo "===> Transformer run 2"
 submit_spark_job \
-            "io.arlas.data.transform.Transformer" \
+            "io.arlas.data.app.transform.Transformer" \
             "/opt/work/target/tmp/parquet" \
             "ais_ks.ais_table" \
             "2018-01-02T00:00:00+00:00" \
@@ -68,7 +68,7 @@ submit_spark_job \
 
 echo "===> Elasticsearch loader run 1"
 submit_spark_job \
-            "io.arlas.data.load.ESLoader" \
+            "io.arlas.data.app.load.ESLoader" \
             "ais_ks.ais_table" \
             "ais_filtered_data/point" \
             "2018-01-01T00:00:00+00:00" \
@@ -76,7 +76,7 @@ submit_spark_job \
 
 echo "===> Elasticsearch loader run 2"
 submit_spark_job \
-            "io.arlas.data.load.ESLoader" \
+            "io.arlas.data.app.load.ESLoader" \
             "ais_ks.ais_table" \
             "ais_filtered_data/point" \
             "2018-01-02T00:00:00+00:00" \
