@@ -19,16 +19,12 @@
 
 package io.arlas.data.transform
 
-import java.time.{ZoneOffset, ZonedDateTime}
-
 import io.arlas.data.math.interpolations.splineInterpolateAndResample
 import io.arlas.data.model.DataModel
 import io.arlas.data.transform.ArlasTransformerColumns._
 import org.apache.spark.sql.{DataFrame, Dataset, Row, SparkSession}
 
-class ArlasSequenceResampler(dataModel: DataModel,
-                             start: Option[ZonedDateTime],
-                             spark: SparkSession)
+class ArlasSequenceResampler(dataModel: DataModel, spark: SparkSession)
     extends ArlasTransformer(
       dataModel,
       Vector(arlasTimestampColumn, arlasPartitionColumn, arlasSequenceIdColumn)) {
@@ -40,11 +36,6 @@ class ArlasSequenceResampler(dataModel: DataModel,
     val columns = dataset.columns
     val schema = dataset.schema
 
-    // write transformed data
-    val minSequenceStopEpochSeconds =
-      start.getOrElse(ZonedDateTime.now(ZoneOffset.UTC).minusHours(1)).toEpochSecond
-
-    //added toDf()
     val interpolatedRows = dataset
       .toDF()
       .map(row =>
@@ -52,8 +43,9 @@ class ArlasSequenceResampler(dataModel: DataModel,
       .rdd
       .reduceByKey(_ ++ _)
       .flatMap {
-        case (_, sequence) =>
-          splineInterpolateAndResample(dataModel, sequence, columns, minSequenceStopEpochSeconds)
+        case (_, sequence) => {
+          splineInterpolateAndResample(dataModel, sequence, columns)
+        }
       }
       .map(entry => Row.fromSeq(columns.map(entry.getOrElse(_, null)).toSeq))
 

@@ -153,20 +153,12 @@ class EdgingPeriodRemoverTest
     val oldTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ssXXX")
     val sourceDF = source.toDF("id", "timestamp", "lat", "lon")
 
-    val runOptions = new RunOptions(
-      source = "",
-      target = "",
-      Period(Some(ZonedDateTime.parse("01/06/2018 00:00:00+02:00", oldTimeFormatter)),
-             Some(ZonedDateTime.parse("01/06/2018 00:15:00+02:00", oldTimeFormatter))),
-      warmingPeriod = Some(warmingPeriod),
-      endingPeriod = Some(endingPeriod)
-    )
-
     val transformedDf: DataFrame = sourceDF
       .asArlasBasicData(dataModel)
       .enrichWithArlas(new WithEmptyArlasSequenceId(dataModel),
                        new ArlasSequenceIdFiller(dataModel))
-      .enrichWithArlas(new EdgingPeriodRemover(dataModel, runOptions, spark))
+      .enrichWithArlas(
+        new EdgingPeriodRemover(dataModel, Some(warmingPeriod), Some(endingPeriod), spark))
       .drop(arlasTimestampColumn, arlasPartitionColumn)
 
     assertDataFrameEquality(transformedDf, expectedDF)

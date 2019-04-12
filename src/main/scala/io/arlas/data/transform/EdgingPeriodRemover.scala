@@ -25,7 +25,10 @@ import io.arlas.data.model.{DataModel, RunOptions}
 import io.arlas.data.transform.ArlasTransformerColumns._
 import org.apache.spark.sql.{DataFrame, Dataset, Row, SparkSession}
 
-class EdgingPeriodRemover(dataModel: DataModel, runOptions: RunOptions, spark: SparkSession)
+class EdgingPeriodRemover(dataModel: DataModel,
+                          warmingPeriod: Option[Long],
+                          endingPeriod: Option[Long],
+                          spark: SparkSession)
     extends ArlasTransformer(
       dataModel,
       Vector(arlasTimestampColumn, arlasPartitionColumn, arlasSequenceIdColumn)) {
@@ -68,10 +71,10 @@ class EdgingPeriodRemover(dataModel: DataModel, runOptions: RunOptions, spark: S
 
     val sequenceWarmingPeriodFilter = ZonedDateTime
       .ofInstant(Instant.ofEpochSecond(sequenceStartDate), ZoneOffset.UTC)
-      .plusSeconds(runOptions.warmingPeriod.getOrElse(0))
+      .plusSeconds(warmingPeriod.getOrElse(0))
     val sequenceEndPeriodFilter = ZonedDateTime
       .ofInstant(Instant.ofEpochSecond(sequenceEndDate), ZoneOffset.UTC)
-      .minusSeconds(runOptions.endingPeriod.getOrElse(0))
+      .minusSeconds(endingPeriod.getOrElse(0))
 
     orderedRawSequence
       .filter(
