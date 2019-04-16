@@ -29,11 +29,7 @@ import io.arlas.data.{DataFrameTester, TestSparkSession}
 import org.apache.commons.math3.analysis.interpolation.SplineInterpolator
 import org.scalatest.{FlatSpec, Matchers}
 
-class ArlasSequenceResamplerTest
-    extends FlatSpec
-    with Matchers
-    with TestSparkSession
-    with DataFrameTester {
+class ArlasResamplerTest extends FlatSpec with Matchers with TestSparkSession with DataFrameTester {
 
   import spark.implicits._
 
@@ -87,7 +83,7 @@ class ArlasSequenceResamplerTest
     val minTs = (ts.min - ts.min % timeSampling + timeSampling).toLong
     val maxTs = (ts.max - ts.max % timeSampling).toLong
     val id = data.head._1
-    val sequence = s"""${id}#${ts.min.toLong}"""
+    val timeserie = s"""${id}#${ts.min.toLong}"""
     List
       .range(minTs, maxTs, timeSampling)
       .map(ts =>
@@ -95,13 +91,13 @@ class ArlasSequenceResamplerTest
          s"${ZonedDateTime.ofInstant(Instant.ofEpochSecond(ts), ZoneOffset.UTC).format(timeFormatter)}",
          functionLat.value(ts),
          functionLon.value(ts),
-         sequence))
+         timeserie))
   }
 
-  "withSequenceResampled transformation" should " resample data against dataframe's sequences" in {
+  "ArlasResampler transformation" should " resample data against dataframe's timeseries" in {
 
     val dataModel =
-      new DataModel(timeFormat = "dd/MM/yyyy HH:mm:ssXXX", sequenceGap = 300)
+      new DataModel(timeFormat = "dd/MM/yyyy HH:mm:ssXXX", timeserieGap = 300)
 
     val sourceDF = source.toDF("id", "timestamp", "lat", "lon")
 
@@ -116,12 +112,14 @@ class ArlasSequenceResamplerTest
     )
 
     val transformedDf = sourceDF
-      .asArlasBasicData(dataModel)
-      .asArlasResampledData(spark, dataModel, runOptions.period.start)
+      .asArlasCleanedData(dataModel)
+      .enrichWithArlas(new WithEmptyArlasTimeSerieId(dataModel),
+                       new ArlasTimeSerieIdFiller(dataModel),
+                       new ArlasResampler(dataModel, arlasTimeSerieIdColumn, spark))
       .drop(arlasTimestampColumn, arlasPartitionColumn)
 
     val expectedDF = expected
-      .toDF("id", "timestamp", "lat", "lon", arlasSequenceIdColumn)
+      .toDF("id", "timestamp", "lat", "lon", arlasTimeSerieIdColumn)
 
     assertDataFrameEquality(transformedDf, expectedDF)
   }

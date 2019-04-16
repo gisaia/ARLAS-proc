@@ -31,7 +31,7 @@ object CSVExtractor extends BasicApp {
   override def run(spark: SparkSession, dataModel: DataModel, runOptions: RunOptions): Unit = {
 
     readFromCsv(spark, runOptions.source)
-      .asArlasBasicData(dataModel)
+      .asArlasCleanedData(dataModel)
       .filterOnPeriod(runOptions.period)
       .writeToParquet(spark, runOptions.target)
 

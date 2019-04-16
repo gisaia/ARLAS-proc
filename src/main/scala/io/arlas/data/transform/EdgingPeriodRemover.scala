@@ -31,7 +31,7 @@ class EdgingPeriodRemover(dataModel: DataModel,
                           spark: SparkSession)
     extends ArlasTransformer(
       dataModel,
-      Vector(arlasTimestampColumn, arlasPartitionColumn, arlasSequenceIdColumn)) {
+      Vector(arlasTimestampColumn, arlasPartitionColumn, arlasTimeSerieIdColumn)) {
 
   override def transform(dataset: Dataset[_]): DataFrame = {
 
@@ -43,11 +43,11 @@ class EdgingPeriodRemover(dataModel: DataModel,
     val filterByWarming = dataset
       .toDF()
       .map(row =>
-        (row.getString(row.fieldIndex(arlasSequenceIdColumn)), List(row.getValuesMap(columns))))
+        (row.getString(row.fieldIndex(arlasTimeSerieIdColumn)), List(row.getValuesMap(columns))))
       .rdd
       .reduceByKey(_ ++ _)
       .flatMap {
-        case (_, sequence) => filterEdgingPeriod(dataModel, sequence, columns)
+        case (_, timeserie) => filterEdgingPeriod(dataModel, timeserie, columns)
       }
       .map(entry => Row.fromSeq(columns.map(entry.getOrElse(_, null)).toSeq))
 
@@ -56,32 +56,32 @@ class EdgingPeriodRemover(dataModel: DataModel,
   }
 
   def filterEdgingPeriod(dataModel: DataModel,
-                         rawSequence: List[Map[String, Any]],
+                         rawTimeSerie: List[Map[String, Any]],
                          columns: Array[String]): List[Map[String, Any]] = {
 
-    val orderedRawSequence =
-      rawSequence.sortBy(row => row.getOrElse(arlasTimestampColumn, 0l).asInstanceOf[Long])
+    val orderedRawTimeSerie =
+      rawTimeSerie.sortBy(row => row.getOrElse(arlasTimestampColumn, 0l).asInstanceOf[Long])
 
-    val sequenceStartDate = orderedRawSequence.head
+    val timeserieStartDate = orderedRawTimeSerie.head
       .getOrElse(arlasTimestampColumn, 0l)
       .asInstanceOf[Long]
-    val sequenceEndDate = orderedRawSequence.last
+    val timeserieEndDate = orderedRawTimeSerie.last
       .getOrElse(arlasTimestampColumn, 0l)
       .asInstanceOf[Long]
 
-    val sequenceWarmingPeriodFilter = ZonedDateTime
-      .ofInstant(Instant.ofEpochSecond(sequenceStartDate), ZoneOffset.UTC)
+    val timeserieWarmingPeriodFilter = ZonedDateTime
+      .ofInstant(Instant.ofEpochSecond(timeserieStartDate), ZoneOffset.UTC)
       .plusSeconds(warmingPeriod.getOrElse(0))
-    val sequenceEndPeriodFilter = ZonedDateTime
-      .ofInstant(Instant.ofEpochSecond(sequenceEndDate), ZoneOffset.UTC)
+    val timeserieEndPeriodFilter = ZonedDateTime
+      .ofInstant(Instant.ofEpochSecond(timeserieEndDate), ZoneOffset.UTC)
       .minusSeconds(endingPeriod.getOrElse(0))
 
-    orderedRawSequence
+    orderedRawTimeSerie
       .filter(
         x =>
           x.getOrElse(arlasTimestampColumn, 0l)
-            .asInstanceOf[Long] >= sequenceWarmingPeriodFilter.toEpochSecond &&
+            .asInstanceOf[Long] >= timeserieWarmingPeriodFilter.toEpochSecond &&
             x.getOrElse(arlasTimestampColumn, 0l)
-              .asInstanceOf[Long] <= sequenceEndPeriodFilter.toEpochSecond)
+              .asInstanceOf[Long] <= timeserieEndPeriodFilter.toEpochSecond)
   }
 }

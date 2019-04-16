@@ -92,22 +92,23 @@ Paste (using `:paste`) the following code snippet :
       lonColumn = "longitude",
       dynamicFields = Array("latitude", "longitude", "sog", "cog", "heading", "rot", "draught"),
       timeFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSX",
-      sequenceGap = 120
+      timeserieGap = 120
     )
     val period = getPeriod(
       start = "2018-01-01T00:00:00+00:00",
       stop = "2018-01-02T00:00:00+00:00"
     )
 
-    // extract, format and resample raw data
+    // extract and format raw data
     val data = readFromCsv(spark, "/opt/work/scripts/tests/resources/ais-sample-data-1.csv")
-      .asArlasBasicData(dataModel)
-      .asArlasResampledData(spark, dataModel, period)
+      .asArlasCleanedData(dataModel)
+      
 
-    // transform resampled data
-    val transformedData = data.enrichWithArlas(
-      new WithArlasDistanceTransformer(dataModel, spark)
-    )
+    // transform and resample data
+    val transformedData = data
+      .asArlasTimeSeries(dataModel)
+      .asArlasMotions(dataModel)
+      .asArlasResampledMotions(dataModel, spark)
     
     // save result in ScyllaDB
     transformedData.writeToScyllaDB(spark, dataModel, "data.geo_points")

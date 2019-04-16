@@ -29,24 +29,24 @@ import org.apache.commons.math3.analysis.interpolation.SplineInterpolator
 object interpolations {
 
   def splineInterpolateAndResample(dataModel: DataModel,
-                                   rawSequence: List[Map[String, Any]],
+                                   rawTimeSerie: List[Map[String, Any]],
                                    columns: Array[String]): List[Map[String, Any]] = {
 
-    // sort sequence and drop duplicates
-    val orderedRawSequence = rawSequence
+    // sort timeserie and drop duplicates
+    val orderedRawTimeSerie = rawTimeSerie
       .sortBy(row => row.getOrElse(arlasTimestampColumn, 0l).asInstanceOf[Long])
       .distinct
 
-    // create resampled timestamp sequence
-    val tsSequence = orderedRawSequence
+    // create resampled timestamp timeserie
+    val tsTimeSerie = orderedRawTimeSerie
       .map(row => row.getOrElse(arlasTimestampColumn, 0l).asInstanceOf[Long].toDouble)
       .toArray
     val minTs =
-      (tsSequence.min - tsSequence.min % dataModel.timeSampling + dataModel.timeSampling).toLong
+      (tsTimeSerie.min - tsTimeSerie.min % dataModel.timeSampling + dataModel.timeSampling).toLong
     val maxTs =
-      (tsSequence.max - tsSequence.max % dataModel.timeSampling).toLong
+      (tsTimeSerie.max - tsTimeSerie.max % dataModel.timeSampling).toLong
 
-    val resampledSequence = List.range(minTs, maxTs, dataModel.timeSampling)
+    val resampledTimeSerie = List.range(minTs, maxTs, dataModel.timeSampling)
 
     // get interpolation functions for each column (dynamics and static)
     val interpolator = new SplineInterpolator()
@@ -56,15 +56,15 @@ object interpolations {
         //TODO support dynamic columns with null cells
         try {
           if (dataModel.dynamicFields.contains(column)) {
-            val values = orderedRawSequence
+            val values = orderedRawTimeSerie
               .map(row => row.getOrElse(column, 0.0d).toString.toDouble)
               .toArray
             val interpolatedFunction =
-              interpolator.interpolate(tsSequence, values)
+              interpolator.interpolate(tsTimeSerie, values)
             val function = (ts: Long) => interpolatedFunction.value(ts.toDouble)
             (column -> function)
           } else {
-            val value = orderedRawSequence
+            val value = orderedRawTimeSerie
               .map(row => row.getOrElse(column, null))
               .filter(_ != null)
               .head
@@ -81,10 +81,10 @@ object interpolations {
       })
       .toMap
 
-    // create resampled and interpolated row sequence
+    // create resampled and interpolated row timeserie
     val timeFormatter = DateTimeFormatter.ofPattern(dataModel.timeFormat)
     val partitionFormatter = DateTimeFormatter.ofPattern("yyyyMMdd")
-    resampledSequence
+    resampledTimeSerie
       .map(timestamp => {
         columns
           .map(column =>

@@ -23,5 +23,6 @@ object ArlasTransformerColumns {
   val arlasTimestampColumn = "arlas_timestamp"
   val arlasPartitionColumn = "arlas_partition"
   val arlasDistanceColumn = "arlas_distance"
-  val arlasSequenceIdColumn = "arlas_sequence_id"
+  val arlasTimeSerieIdColumn = "arlas_timeserie_id"
+  val arlasMotionIdColumn = "arlas_motion_id"
 }

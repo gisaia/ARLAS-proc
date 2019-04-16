@@ -21,18 +21,31 @@ package io.arlas.data.transform
 
 import io.arlas.data.model.DataModel
 import io.arlas.data.transform.ArlasTransformerColumns._
+import org.apache.spark.sql.expressions.Window
 import org.apache.spark.sql.functions._
-import org.apache.spark.sql.types.{StringType, StructField, StructType}
 import org.apache.spark.sql.{DataFrame, Dataset}
 
-class WithEmptyArlasSequenceId(dataModel: DataModel) extends ArlasTransformer(dataModel) {
+class ArlasTimeSerieIdFiller(dataModel: DataModel)
+    extends ArlasTransformer(
+      dataModel,
+      Vector(arlasTimestampColumn, arlasPartitionColumn, arlasTimeSerieIdColumn)) {
 
   override def transform(dataset: Dataset[_]): DataFrame = {
-    dataset.withColumn(arlasSequenceIdColumn, lit(null).cast(StringType))
-  }
 
-  override def transformSchema(schema: StructType): StructType = {
-    checkSchema(schema).add(StructField(arlasSequenceIdColumn, StringType, false))
+    val window = Window.partitionBy(dataModel.idColumn).orderBy(arlasTimestampColumn)
+    val gap = col(arlasTimestampColumn) - lag(arlasTimestampColumn, 1).over(window)
+    val timeserieId = when(col("gap").isNull || col("gap") > dataModel.timeserieGap,
+                           concat(col(dataModel.idColumn), lit("#"), col(arlasTimestampColumn)))
+
+    dataset
+      .withColumn("gap", gap)
+      .withColumn("row_timeserie_id",
+                  when(col(arlasTimeSerieIdColumn).isNull, timeserieId).otherwise(
+                    col(arlasTimeSerieIdColumn)))
+      .withColumn(arlasTimeSerieIdColumn,
+                  last("row_timeserie_id", ignoreNulls = true).over(
+                    window.rowsBetween(Window.unboundedPreceding, 0)))
+      .drop("row_timeserie_id", "gap")
   }
 
 }
