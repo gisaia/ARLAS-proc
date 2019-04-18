@@ -24,10 +24,10 @@ import io.arlas.data.model.DataModel
 import io.arlas.data.transform.ArlasTransformerColumns._
 import org.apache.spark.sql.{DataFrame, Dataset, Row, SparkSession}
 
-class ArlasSequenceResampler(dataModel: DataModel, spark: SparkSession)
+class ArlasResampler(dataModel: DataModel, aggregationColumnName: String, spark: SparkSession)
     extends ArlasTransformer(
       dataModel,
-      Vector(arlasTimestampColumn, arlasPartitionColumn, arlasSequenceIdColumn)) {
+      Vector(arlasTimestampColumn, arlasPartitionColumn, aggregationColumnName)) {
 
   override def transform(dataset: Dataset[_]): DataFrame = {
 
@@ -39,12 +39,12 @@ class ArlasSequenceResampler(dataModel: DataModel, spark: SparkSession)
     val interpolatedRows = dataset
       .toDF()
       .map(row =>
-        (row.getString(row.fieldIndex(arlasSequenceIdColumn)), List(row.getValuesMap(columns))))
+        (row.getString(row.fieldIndex(aggregationColumnName)), List(row.getValuesMap(columns))))
       .rdd
       .reduceByKey(_ ++ _)
       .flatMap {
-        case (_, sequence) => {
-          splineInterpolateAndResample(dataModel, sequence, columns)
+        case (_, timeserie) => {
+          splineInterpolateAndResample(dataModel, timeserie, columns)
         }
       }
       .map(entry => Row.fromSeq(columns.map(entry.getOrElse(_, null)).toSeq))

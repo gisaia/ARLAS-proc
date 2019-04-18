@@ -19,29 +19,38 @@
 
 package io.arlas.data.sql
 
-import java.time.ZonedDateTime
-
 import io.arlas.data.model.DataModel
 import io.arlas.data.transform._
+import io.arlas.data.transform.ArlasTransformerColumns._
 import org.apache.spark.ml.Pipeline
-import org.apache.spark.sql.{DataFrame, SparkSession}
+import org.apache.spark.sql.{DataFrame, Dataset, SparkSession}
 
 class TransformableDataFrame(df: DataFrame) {
 
-  def asArlasBasicData(dataModel: DataModel): DataFrame = {
+  def asArlasCleanedData(dataModel: DataModel): DataFrame = {
     doPipelineTransform(df,
                         new DataFrameValidator(dataModel),
                         new WithArlasTimestamp(dataModel),
                         new WithArlasPartition(dataModel))
   }
 
-  def asArlasResampledData(spark: SparkSession,
-                           dataModel: DataModel,
-                           startDate: Option[ZonedDateTime]): DataFrame = {
+  def asArlasTimeSeries(dataModel: DataModel): DataFrame = {
     doPipelineTransform(df,
-                        new WithEmptyArlasSequenceId(dataModel),
-                        new ArlasSequenceIdFiller(dataModel),
-                        new ArlasSequenceResampler(dataModel, spark))
+                        new WithEmptyArlasTimeSerieId(dataModel),
+                        new WithArlasVisibilityState(dataModel),
+                        new ArlasTimeSerieIdFiller(dataModel))
+  }
+
+  def asArlasMotions(dataModel: DataModel): DataFrame = {
+    doPipelineTransform(df,
+                        new WithArlasMovingState(dataModel),
+                        new ArlasStillSimplifier(dataModel),
+                        new WithArlasMotionId(dataModel),
+                        new WithArlasMoveSimplifier(dataModel))
+  }
+
+  def asArlasResampledMotions(dataModel: DataModel, spark: SparkSession): DataFrame = {
+    doPipelineTransform(df, new ArlasResampler(dataModel, arlasMotionIdColumn, spark))
   }
 
   def enrichWithArlas(transformers: ArlasTransformer*): DataFrame = {
@@ -53,4 +62,24 @@ class TransformableDataFrame(df: DataFrame) {
     pipeline.setStages(transformers.toArray)
     pipeline.fit(df).transform(df)
   }
+}
+
+// Classes below do not transform input data
+// Consider them as interfaces to describe how code may be organized
+// TODO implement following ArlasTransformers
+
+class WithArlasVisibilityState(dataModel: DataModel) extends ArlasTransformer(dataModel) {
+  override def transform(dataset: Dataset[_]): DataFrame = dataset.toDF
+}
+class WithArlasMovingState(dataModel: DataModel) extends ArlasTransformer(dataModel) {
+  override def transform(dataset: Dataset[_]): DataFrame = dataset.toDF
+}
+class ArlasStillSimplifier(dataModel: DataModel) extends ArlasTransformer(dataModel) {
+  override def transform(dataset: Dataset[_]): DataFrame = dataset.toDF
+}
+class WithArlasMotionId(dataModel: DataModel) extends ArlasTransformer(dataModel) {
+  override def transform(dataset: Dataset[_]): DataFrame = dataset.toDF
+}
+class WithArlasMoveSimplifier(dataModel: DataModel) extends ArlasTransformer(dataModel) {
+  override def transform(dataset: Dataset[_]): DataFrame = dataset.toDF
 }

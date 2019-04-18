@@ -36,7 +36,7 @@ class WithArlasDistance(dataModel: DataModel, spark: SparkSession)
   override def transform(dataset: Dataset[_]): DataFrame = {
 
     val window = Window
-      .partitionBy(arlasSequenceIdColumn)
+      .partitionBy(arlasTimeSerieIdColumn)
       .orderBy(arlasTimestampColumn)
       .rowsBetween(-1, 0)
 

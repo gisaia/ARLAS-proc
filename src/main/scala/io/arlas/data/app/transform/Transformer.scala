@@ -26,6 +26,7 @@ import io.arlas.data.model.{DataModel, Period, RunOptions}
 import io.arlas.data.sql._
 import io.arlas.data.transform.ArlasTransformerColumns.{arlasDistanceColumn, arlasTimestampColumn}
 import io.arlas.data.transform._
+import io.arlas.data.transform.ArlasTransformerColumns._
 import io.arlas.data.utils.CassandraTool
 import org.apache.spark.sql.functions.{lit, min}
 import org.apache.spark.sql.types.StringType
@@ -43,8 +44,8 @@ object Transformer extends BasicApp with CassandraTool {
     // transform raw data
     val transformedDf: DataFrame = df
       .enrichWithArlas(
-        new ArlasSequenceIdFiller(dataModel),
-        new ArlasSequenceResampler(dataModel, spark),
+        new ArlasTimeSerieIdFiller(dataModel),
+        new ArlasResampler(dataModel, arlasTimeSerieIdColumn, spark),
         new EdgingPeriodRemover(dataModel,
                                 runOptions.warmingPeriod,
                                 runOptions.endingPeriod,
@@ -64,15 +65,15 @@ object Transformer extends BasicApp with CassandraTool {
         readFromScyllaDB(spark, runOptions.source)
       }
     }.filterOnPeriod(runOptions.period)
-      .enrichWithArlas(new WithEmptyArlasSequenceId(dataModel))
+      .enrichWithArlas(new WithEmptyArlasTimeSerieId(dataModel))
 
     df.transform(addWarmUpPeriodData(spark, runOptions, dataModel))
   }
 
   /*
    * Add previously transformed data from target on a period
-   * that lasts 2 times dataModel.sequenceGap just before transformation.
-   * It enables to have history on some fields like arlas_sequence_id.
+   * that lasts 2 times dataModel.timeserieGap just before transformation.
+   * It enables to have history on some fields like arlas_timeserie_id.
    */
   def addWarmUpPeriodData(spark: SparkSession, runOptions: RunOptions, dataModel: DataModel)(
       sourceDF: DataFrame): DataFrame = {
@@ -93,7 +94,7 @@ object Transformer extends BasicApp with CassandraTool {
         }
       }
 
-      val warmUpStart = warmUpEnd.minusSeconds(2 * dataModel.sequenceGap)
+      val warmUpStart = warmUpEnd.minusSeconds(2 * dataModel.timeserieGap)
       val warmUpPeriod = Period(Some(warmUpStart), Some(warmUpEnd))
 
       readFromScyllaDB(spark, runOptions.target)

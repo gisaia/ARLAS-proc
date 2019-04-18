@@ -26,6 +26,6 @@ case class DataModel(
     latColumn: String = "lat",
     lonColumn: String = "lon",
     dynamicFields: Array[String] = Array("lat", "lon"),
-    sequenceGap: Int = 3600, //in seconds
+    timeserieGap: Int = 3600, //in seconds
     timeSampling: Long = 15 //in seconds
 )
