@@ -1,184 +1,439 @@
 {
   "hits" : {
-    "total" : 58,
+    "total" : 70,
     "max_score" : null,
     "hits" : [
       {
         "_index" : "ais_filtered_data",
         "_type" : "point",
-        "_id" : "265513250#1514862390",
+        "_id" : "265513250#1514862566",
         "_score" : null,
         "_source" : {
           "arlas_partition" : 20180102,
           "mmsi" : "265513250",
-          "arlas_timestamp" : 1514862390,
-          "arlas_distance" : 8162.356036914364,
-          "arlas_timeserie_id" : "265513250#1514862371",
-          "cog" : 2.9486696173406552,
+          "arlas_timestamp" : 1514862566,
+          "arlas_visibility_state" : "DISAPPEAR",
+          "arlas_visible_sequence_id" : "265513250#1514862553",
+          "cog" : 6.25,
+          "data_source_type" : "AIS",
+          "latitude" : 56.080822,
+          "longitude" : 11.026482,
+          "sog" : 15.2,
+          "timestamp" : "2018-01-02T03:09:26.000Z",
+          "type_of_mobile" : "Base Station",
+          "type_of_position_fixing_device" : "Undefined",
+          "arlas_es_id" : "265513250#1514862566"
+        },
+        "sort" : [
+          "265513250#1514862566"
+        ]
+      },
+      {
+        "_index" : "ais_filtered_data",
+        "_type" : "point",
+        "_id" : "265513250#1514862562",
+        "_score" : null,
+        "_source" : {
+          "arlas_partition" : 20180102,
+          "mmsi" : "265513250",
+          "arlas_timestamp" : 1514862562,
+          "arlas_visibility_state" : "VISIBLE",
+          "arlas_visible_sequence_id" : "265513250#1514862553",
+          "cog" : 5.8,
+          "data_source_type" : "AIS",
+          "latitude" : 56.148124,
+          "longitude" : 11.390748,
+          "sog" : 14.9,
+          "timestamp" : "2018-01-02T03:09:22.000Z",
+          "type_of_mobile" : "Base Station",
+          "type_of_position_fixing_device" : "Undefined",
+          "arlas_es_id" : "265513250#1514862562"
+        },
+        "sort" : [
+          "265513250#1514862562"
+        ]
+      },
+      {
+        "_index" : "ais_filtered_data",
+        "_type" : "point",
+        "_id" : "265513250#1514862557",
+        "_score" : null,
+        "_source" : {
+          "arlas_partition" : 20180102,
+          "mmsi" : "265513250",
+          "arlas_timestamp" : 1514862557,
+          "arlas_visibility_state" : "VISIBLE",
+          "arlas_visible_sequence_id" : "265513250#1514862553",
+          "cog" : 5.35,
+          "data_source_type" : "AIS",
+          "latitude" : 56.11243,
+          "longitude" : 11.666634,
+          "sog" : 14.6,
+          "timestamp" : "2018-01-02T03:09:17.000Z",
+          "type_of_mobile" : "Base Station",
+          "type_of_position_fixing_device" : "Undefined",
+          "arlas_es_id" : "265513250#1514862557"
+        },
+        "sort" : [
+          "265513250#1514862557"
+        ]
+      },
+      {
+        "_index" : "ais_filtered_data",
+        "_type" : "point",
+        "_id" : "265513250#1514862553",
+        "_score" : null,
+        "_source" : {
+          "arlas_partition" : 20180102,
+          "mmsi" : "265513250",
+          "arlas_timestamp" : 1514862553,
+          "arlas_visibility_state" : "APPEAR",
+          "arlas_visible_sequence_id" : "265513250#1514862553",
+          "cog" : 4.9,
+          "data_source_type" : "AIS",
+          "latitude" : 56.174596,
+          "longitude" : 11.885253,
+          "sog" : 14.3,
+          "timestamp" : "2018-01-02T03:09:13.000Z",
+          "type_of_mobile" : "Base Station",
+          "type_of_position_fixing_device" : "Undefined",
+          "arlas_es_id" : "265513250#1514862553"
+        },
+        "sort" : [
+          "265513250#1514862553"
+        ]
+      },
+      {
+        "_index" : "ais_filtered_data",
+        "_type" : "point",
+        "_id" : "265513250#1514862411",
+        "_score" : null,
+        "_source" : {
+          "arlas_partition" : 20180102,
+          "mmsi" : "265513250",
+          "arlas_timestamp" : 1514862411,
+          "arlas_visibility_state" : "DISAPPEAR",
+          "arlas_visible_sequence_id" : "265513250#1514862371",
+          "cog" : 4.45,
           "data_source_type" : "AIS",
           "imo" : "Unknown",
-          "latitude" : 56.06041103215727,
-          "longitude" : 12.593709258892112,
+          "latitude" : 56.170132,
+          "longitude" : 12.058547,
+          "sog" : 14.0,
+          "timestamp" : "2018-01-02T03:06:51.000Z",
+          "type_of_mobile" : "Base Station",
+          "type_of_position_fixing_device" : "Undefined",
+          "arlas_es_id" : "265513250#1514862411"
+        },
+        "sort" : [
+          "265513250#1514862411"
+        ]
+      },
+      {
+        "_index" : "ais_filtered_data",
+        "_type" : "point",
+        "_id" : "265513250#1514862404",
+        "_score" : null,
+        "_source" : {
+          "arlas_partition" : 20180102,
+          "mmsi" : "265513250",
+          "arlas_timestamp" : 1514862404,
+          "arlas_visibility_state" : "VISIBLE",
+          "arlas_visible_sequence_id" : "265513250#1514862371",
+          "cog" : 4.0,
+          "data_source_type" : "AIS",
+          "imo" : "Unknown",
+          "latitude" : 56.169133,
+          "longitude" : 12.29887,
+          "sog" : 13.7,
+          "timestamp" : "2018-01-02T03:06:44.000Z",
+          "type_of_mobile" : "Base Station",
+          "type_of_position_fixing_device" : "Undefined",
+          "arlas_es_id" : "265513250#1514862404"
+        },
+        "sort" : [
+          "265513250#1514862404"
+        ]
+      },
+      {
+        "_index" : "ais_filtered_data",
+        "_type" : "point",
+        "_id" : "265513250#1514862401",
+        "_score" : null,
+        "_source" : {
+          "arlas_partition" : 20180102,
+          "mmsi" : "265513250",
+          "arlas_timestamp" : 1514862401,
+          "arlas_visibility_state" : "VISIBLE",
+          "arlas_visible_sequence_id" : "265513250#1514862371",
+          "cog" : 3.55,
+          "data_source_type" : "AIS",
+          "imo" : "Unknown",
+          "latitude" : 56.118303,
+          "longitude" : 12.497399,
+          "sog" : 13.4,
+          "timestamp" : "2018-01-02T03:06:41.000Z",
+          "type_of_mobile" : "Base Station",
+          "type_of_position_fixing_device" : "Undefined",
+          "arlas_es_id" : "265513250#1514862401"
+        },
+        "sort" : [
+          "265513250#1514862401"
+        ]
+      },
+      {
+        "_index" : "ais_filtered_data",
+        "_type" : "point",
+        "_id" : "265513250#1514862394",
+        "_score" : null,
+        "_source" : {
+          "arlas_partition" : 20180102,
+          "mmsi" : "265513250",
+          "arlas_timestamp" : 1514862394,
+          "arlas_visibility_state" : "VISIBLE",
+          "arlas_visible_sequence_id" : "265513250#1514862371",
+          "cog" : 3.1,
+          "data_source_type" : "AIS",
+          "imo" : "Unknown",
+          "latitude" : 56.073053,
+          "longitude" : 12.585218,
+          "sog" : 13.1,
+          "timestamp" : "2018-01-02T03:06:34.000Z",
+          "type_of_mobile" : "Base Station",
+          "type_of_position_fixing_device" : "Undefined",
+          "arlas_es_id" : "265513250#1514862394"
+        },
+        "sort" : [
+          "265513250#1514862394"
+        ]
+      },
+      {
+        "_index" : "ais_filtered_data",
+        "_type" : "point",
+        "_id" : "265513250#1514862383",
+        "_score" : null,
+        "_source" : {
+          "arlas_partition" : 20180102,
+          "mmsi" : "265513250",
+          "arlas_timestamp" : 1514862383,
+          "arlas_visibility_state" : "VISIBLE",
+          "arlas_visible_sequence_id" : "265513250#1514862371",
+          "cog" : 2.65,
+          "data_source_type" : "AIS",
+          "imo" : "Unknown",
+          "latitude" : 56.035357,
+          "longitude" : 12.645459,
+          "sog" : 12.8,
+          "timestamp" : "2018-01-02T03:06:23.000Z",
+          "type_of_mobile" : "Base Station",
+          "type_of_position_fixing_device" : "Undefined",
+          "arlas_es_id" : "265513250#1514862383"
+        },
+        "sort" : [
+          "265513250#1514862383"
+        ]
+      },
+      {
+        "_index" : "ais_filtered_data",
+        "_type" : "point",
+        "_id" : "265513250#1514862371",
+        "_score" : null,
+        "_source" : {
+          "arlas_partition" : 20180102,
+          "mmsi" : "265513250",
+          "arlas_timestamp" : 1514862371,
+          "arlas_visibility_state" : "APPEAR",
+          "arlas_visible_sequence_id" : "265513250#1514862371",
+          "cog" : 2.2,
+          "data_source_type" : "AIS",
+          "imo" : "Unknown",
+          "latitude" : 56.013067,
+          "longitude" : 12.644289,
           "navigational_status" : "Under way using engine",
-          "sog" : 12.999113078227102,
-          "timestamp" : "2018-01-02T03:06:30.000Z",
+          "sog" : 12.5,
+          "timestamp" : "2018-01-02T03:06:11.000Z",
           "type_of_mobile" : "Base Station",
           "type_of_position_fixing_device" : "Undefined",
-          "arlas_es_id" : "265513250#1514862390"
+          "arlas_es_id" : "265513250#1514862371"
         },
         "sort" : [
-          "265513250#1514862390"
+          "265513250#1514862371"
         ]
       },
       {
         "_index" : "ais_filtered_data",
         "_type" : "point",
-        "_id" : "265513250#1514862375",
+        "_id" : "265513250#1514862034",
         "_score" : null,
         "_source" : {
           "arlas_partition" : 20180102,
           "mmsi" : "265513250",
-          "arlas_timestamp" : 1514862375,
-          "arlas_distance" : 0.0,
-          "arlas_timeserie_id" : "265513250#1514862371",
-          "cog" : 2.3426287023971244,
+          "arlas_timestamp" : 1514862034,
+          "arlas_visibility_state" : "DISAPPEAR",
+          "arlas_visible_sequence_id" : "265513250#1514862000",
+          "cog" : 1.75,
           "data_source_type" : "AIS",
+          "heading" : 53.0,
           "imo" : "Unknown",
-          "latitude" : 56.01838267849378,
-          "longitude" : 12.654866309665938,
+          "latitude" : 55.973415,
+          "longitude" : 12.645524,
           "navigational_status" : "Under way using engine",
-          "sog" : 12.595085801598083,
-          "timestamp" : "2018-01-02T03:06:15.000Z",
+          "rot" : -3.6,
+          "ship_type" : "Undefined",
+          "sog" : 12.2,
+          "timestamp" : "2018-01-02T03:00:34.000Z",
           "type_of_mobile" : "Base Station",
           "type_of_position_fixing_device" : "Undefined",
-          "arlas_es_id" : "265513250#1514862375"
+          "arlas_es_id" : "265513250#1514862034"
         },
         "sort" : [
-          "265513250#1514862375"
+          "265513250#1514862034"
         ]
       },
       {
         "_index" : "ais_filtered_data",
         "_type" : "point",
-        "_id" : "265513250#1514862015",
+        "_id" : "265513250#1514862023",
         "_score" : null,
         "_source" : {
           "arlas_partition" : 20180102,
           "mmsi" : "265513250",
-          "arlas_timestamp" : 1514862015,
-          "arlas_distance" : 0.0,
-          "arlas_timeserie_id" : "265513250#1514862000",
-          "cog" : 0.9700616251851144,
+          "arlas_timestamp" : 1514862023,
+          "arlas_visibility_state" : "VISIBLE",
+          "arlas_visible_sequence_id" : "265513250#1514862000",
+          "cog" : 1.3,
           "data_source_type" : "AIS",
+          "heading" : 20.0,
           "imo" : "Unknown",
-          "latitude" : 55.925119692781735,
-          "longitude" : 12.650482523301616,
-          "navigational_status" : "Unknown value",
+          "latitude" : 55.928345,
+          "longitude" : 12.649845,
+          "navigational_status" : "Under way using engine",
+          "rot" : 0.0,
           "ship_type" : "Undefined",
-          "sog" : 11.680041083456743,
-          "timestamp" : "2018-01-02T03:00:15.000Z",
+          "sog" : 11.9,
+          "timestamp" : "2018-01-02T03:00:23.000Z",
           "type_of_mobile" : "Base Station",
           "type_of_position_fixing_device" : "Undefined",
-          "arlas_es_id" : "265513250#1514862015"
+          "arlas_es_id" : "265513250#1514862023"
         },
         "sort" : [
-          "265513250#1514862015"
+          "265513250#1514862023"
         ]
       },
       {
         "_index" : "ais_filtered_data",
         "_type" : "point",
-        "_id" : "265513250#1514851290",
+        "_id" : "265513250#1514862012",
         "_score" : null,
         "_source" : {
           "arlas_partition" : 20180102,
           "mmsi" : "265513250",
-          "arlas_timestamp" : 1514851290,
-          "arlas_distance" : 0.0,
-          "arlas_timeserie_id" : "265513250#1514851102",
+          "arlas_timestamp" : 1514862012,
+          "arlas_visibility_state" : "VISIBLE",
+          "arlas_visible_sequence_id" : "265513250#1514862000",
+          "cog" : 0.85,
           "data_source_type" : "AIS",
           "imo" : "Unknown",
+          "latitude" : 55.926692,
+          "longitude" : 12.650489,
           "navigational_status" : "Unknown value",
           "ship_type" : "Undefined",
-          "timestamp" : "2018-01-02T00:01:30.000Z",
+          "sog" : 11.6,
+          "timestamp" : "2018-01-02T03:00:12.000Z",
           "type_of_mobile" : "Base Station",
           "type_of_position_fixing_device" : "Undefined",
-          "arlas_es_id" : "265513250#1514851290"
+          "arlas_es_id" : "265513250#1514862012"
         },
         "sort" : [
-          "265513250#1514851290"
+          "265513250#1514862012"
         ]
       },
       {
         "_index" : "ais_filtered_data",
         "_type" : "point",
-        "_id" : "265513250#1514851275",
+        "_id" : "265513250#1514862000",
         "_score" : null,
         "_source" : {
           "arlas_partition" : 20180102,
           "mmsi" : "265513250",
-          "arlas_timestamp" : 1514851275,
-          "arlas_distance" : 0.0,
-          "arlas_timeserie_id" : "265513250#1514851102",
+          "arlas_timestamp" : 1514862000,
+          "arlas_visibility_state" : "APPEAR",
+          "arlas_visible_sequence_id" : "265513250#1514862000",
+          "cog" : 0.4,
           "data_source_type" : "AIS",
           "imo" : "Unknown",
+          "latitude" : 55.925727,
+          "longitude" : 12.651154,
           "navigational_status" : "Unknown value",
           "ship_type" : "Undefined",
-          "timestamp" : "2018-01-02T00:01:15.000Z",
+          "sog" : 11.3,
+          "timestamp" : "2018-01-02T03:00:00.000Z",
           "type_of_mobile" : "Base Station",
           "type_of_position_fixing_device" : "Undefined",
-          "arlas_es_id" : "265513250#1514851275"
+          "arlas_es_id" : "265513250#1514862000"
         },
         "sort" : [
-          "265513250#1514851275"
+          "265513250#1514862000"
         ]
       },
       {
         "_index" : "ais_filtered_data",
         "_type" : "point",
-        "_id" : "265513250#1514851260",
+        "_id" : "265513250#1514851319",
         "_score" : null,
         "_source" : {
           "arlas_partition" : 20180102,
           "mmsi" : "265513250",
-          "arlas_timestamp" : 1514851260,
-          "arlas_distance" : 0.0,
-          "arlas_timeserie_id" : "265513250#1514851102",
+          "arlas_timestamp" : 1514851319,
+          "arlas_visibility_state" : "DISAPPEAR",
+          "arlas_visible_sequence_id" : "265513250#1514851102",
+          "cog" : 1.75,
           "data_source_type" : "AIS",
+          "heading" : 53.0,
           "imo" : "Unknown",
-          "navigational_status" : "Unknown value",
+          "latitude" : 55.913415,
+          "longitude" : 12.635524,
+          "navigational_status" : "Under way using engine",
+          "rot" : -3.6,
           "ship_type" : "Undefined",
-          "timestamp" : "2018-01-02T00:01:00.000Z",
+          "sog" : 12.2,
+          "timestamp" : "2018-01-02T00:01:59.000Z",
           "type_of_mobile" : "Base Station",
           "type_of_position_fixing_device" : "Undefined",
-          "arlas_es_id" : "265513250#1514851260"
+          "arlas_es_id" : "265513250#1514851319"
         },
         "sort" : [
-          "265513250#1514851260"
+          "265513250#1514851319"
         ]
       },
       {
         "_index" : "ais_filtered_data",
         "_type" : "point",
-        "_id" : "265513250#1514851245",
+        "_id" : "265513250#1514851283",
         "_score" : null,
         "_source" : {
           "arlas_partition" : 20180102,
           "mmsi" : "265513250",
-          "arlas_timestamp" : 1514851245,
-          "arlas_distance" : 0.0,
-          "arlas_timeserie_id" : "265513250#1514851102",
+          "arlas_timestamp" : 1514851283,
+          "arlas_visibility_state" : "VISIBLE",
+          "arlas_visible_sequence_id" : "265513250#1514851102",
+          "cog" : 1.3,
           "data_source_type" : "AIS",
+          "heading" : 20.0,
           "imo" : "Unknown",
-          "navigational_status" : "Unknown value",
+          "latitude" : 55.918345,
+          "longitude" : 12.629845,
+          "navigational_status" : "Under way using engine",
+          "rot" : 0.0,
           "ship_type" : "Undefined",
-          "timestamp" : "2018-01-02T00:00:45.000Z",
+          "sog" : 11.9,
+          "timestamp" : "2018-01-02T00:01:23.000Z",
           "type_of_mobile" : "Base Station",
           "type_of_position_fixing_device" : "Undefined",
-          "arlas_es_id" : "265513250#1514851245"
+          "arlas_es_id" : "265513250#1514851283"
         },
         "sort" : [
-          "265513250#1514851245"
+          "265513250#1514851283"
         ]
       },
       {
@@ -190,12 +445,16 @@
           "arlas_partition" : 20180102,
           "mmsi" : "265513250",
           "arlas_timestamp" : 1514851230,
-          "arlas_distance" : 0.0,
-          "arlas_timeserie_id" : "265513250#1514851102",
+          "arlas_visibility_state" : "VISIBLE",
+          "arlas_visible_sequence_id" : "265513250#1514851102",
+          "cog" : 0.85,
           "data_source_type" : "AIS",
           "imo" : "Unknown",
+          "latitude" : 55.916692,
+          "longitude" : 12.620489,
           "navigational_status" : "Unknown value",
           "ship_type" : "Undefined",
+          "sog" : 11.6,
           "timestamp" : "2018-01-02T00:00:30.000Z",
           "type_of_mobile" : "Base Station",
           "type_of_position_fixing_device" : "Undefined",
@@ -208,42 +467,22 @@
       {
         "_index" : "ais_filtered_data",
         "_type" : "point",
-        "_id" : "265513250#1514851215",
-        "_score" : null,
-        "_source" : {
-          "arlas_partition" : 20180102,
-          "mmsi" : "265513250",
-          "arlas_timestamp" : 1514851215,
-          "arlas_distance" : 0.0,
-          "arlas_timeserie_id" : "265513250#1514851102",
-          "data_source_type" : "AIS",
-          "imo" : "Unknown",
-          "navigational_status" : "Unknown value",
-          "ship_type" : "Undefined",
-          "timestamp" : "2018-01-02T00:00:15.000Z",
-          "type_of_mobile" : "Base Station",
-          "type_of_position_fixing_device" : "Undefined",
-          "arlas_es_id" : "265513250#1514851215"
-        },
-        "sort" : [
-          "265513250#1514851215"
-        ]
-      },
-      {
-        "_index" : "ais_filtered_data",
-        "_type" : "point",
         "_id" : "265513250#1514851200",
         "_score" : null,
         "_source" : {
           "arlas_partition" : 20180102,
           "mmsi" : "265513250",
           "arlas_timestamp" : 1514851200,
-          "arlas_distance" : 0.0,
-          "arlas_timeserie_id" : "265513250#1514851102",
+          "arlas_visibility_state" : "VISIBLE",
+          "arlas_visible_sequence_id" : "265513250#1514851102",
+          "cog" : 0.4,
           "data_source_type" : "AIS",
           "imo" : "Unknown",
+          "latitude" : 55.915727,
+          "longitude" : 12.621154,
           "navigational_status" : "Unknown value",
           "ship_type" : "Undefined",
+          "sog" : 11.3,
           "timestamp" : "2018-01-02T00:00:00.000Z",
           "type_of_mobile" : "Base Station",
           "type_of_position_fixing_device" : "Undefined",
@@ -256,615 +495,900 @@
       {
         "_index" : "ais_filtered_data",
         "_type" : "point",
-        "_id" : "265513250#1514851185",
+        "_id" : "265513250#1514851166",
         "_score" : null,
         "_source" : {
           "arlas_partition" : 20180101,
           "mmsi" : "265513250",
-          "arlas_timestamp" : 1514851185,
-          "arlas_distance" : 0.0,
-          "arlas_timeserie_id" : "265513250#1514851102",
+          "arlas_timestamp" : 1514851166,
+          "arlas_visibility_state" : "VISIBLE",
+          "arlas_visible_sequence_id" : "265513250#1514851102",
+          "cog" : 6.25,
+          "data_source_type" : "AIS",
+          "latitude" : 56.080822,
+          "longitude" : 11.026482,
+          "sog" : 15.2,
+          "timestamp" : "2018-01-01T23:59:26.000Z",
+          "type_of_mobile" : "Base Station",
+          "type_of_position_fixing_device" : "Undefined",
+          "arlas_es_id" : "265513250#1514851166"
+        },
+        "sort" : [
+          "265513250#1514851166"
+        ]
+      },
+      {
+        "_index" : "ais_filtered_data",
+        "_type" : "point",
+        "_id" : "265513250#1514851102",
+        "_score" : null,
+        "_source" : {
+          "arlas_partition" : 20180101,
+          "mmsi" : "265513250",
+          "arlas_timestamp" : 1514851102,
+          "arlas_visibility_state" : "APPEAR",
+          "arlas_visible_sequence_id" : "265513250#1514851102",
+          "cog" : 5.8,
+          "data_source_type" : "AIS",
+          "latitude" : 56.148124,
+          "longitude" : 11.390748,
+          "sog" : 14.9,
+          "timestamp" : "2018-01-01T23:58:22.000Z",
+          "type_of_mobile" : "Base Station",
+          "type_of_position_fixing_device" : "Undefined",
+          "arlas_es_id" : "265513250#1514851102"
+        },
+        "sort" : [
+          "265513250#1514851102"
+        ]
+      },
+      {
+        "_index" : "ais_filtered_data",
+        "_type" : "point",
+        "_id" : "265513250#1514850977",
+        "_score" : null,
+        "_source" : {
+          "arlas_partition" : 20180101,
+          "mmsi" : "265513250",
+          "arlas_timestamp" : 1514850977,
+          "arlas_visibility_state" : "APPEAR",
+          "arlas_visible_sequence_id" : "265513250#1514850913",
+          "cog" : 5.35,
+          "data_source_type" : "AIS",
+          "latitude" : 56.11243,
+          "longitude" : 11.666634,
+          "sog" : 14.6,
+          "timestamp" : "2018-01-01T23:56:17.000Z",
+          "type_of_mobile" : "Base Station",
+          "type_of_position_fixing_device" : "Undefined",
+          "arlas_es_id" : "265513250#1514850977"
+        },
+        "sort" : [
+          "265513250#1514850977"
+        ]
+      },
+      {
+        "_index" : "ais_filtered_data",
+        "_type" : "point",
+        "_id" : "265513250#1514850913",
+        "_score" : null,
+        "_source" : {
+          "arlas_partition" : 20180101,
+          "mmsi" : "265513250",
+          "arlas_timestamp" : 1514850913,
+          "arlas_visibility_state" : "APPEAR",
+          "arlas_visible_sequence_id" : "265513250#1514850913",
+          "cog" : 4.9,
+          "data_source_type" : "AIS",
+          "latitude" : 56.174596,
+          "longitude" : 11.885253,
+          "sog" : 14.3,
+          "timestamp" : "2018-01-01T23:55:13.000Z",
+          "type_of_mobile" : "Base Station",
+          "type_of_position_fixing_device" : "Undefined",
+          "arlas_es_id" : "265513250#1514850913"
+        },
+        "sort" : [
+          "265513250#1514850913"
+        ]
+      },
+      {
+        "_index" : "ais_filtered_data",
+        "_type" : "point",
+        "_id" : "265513250#1514776166",
+        "_score" : null,
+        "_source" : {
+          "arlas_partition" : 20180101,
+          "mmsi" : "265513250",
+          "arlas_timestamp" : 1514776166,
+          "arlas_visibility_state" : "DISAPPEAR",
+          "arlas_visible_sequence_id" : "265513250#1514776153",
+          "cog" : 6.25,
+          "data_source_type" : "AIS",
+          "latitude" : 56.080822,
+          "longitude" : 11.026482,
+          "sog" : 15.2,
+          "timestamp" : "2018-01-01T03:09:26.000Z",
+          "type_of_mobile" : "Base Station",
+          "type_of_position_fixing_device" : "Undefined",
+          "arlas_es_id" : "265513250#1514776166"
+        },
+        "sort" : [
+          "265513250#1514776166"
+        ]
+      },
+      {
+        "_index" : "ais_filtered_data",
+        "_type" : "point",
+        "_id" : "265513250#1514776162",
+        "_score" : null,
+        "_source" : {
+          "arlas_partition" : 20180101,
+          "mmsi" : "265513250",
+          "arlas_timestamp" : 1514776162,
+          "arlas_visibility_state" : "VISIBLE",
+          "arlas_visible_sequence_id" : "265513250#1514776153",
+          "cog" : 5.8,
+          "data_source_type" : "AIS",
+          "latitude" : 56.148124,
+          "longitude" : 11.390748,
+          "sog" : 14.9,
+          "timestamp" : "2018-01-01T03:09:22.000Z",
+          "type_of_mobile" : "Base Station",
+          "type_of_position_fixing_device" : "Undefined",
+          "arlas_es_id" : "265513250#1514776162"
+        },
+        "sort" : [
+          "265513250#1514776162"
+        ]
+      },
+      {
+        "_index" : "ais_filtered_data",
+        "_type" : "point",
+        "_id" : "265513250#1514776157",
+        "_score" : null,
+        "_source" : {
+          "arlas_partition" : 20180101,
+          "mmsi" : "265513250",
+          "arlas_timestamp" : 1514776157,
+          "arlas_visibility_state" : "VISIBLE",
+          "arlas_visible_sequence_id" : "265513250#1514776153",
+          "cog" : 5.35,
+          "data_source_type" : "AIS",
+          "latitude" : 56.11243,
+          "longitude" : 11.666634,
+          "sog" : 14.6,
+          "timestamp" : "2018-01-01T03:09:17.000Z",
+          "type_of_mobile" : "Base Station",
+          "type_of_position_fixing_device" : "Undefined",
+          "arlas_es_id" : "265513250#1514776157"
+        },
+        "sort" : [
+          "265513250#1514776157"
+        ]
+      },
+      {
+        "_index" : "ais_filtered_data",
+        "_type" : "point",
+        "_id" : "265513250#1514776153",
+        "_score" : null,
+        "_source" : {
+          "arlas_partition" : 20180101,
+          "mmsi" : "265513250",
+          "arlas_timestamp" : 1514776153,
+          "arlas_visibility_state" : "APPEAR",
+          "arlas_visible_sequence_id" : "265513250#1514776153",
+          "cog" : 4.9,
+          "data_source_type" : "AIS",
+          "latitude" : 56.174596,
+          "longitude" : 11.885253,
+          "sog" : 14.3,
+          "timestamp" : "2018-01-01T03:09:13.000Z",
+          "type_of_mobile" : "Base Station",
+          "type_of_position_fixing_device" : "Undefined",
+          "arlas_es_id" : "265513250#1514776153"
+        },
+        "sort" : [
+          "265513250#1514776153"
+        ]
+      },
+      {
+        "_index" : "ais_filtered_data",
+        "_type" : "point",
+        "_id" : "265513250#1514776011",
+        "_score" : null,
+        "_source" : {
+          "arlas_partition" : 20180101,
+          "mmsi" : "265513250",
+          "arlas_timestamp" : 1514776011,
+          "arlas_visibility_state" : "DISAPPEAR",
+          "arlas_visible_sequence_id" : "265513250#1514775971",
+          "cog" : 4.45,
           "data_source_type" : "AIS",
           "imo" : "Unknown",
+          "latitude" : 56.170132,
+          "longitude" : 12.058547,
+          "sog" : 14.0,
+          "timestamp" : "2018-01-01T03:06:51.000Z",
+          "type_of_mobile" : "Base Station",
+          "type_of_position_fixing_device" : "Undefined",
+          "arlas_es_id" : "265513250#1514776011"
+        },
+        "sort" : [
+          "265513250#1514776011"
+        ]
+      },
+      {
+        "_index" : "ais_filtered_data",
+        "_type" : "point",
+        "_id" : "265513250#1514776004",
+        "_score" : null,
+        "_source" : {
+          "arlas_partition" : 20180101,
+          "mmsi" : "265513250",
+          "arlas_timestamp" : 1514776004,
+          "arlas_visibility_state" : "VISIBLE",
+          "arlas_visible_sequence_id" : "265513250#1514775971",
+          "cog" : 4.0,
+          "data_source_type" : "AIS",
+          "imo" : "Unknown",
+          "latitude" : 56.169133,
+          "longitude" : 12.29887,
+          "sog" : 13.7,
+          "timestamp" : "2018-01-01T03:06:44.000Z",
+          "type_of_mobile" : "Base Station",
+          "type_of_position_fixing_device" : "Undefined",
+          "arlas_es_id" : "265513250#1514776004"
+        },
+        "sort" : [
+          "265513250#1514776004"
+        ]
+      },
+      {
+        "_index" : "ais_filtered_data",
+        "_type" : "point",
+        "_id" : "265513250#1514776001",
+        "_score" : null,
+        "_source" : {
+          "arlas_partition" : 20180101,
+          "mmsi" : "265513250",
+          "arlas_timestamp" : 1514776001,
+          "arlas_visibility_state" : "VISIBLE",
+          "arlas_visible_sequence_id" : "265513250#1514775971",
+          "cog" : 3.55,
+          "data_source_type" : "AIS",
+          "imo" : "Unknown",
+          "latitude" : 56.118303,
+          "longitude" : 12.497399,
+          "sog" : 13.4,
+          "timestamp" : "2018-01-01T03:06:41.000Z",
+          "type_of_mobile" : "Base Station",
+          "type_of_position_fixing_device" : "Undefined",
+          "arlas_es_id" : "265513250#1514776001"
+        },
+        "sort" : [
+          "265513250#1514776001"
+        ]
+      },
+      {
+        "_index" : "ais_filtered_data",
+        "_type" : "point",
+        "_id" : "265513250#1514775994",
+        "_score" : null,
+        "_source" : {
+          "arlas_partition" : 20180101,
+          "mmsi" : "265513250",
+          "arlas_timestamp" : 1514775994,
+          "arlas_visibility_state" : "VISIBLE",
+          "arlas_visible_sequence_id" : "265513250#1514775971",
+          "cog" : 3.1,
+          "data_source_type" : "AIS",
+          "imo" : "Unknown",
+          "latitude" : 56.073053,
+          "longitude" : 12.585218,
+          "sog" : 13.1,
+          "timestamp" : "2018-01-01T03:06:34.000Z",
+          "type_of_mobile" : "Base Station",
+          "type_of_position_fixing_device" : "Undefined",
+          "arlas_es_id" : "265513250#1514775994"
+        },
+        "sort" : [
+          "265513250#1514775994"
+        ]
+      },
+      {
+        "_index" : "ais_filtered_data",
+        "_type" : "point",
+        "_id" : "265513250#1514775983",
+        "_score" : null,
+        "_source" : {
+          "arlas_partition" : 20180101,
+          "mmsi" : "265513250",
+          "arlas_timestamp" : 1514775983,
+          "arlas_visibility_state" : "VISIBLE",
+          "arlas_visible_sequence_id" : "265513250#1514775971",
+          "cog" : 2.65,
+          "data_source_type" : "AIS",
+          "imo" : "Unknown",
+          "latitude" : 56.035357,
+          "longitude" : 12.645459,
+          "sog" : 12.8,
+          "timestamp" : "2018-01-01T03:06:23.000Z",
+          "type_of_mobile" : "Base Station",
+          "type_of_position_fixing_device" : "Undefined",
+          "arlas_es_id" : "265513250#1514775983"
+        },
+        "sort" : [
+          "265513250#1514775983"
+        ]
+      },
+      {
+        "_index" : "ais_filtered_data",
+        "_type" : "point",
+        "_id" : "265513250#1514775971",
+        "_score" : null,
+        "_source" : {
+          "arlas_partition" : 20180101,
+          "mmsi" : "265513250",
+          "arlas_timestamp" : 1514775971,
+          "arlas_visibility_state" : "APPEAR",
+          "arlas_visible_sequence_id" : "265513250#1514775971",
+          "cog" : 2.2,
+          "data_source_type" : "AIS",
+          "imo" : "Unknown",
+          "latitude" : 56.013067,
+          "longitude" : 12.644289,
+          "navigational_status" : "Under way using engine",
+          "sog" : 12.5,
+          "timestamp" : "2018-01-01T03:06:11.000Z",
+          "type_of_mobile" : "Base Station",
+          "type_of_position_fixing_device" : "Undefined",
+          "arlas_es_id" : "265513250#1514775971"
+        },
+        "sort" : [
+          "265513250#1514775971"
+        ]
+      },
+      {
+        "_index" : "ais_filtered_data",
+        "_type" : "point",
+        "_id" : "265513250#1514775634",
+        "_score" : null,
+        "_source" : {
+          "arlas_partition" : 20180101,
+          "mmsi" : "265513250",
+          "arlas_timestamp" : 1514775634,
+          "arlas_visibility_state" : "DISAPPEAR",
+          "arlas_visible_sequence_id" : "265513250#1514775600",
+          "cog" : 1.75,
+          "data_source_type" : "AIS",
+          "heading" : 53.0,
+          "imo" : "Unknown",
+          "latitude" : 55.973415,
+          "longitude" : 12.645524,
+          "navigational_status" : "Under way using engine",
+          "rot" : -3.6,
+          "ship_type" : "Undefined",
+          "sog" : 12.2,
+          "timestamp" : "2018-01-01T03:00:34.000Z",
+          "type_of_mobile" : "Base Station",
+          "type_of_position_fixing_device" : "Undefined",
+          "arlas_es_id" : "265513250#1514775634"
+        },
+        "sort" : [
+          "265513250#1514775634"
+        ]
+      },
+      {
+        "_index" : "ais_filtered_data",
+        "_type" : "point",
+        "_id" : "265513250#1514775623",
+        "_score" : null,
+        "_source" : {
+          "arlas_partition" : 20180101,
+          "mmsi" : "265513250",
+          "arlas_timestamp" : 1514775623,
+          "arlas_visibility_state" : "VISIBLE",
+          "arlas_visible_sequence_id" : "265513250#1514775600",
+          "cog" : 1.3,
+          "data_source_type" : "AIS",
+          "heading" : 20.0,
+          "imo" : "Unknown",
+          "latitude" : 55.928345,
+          "longitude" : 12.649845,
+          "navigational_status" : "Under way using engine",
+          "rot" : 0.0,
+          "ship_type" : "Undefined",
+          "sog" : 11.9,
+          "timestamp" : "2018-01-01T03:00:23.000Z",
+          "type_of_mobile" : "Base Station",
+          "type_of_position_fixing_device" : "Undefined",
+          "arlas_es_id" : "265513250#1514775623"
+        },
+        "sort" : [
+          "265513250#1514775623"
+        ]
+      },
+      {
+        "_index" : "ais_filtered_data",
+        "_type" : "point",
+        "_id" : "265513250#1514775612",
+        "_score" : null,
+        "_source" : {
+          "arlas_partition" : 20180101,
+          "mmsi" : "265513250",
+          "arlas_timestamp" : 1514775612,
+          "arlas_visibility_state" : "VISIBLE",
+          "arlas_visible_sequence_id" : "265513250#1514775600",
+          "cog" : 0.85,
+          "data_source_type" : "AIS",
+          "imo" : "Unknown",
+          "latitude" : 55.926692,
+          "longitude" : 12.650489,
           "navigational_status" : "Unknown value",
           "ship_type" : "Undefined",
-          "timestamp" : "2018-01-01T23:59:45.000Z",
+          "sog" : 11.6,
+          "timestamp" : "2018-01-01T03:00:12.000Z",
           "type_of_mobile" : "Base Station",
           "type_of_position_fixing_device" : "Undefined",
-          "arlas_es_id" : "265513250#1514851185"
+          "arlas_es_id" : "265513250#1514775612"
         },
         "sort" : [
-          "265513250#1514851185"
+          "265513250#1514775612"
         ]
       },
       {
         "_index" : "ais_filtered_data",
         "_type" : "point",
-        "_id" : "265513250#1514851170",
+        "_id" : "265513250#1514775600",
         "_score" : null,
         "_source" : {
           "arlas_partition" : 20180101,
           "mmsi" : "265513250",
-          "arlas_timestamp" : 1514851170,
-          "arlas_distance" : 0.0,
-          "arlas_timeserie_id" : "265513250#1514851102",
+          "arlas_timestamp" : 1514775600,
+          "arlas_visibility_state" : "APPEAR",
+          "arlas_visible_sequence_id" : "265513250#1514775600",
+          "cog" : 0.4,
           "data_source_type" : "AIS",
           "imo" : "Unknown",
+          "latitude" : 55.925727,
+          "longitude" : 12.651154,
           "navigational_status" : "Unknown value",
           "ship_type" : "Undefined",
-          "timestamp" : "2018-01-01T23:59:30.000Z",
+          "sog" : 11.3,
+          "timestamp" : "2018-01-01T03:00:00.000Z",
           "type_of_mobile" : "Base Station",
           "type_of_position_fixing_device" : "Undefined",
-          "arlas_es_id" : "265513250#1514851170"
+          "arlas_es_id" : "265513250#1514775600"
         },
         "sort" : [
-          "265513250#1514851170"
+          "265513250#1514775600"
         ]
       },
       {
         "_index" : "ais_filtered_data",
         "_type" : "point",
-        "_id" : "265513250#1514851155",
-        "_score" : null,
-        "_source" : {
-          "arlas_partition" : 20180101,
-          "mmsi" : "265513250",
-          "arlas_timestamp" : 1514851155,
-          "arlas_distance" : 0.0,
-          "arlas_timeserie_id" : "265513250#1514851102",
-          "data_source_type" : "AIS",
-          "imo" : "Unknown",
-          "navigational_status" : "Unknown value",
-          "ship_type" : "Undefined",
-          "timestamp" : "2018-01-01T23:59:15.000Z",
-          "type_of_mobile" : "Base Station",
-          "type_of_position_fixing_device" : "Undefined",
-          "arlas_es_id" : "265513250#1514851155"
-        },
-        "sort" : [
-          "265513250#1514851155"
-        ]
-      },
-      {
-        "_index" : "ais_filtered_data",
-        "_type" : "point",
-        "_id" : "265513250#1514851140",
-        "_score" : null,
-        "_source" : {
-          "arlas_partition" : 20180101,
-          "mmsi" : "265513250",
-          "arlas_timestamp" : 1514851140,
-          "arlas_distance" : 0.0,
-          "arlas_timeserie_id" : "265513250#1514851102",
-          "data_source_type" : "AIS",
-          "imo" : "Unknown",
-          "navigational_status" : "Unknown value",
-          "ship_type" : "Undefined",
-          "timestamp" : "2018-01-01T23:59:00.000Z",
-          "type_of_mobile" : "Base Station",
-          "type_of_position_fixing_device" : "Undefined",
-          "arlas_es_id" : "265513250#1514851140"
-        },
-        "sort" : [
-          "265513250#1514851140"
-        ]
-      },
-      {
-        "_index" : "ais_filtered_data",
-        "_type" : "point",
-        "_id" : "265513250#1514851125",
-        "_score" : null,
-        "_source" : {
-          "arlas_partition" : 20180101,
-          "mmsi" : "265513250",
-          "arlas_timestamp" : 1514851125,
-          "arlas_distance" : 0.0,
-          "arlas_timeserie_id" : "265513250#1514851102",
-          "data_source_type" : "AIS",
-          "imo" : "Unknown",
-          "navigational_status" : "Unknown value",
-          "ship_type" : "Undefined",
-          "timestamp" : "2018-01-01T23:58:45.000Z",
-          "type_of_mobile" : "Base Station",
-          "type_of_position_fixing_device" : "Undefined",
-          "arlas_es_id" : "265513250#1514851125"
-        },
-        "sort" : [
-          "265513250#1514851125"
-        ]
-      },
-      {
-        "_index" : "ais_filtered_data",
-        "_type" : "point",
-        "_id" : "265513250#1514851110",
-        "_score" : null,
-        "_source" : {
-          "arlas_partition" : 20180101,
-          "mmsi" : "265513250",
-          "arlas_timestamp" : 1514851110,
-          "arlas_distance" : 0.0,
-          "arlas_timeserie_id" : "265513250#1514851102",
-          "data_source_type" : "AIS",
-          "timestamp" : "2018-01-01T23:58:30.000Z",
-          "type_of_mobile" : "Base Station",
-          "type_of_position_fixing_device" : "Undefined",
-          "arlas_es_id" : "265513250#1514851110"
-        },
-        "sort" : [
-          "265513250#1514851110"
-        ]
-      },
-      {
-        "_index" : "ais_filtered_data",
-        "_type" : "point",
-        "_id" : "265513250#1514850960",
-        "_score" : null,
-        "_source" : {
-          "arlas_partition" : 20180101,
-          "mmsi" : "265513250",
-          "arlas_timestamp" : 1514850960,
-          "arlas_distance" : 0.0,
-          "arlas_timeserie_id" : "265513250#1514850913",
-          "data_source_type" : "AIS",
-          "timestamp" : "2018-01-01T23:56:00.000Z",
-          "type_of_mobile" : "Base Station",
-          "type_of_position_fixing_device" : "Undefined",
-          "arlas_es_id" : "265513250#1514850960"
-        },
-        "sort" : [
-          "265513250#1514850960"
-        ]
-      },
-      {
-        "_index" : "ais_filtered_data",
-        "_type" : "point",
-        "_id" : "265513250#1514850945",
-        "_score" : null,
-        "_source" : {
-          "arlas_partition" : 20180101,
-          "mmsi" : "265513250",
-          "arlas_timestamp" : 1514850945,
-          "arlas_distance" : 0.0,
-          "arlas_timeserie_id" : "265513250#1514850913",
-          "data_source_type" : "AIS",
-          "timestamp" : "2018-01-01T23:55:45.000Z",
-          "type_of_mobile" : "Base Station",
-          "type_of_position_fixing_device" : "Undefined",
-          "arlas_es_id" : "265513250#1514850945"
-        },
-        "sort" : [
-          "265513250#1514850945"
-        ]
-      },
-      {
-        "_index" : "ais_filtered_data",
-        "_type" : "point",
-        "_id" : "265513250#1514850930",
-        "_score" : null,
-        "_source" : {
-          "arlas_partition" : 20180101,
-          "mmsi" : "265513250",
-          "arlas_timestamp" : 1514850930,
-          "arlas_distance" : 0.0,
-          "arlas_timeserie_id" : "265513250#1514850913",
-          "data_source_type" : "AIS",
-          "timestamp" : "2018-01-01T23:55:30.000Z",
-          "type_of_mobile" : "Base Station",
-          "type_of_position_fixing_device" : "Undefined",
-          "arlas_es_id" : "265513250#1514850930"
-        },
-        "sort" : [
-          "265513250#1514850930"
-        ]
-      },
-      {
-        "_index" : "ais_filtered_data",
-        "_type" : "point",
-        "_id" : "265513250#1514850915",
-        "_score" : null,
-        "_source" : {
-          "arlas_partition" : 20180101,
-          "mmsi" : "265513250",
-          "arlas_timestamp" : 1514850915,
-          "arlas_distance" : 0.0,
-          "arlas_timeserie_id" : "265513250#1514850913",
-          "data_source_type" : "AIS",
-          "timestamp" : "2018-01-01T23:55:15.000Z",
-          "type_of_mobile" : "Base Station",
-          "type_of_position_fixing_device" : "Undefined",
-          "arlas_es_id" : "265513250#1514850915"
-        },
-        "sort" : [
-          "265513250#1514850915"
-        ]
-      },
-      {
-        "_index" : "ais_filtered_data",
-        "_type" : "point",
-        "_id" : "265513250#1514775990",
-        "_score" : null,
-        "_source" : {
-          "arlas_partition" : 20180101,
-          "mmsi" : "265513250",
-          "arlas_timestamp" : 1514775990,
-          "arlas_distance" : 8162.356036914364,
-          "arlas_timeserie_id" : "265513250#1514775971",
-          "cog" : 2.9486696173406552,
-          "data_source_type" : "AIS",
-          "imo" : "Unknown",
-          "latitude" : 56.06041103215727,
-          "longitude" : 12.593709258892112,
-          "navigational_status" : "Under way using engine",
-          "sog" : 12.999113078227102,
-          "timestamp" : "2018-01-01T03:06:30.000Z",
-          "type_of_mobile" : "Base Station",
-          "type_of_position_fixing_device" : "Undefined",
-          "arlas_es_id" : "265513250#1514775990"
-        },
-        "sort" : [
-          "265513250#1514775990"
-        ]
-      },
-      {
-        "_index" : "ais_filtered_data",
-        "_type" : "point",
-        "_id" : "265513250#1514775975",
-        "_score" : null,
-        "_source" : {
-          "arlas_partition" : 20180101,
-          "mmsi" : "265513250",
-          "arlas_timestamp" : 1514775975,
-          "arlas_distance" : 0.0,
-          "arlas_timeserie_id" : "265513250#1514775971",
-          "cog" : 2.3426287023971244,
-          "data_source_type" : "AIS",
-          "imo" : "Unknown",
-          "latitude" : 56.01838267849378,
-          "longitude" : 12.654866309665938,
-          "navigational_status" : "Under way using engine",
-          "sog" : 12.595085801598083,
-          "timestamp" : "2018-01-01T03:06:15.000Z",
-          "type_of_mobile" : "Base Station",
-          "type_of_position_fixing_device" : "Undefined",
-          "arlas_es_id" : "265513250#1514775975"
-        },
-        "sort" : [
-          "265513250#1514775975"
-        ]
-      },
-      {
-        "_index" : "ais_filtered_data",
-        "_type" : "point",
-        "_id" : "265513250#1514775615",
-        "_score" : null,
-        "_source" : {
-          "arlas_partition" : 20180101,
-          "mmsi" : "265513250",
-          "arlas_timestamp" : 1514775615,
-          "arlas_distance" : 0.0,
-          "arlas_timeserie_id" : "265513250#1514775600",
-          "cog" : 0.9700616251851144,
-          "data_source_type" : "AIS",
-          "imo" : "Unknown",
-          "latitude" : 55.925119692781735,
-          "longitude" : 12.650482523301616,
-          "navigational_status" : "Unknown value",
-          "ship_type" : "Undefined",
-          "sog" : 11.680041083456743,
-          "timestamp" : "2018-01-01T03:00:15.000Z",
-          "type_of_mobile" : "Base Station",
-          "type_of_position_fixing_device" : "Undefined",
-          "arlas_es_id" : "265513250#1514775615"
-        },
-        "sort" : [
-          "265513250#1514775615"
-        ]
-      },
-      {
-        "_index" : "ais_filtered_data",
-        "_type" : "point",
-        "_id" : "211457860#1514869680",
+        "_id" : "211457860#1514869704",
         "_score" : null,
         "_source" : {
           "arlas_partition" : 20180102,
           "mmsi" : "211457860",
-          "arlas_timestamp" : 1514869680,
-          "arlas_distance" : 7724.41962843913,
-          "arlas_timeserie_id" : "211457860#1514869633",
-          "cog" : 33.964803830131565,
+          "arlas_timestamp" : 1514869704,
+          "arlas_visibility_state" : "DISAPPEAR",
+          "arlas_visible_sequence_id" : "211457860#1514869633",
+          "cog" : 39.4,
           "data_source_type" : "AIS",
           "imo" : "Unknown",
-          "latitude" : 55.19804465722953,
-          "longitude" : 10.698044657229532,
+          "latitude" : 55.5,
+          "longitude" : 11.0,
           "navigational_status" : "Under way using engine",
           "ship_type" : "Undefined",
-          "sog" : 96.76089314459063,
-          "timestamp" : "2018-01-02T05:08:00.000Z",
+          "sog" : 102.8,
+          "timestamp" : "2018-01-02T05:08:24.000Z",
           "type_of_mobile" : "Class A",
           "type_of_position_fixing_device" : "Undefined",
-          "arlas_es_id" : "211457860#1514869680"
+          "arlas_es_id" : "211457860#1514869704"
         },
         "sort" : [
-          "211457860#1514869680"
+          "211457860#1514869704"
         ]
       },
       {
         "_index" : "ais_filtered_data",
         "_type" : "point",
-        "_id" : "211457860#1514869665",
+        "_id" : "211457860#1514869699",
         "_score" : null,
         "_source" : {
           "arlas_partition" : 20180102,
           "mmsi" : "211457860",
-          "arlas_timestamp" : 1514869665,
-          "arlas_distance" : 50644.428212158615,
-          "arlas_timeserie_id" : "211457860#1514869633",
-          "cog" : 33.071112460035685,
+          "arlas_timestamp" : 1514869699,
+          "arlas_visibility_state" : "VISIBLE",
+          "arlas_visible_sequence_id" : "211457860#1514869633",
+          "cog" : 37.6,
           "data_source_type" : "AIS",
           "imo" : "Unknown",
-          "latitude" : 55.148395136668654,
-          "longitude" : 10.648395136668649,
+          "latitude" : 55.4,
+          "longitude" : 10.9,
           "navigational_status" : "Under way using engine",
           "ship_type" : "Undefined",
-          "sog" : 95.76790273337296,
-          "timestamp" : "2018-01-02T05:07:45.000Z",
+          "sog" : 100.8,
+          "timestamp" : "2018-01-02T05:08:19.000Z",
           "type_of_mobile" : "Class A",
           "type_of_position_fixing_device" : "Undefined",
-          "arlas_es_id" : "211457860#1514869665"
+          "arlas_es_id" : "211457860#1514869699"
         },
         "sort" : [
-          "211457860#1514869665"
+          "211457860#1514869699"
         ]
       },
       {
         "_index" : "ais_filtered_data",
         "_type" : "point",
-        "_id" : "211457860#1514869650",
+        "_id" : "211457860#1514869694",
         "_score" : null,
         "_source" : {
           "arlas_partition" : 20180102,
           "mmsi" : "211457860",
-          "arlas_timestamp" : 1514869650,
-          "arlas_distance" : 16929.36418131899,
-          "arlas_timeserie_id" : "211457860#1514869633",
-          "cog" : 27.21343022540698,
+          "arlas_timestamp" : 1514869694,
+          "arlas_visibility_state" : "VISIBLE",
+          "arlas_visible_sequence_id" : "211457860#1514869633",
+          "cog" : 35.8,
           "data_source_type" : "AIS",
+          "heading" : 53.0,
           "imo" : "Unknown",
-          "latitude" : 54.82296834585594,
-          "longitude" : 10.322968345855944,
+          "latitude" : 55.3,
+          "longitude" : 10.8,
           "navigational_status" : "Under way using engine",
           "ship_type" : "Undefined",
-          "sog" : 89.25936691711885,
-          "timestamp" : "2018-01-02T05:07:30.000Z",
+          "sog" : 98.8,
+          "timestamp" : "2018-01-02T05:08:14.000Z",
           "type_of_mobile" : "Class A",
           "type_of_position_fixing_device" : "Undefined",
-          "arlas_es_id" : "211457860#1514869650"
+          "arlas_es_id" : "211457860#1514869694"
         },
         "sort" : [
-          "211457860#1514869650"
+          "211457860#1514869694"
         ]
       },
       {
         "_index" : "ais_filtered_data",
         "_type" : "point",
-        "_id" : "211457860#1514869635",
+        "_id" : "211457860#1514869673",
         "_score" : null,
         "_source" : {
           "arlas_partition" : 20180102,
           "mmsi" : "211457860",
-          "arlas_timestamp" : 1514869635,
-          "arlas_distance" : 0.0,
-          "arlas_timeserie_id" : "211457860#1514869633",
-          "cog" : 25.255986590159967,
+          "arlas_timestamp" : 1514869673,
+          "arlas_visibility_state" : "VISIBLE",
+          "arlas_visible_sequence_id" : "211457860#1514869633",
+          "cog" : 34.0,
           "data_source_type" : "AIS",
+          "heading" : 20.0,
           "imo" : "Unknown",
-          "latitude" : 54.71422147723111,
-          "longitude" : 10.214221477231108,
-          "navigational_status" : "Under way using engine",
+          "latitude" : 55.2,
+          "longitude" : 10.7,
           "ship_type" : "Undefined",
-          "sog" : 87.08442954462218,
-          "timestamp" : "2018-01-02T05:07:15.000Z",
+          "sog" : 96.8,
+          "timestamp" : "2018-01-02T05:07:53.000Z",
           "type_of_mobile" : "Class A",
           "type_of_position_fixing_device" : "Undefined",
-          "arlas_es_id" : "211457860#1514869635"
+          "arlas_es_id" : "211457860#1514869673"
         },
         "sort" : [
-          "211457860#1514869635"
+          "211457860#1514869673"
         ]
       },
       {
         "_index" : "ais_filtered_data",
         "_type" : "point",
-        "_id" : "211457860#1514869275",
+        "_id" : "211457860#1514869663",
         "_score" : null,
         "_source" : {
           "arlas_partition" : 20180102,
           "mmsi" : "211457860",
-          "arlas_timestamp" : 1514869275,
-          "arlas_distance" : 0.0,
-          "arlas_timeserie_id" : "211457860#1514869260",
-          "cog" : 20.992901970518517,
+          "arlas_timestamp" : 1514869663,
+          "arlas_visibility_state" : "VISIBLE",
+          "arlas_visible_sequence_id" : "211457860#1514869633",
+          "cog" : 32.2,
           "data_source_type" : "AIS",
-          "latitude" : 54.477383442806584,
-          "longitude" : 9.977383442806584,
-          "navigational_status" : "Under way using engine",
+          "latitude" : 55.1,
+          "longitude" : 10.6,
+          "rot" : 0.4,
           "ship_type" : "Undefined",
-          "sog" : 82.34766885613168,
-          "timestamp" : "2018-01-02T05:01:15.000Z",
+          "sog" : 94.8,
+          "timestamp" : "2018-01-02T05:07:43.000Z",
           "type_of_mobile" : "Class A",
-          "type_of_position_fixing_device" : "Undefined",
-          "arlas_es_id" : "211457860#1514869275"
+          "arlas_es_id" : "211457860#1514869663"
         },
         "sort" : [
-          "211457860#1514869275"
+          "211457860#1514869663"
         ]
       },
       {
         "_index" : "ais_filtered_data",
         "_type" : "point",
-        "_id" : "211457860#1514851290",
+        "_id" : "211457860#1514869660",
         "_score" : null,
         "_source" : {
           "arlas_partition" : 20180102,
           "mmsi" : "211457860",
-          "arlas_timestamp" : 1514851290,
-          "arlas_distance" : 5470.683369539727,
-          "arlas_timeserie_id" : "211457860#1514850929",
-          "cog" : 21.952066875054516,
+          "arlas_timestamp" : 1514869660,
+          "arlas_visibility_state" : "VISIBLE",
+          "arlas_visible_sequence_id" : "211457860#1514869633",
+          "cog" : 30.4,
           "data_source_type" : "AIS",
-          "imo" : "Unknown",
-          "latitude" : 54.53067038194747,
-          "longitude" : 10.030670381947473,
-          "navigational_status" : "Under way using engine",
+          "latitude" : 55.0,
+          "longitude" : 10.5,
           "ship_type" : "Undefined",
-          "sog" : 83.41340763894947,
-          "timestamp" : "2018-01-02T00:01:30.000Z",
+          "sog" : 92.8,
+          "timestamp" : "2018-01-02T05:07:40.000Z",
           "type_of_mobile" : "Class A",
-          "type_of_position_fixing_device" : "Undefined",
-          "arlas_es_id" : "211457860#1514851290"
+          "arlas_es_id" : "211457860#1514869660"
         },
         "sort" : [
-          "211457860#1514851290"
+          "211457860#1514869660"
         ]
       },
       {
         "_index" : "ais_filtered_data",
         "_type" : "point",
-        "_id" : "211457860#1514851275",
+        "_id" : "211457860#1514869656",
         "_score" : null,
         "_source" : {
           "arlas_partition" : 20180102,
           "mmsi" : "211457860",
-          "arlas_timestamp" : 1514851275,
-          "arlas_distance" : 1551.6949120265824,
-          "arlas_timeserie_id" : "211457860#1514850929",
-          "cog" : 21.31976700793762,
+          "arlas_timestamp" : 1514869656,
+          "arlas_visibility_state" : "VISIBLE",
+          "arlas_visible_sequence_id" : "211457860#1514869633",
+          "cog" : 28.6,
           "data_source_type" : "AIS",
-          "imo" : "Unknown",
-          "latitude" : 54.49554261155209,
-          "longitude" : 9.99554261155209,
-          "navigational_status" : "Under way using engine",
+          "latitude" : 54.9,
+          "longitude" : 10.4,
           "ship_type" : "Undefined",
-          "sog" : 82.7108522310418,
-          "timestamp" : "2018-01-02T00:01:15.000Z",
+          "sog" : 90.8,
+          "timestamp" : "2018-01-02T05:07:36.000Z",
           "type_of_mobile" : "Class A",
-          "type_of_position_fixing_device" : "Undefined",
-          "arlas_es_id" : "211457860#1514851275"
+          "arlas_es_id" : "211457860#1514869656"
         },
         "sort" : [
-          "211457860#1514851275"
+          "211457860#1514869656"
         ]
       },
       {
         "_index" : "ais_filtered_data",
         "_type" : "point",
-        "_id" : "211457860#1514851260",
+        "_id" : "211457860#1514869647",
         "_score" : null,
         "_source" : {
           "arlas_partition" : 20180102,
           "mmsi" : "211457860",
-          "arlas_timestamp" : 1514851260,
-          "arlas_distance" : 2245.2564756007228,
-          "arlas_timeserie_id" : "211457860#1514850929",
-          "cog" : 21.14042860406832,
+          "arlas_timestamp" : 1514869647,
+          "arlas_visibility_state" : "VISIBLE",
+          "arlas_visible_sequence_id" : "211457860#1514869633",
+          "cog" : 26.8,
           "data_source_type" : "AIS",
-          "imo" : "Unknown",
-          "latitude" : 54.485579366892686,
-          "longitude" : 9.985579366892685,
+          "latitude" : 54.8,
+          "longitude" : 10.3,
           "navigational_status" : "Under way using engine",
+          "rot" : 0.3,
           "ship_type" : "Undefined",
-          "sog" : 82.51158733785368,
-          "timestamp" : "2018-01-02T00:01:00.000Z",
+          "sog" : 88.8,
+          "timestamp" : "2018-01-02T05:07:27.000Z",
           "type_of_mobile" : "Class A",
-          "type_of_position_fixing_device" : "Undefined",
-          "arlas_es_id" : "211457860#1514851260"
+          "arlas_es_id" : "211457860#1514869647"
         },
         "sort" : [
-          "211457860#1514851260"
+          "211457860#1514869647"
         ]
       },
       {
         "_index" : "ais_filtered_data",
         "_type" : "point",
-        "_id" : "211457860#1514851245",
+        "_id" : "211457860#1514869633",
         "_score" : null,
         "_source" : {
           "arlas_partition" : 20180102,
           "mmsi" : "211457860",
-          "arlas_timestamp" : 1514851245,
-          "arlas_distance" : 8247.08988217981,
-          "arlas_timeserie_id" : "211457860#1514850929",
-          "cog" : 20.88093594745277,
+          "arlas_timestamp" : 1514869633,
+          "arlas_visibility_state" : "APPEAR",
+          "arlas_visible_sequence_id" : "211457860#1514869633",
+          "cog" : 25.0,
           "data_source_type" : "AIS",
-          "imo" : "Unknown",
-          "latitude" : 54.47116310819182,
-          "longitude" : 9.97116310819182,
+          "heading" : 53.0,
+          "latitude" : 54.7,
+          "longitude" : 10.2,
           "navigational_status" : "Under way using engine",
           "ship_type" : "Undefined",
-          "sog" : 82.22326216383641,
-          "timestamp" : "2018-01-02T00:00:45.000Z",
+          "sog" : 86.8,
+          "timestamp" : "2018-01-02T05:07:13.000Z",
           "type_of_mobile" : "Class A",
-          "type_of_position_fixing_device" : "Undefined",
-          "arlas_es_id" : "211457860#1514851245"
+          "arlas_es_id" : "211457860#1514869633"
         },
         "sort" : [
-          "211457860#1514851245"
+          "211457860#1514869633"
         ]
       },
       {
         "_index" : "ais_filtered_data",
         "_type" : "point",
-        "_id" : "211457860#1514851230",
+        "_id" : "211457860#1514869292",
         "_score" : null,
         "_source" : {
           "arlas_partition" : 20180102,
           "mmsi" : "211457860",
-          "arlas_timestamp" : 1514851230,
-          "arlas_distance" : 16282.474382017994,
-          "arlas_timeserie_id" : "211457860#1514850929",
-          "cog" : 19.927836519703856,
+          "arlas_timestamp" : 1514869292,
+          "arlas_visibility_state" : "DISAPPEAR",
+          "arlas_visible_sequence_id" : "211457860#1514869260",
+          "cog" : 23.2,
           "data_source_type" : "AIS",
-          "imo" : "Unknown",
-          "latitude" : 54.41821313998355,
-          "longitude" : 9.918213139983548,
-          "navigational_status" : "Under way using engine",
+          "heading" : 20.0,
+          "latitude" : 54.6,
+          "longitude" : 10.1,
           "ship_type" : "Undefined",
-          "sog" : 81.16426279967095,
-          "timestamp" : "2018-01-02T00:00:30.000Z",
+          "sog" : 84.8,
+          "timestamp" : "2018-01-02T05:01:32.000Z",
           "type_of_mobile" : "Class A",
-          "type_of_position_fixing_device" : "Undefined",
-          "arlas_es_id" : "211457860#1514851230"
+          "arlas_es_id" : "211457860#1514869292"
         },
         "sort" : [
-          "211457860#1514851230"
+          "211457860#1514869292"
         ]
       },
       {
         "_index" : "ais_filtered_data",
         "_type" : "point",
-        "_id" : "211457860#1514851215",
+        "_id" : "211457860#1514869278",
         "_score" : null,
         "_source" : {
           "arlas_partition" : 20180102,
           "mmsi" : "211457860",
-          "arlas_timestamp" : 1514851215,
-          "arlas_distance" : 2131.833747604303,
-          "arlas_timeserie_id" : "211457860#1514850929",
-          "cog" : 18.046321882346007,
+          "arlas_timestamp" : 1514869278,
+          "arlas_visibility_state" : "VISIBLE",
+          "arlas_visible_sequence_id" : "211457860#1514869260",
+          "cog" : 21.4,
           "data_source_type" : "AIS",
-          "imo" : "Unknown",
-          "latitude" : 54.31368454901922,
-          "longitude" : 9.813684549019223,
+          "latitude" : 54.5,
+          "longitude" : 10.0,
           "navigational_status" : "Under way using engine",
           "ship_type" : "Undefined",
-          "sog" : 79.07369098038446,
-          "timestamp" : "2018-01-02T00:00:15.000Z",
+          "sog" : 82.8,
+          "timestamp" : "2018-01-02T05:01:18.000Z",
           "type_of_mobile" : "Class A",
-          "type_of_position_fixing_device" : "Undefined",
-          "arlas_es_id" : "211457860#1514851215"
+          "arlas_es_id" : "211457860#1514869278"
         },
         "sort" : [
-          "211457860#1514851215"
+          "211457860#1514869278"
+        ]
+      },
+      {
+        "_index" : "ais_filtered_data",
+        "_type" : "point",
+        "_id" : "211457860#1514869267",
+        "_score" : null,
+        "_source" : {
+          "arlas_partition" : 20180102,
+          "mmsi" : "211457860",
+          "arlas_timestamp" : 1514869267,
+          "arlas_visibility_state" : "VISIBLE",
+          "arlas_visible_sequence_id" : "211457860#1514869260",
+          "cog" : 19.6,
+          "data_source_type" : "AIS",
+          "latitude" : 54.4,
+          "longitude" : 9.9,
+          "navigational_status" : "Under way using engine",
+          "ship_type" : "Undefined",
+          "sog" : 80.8,
+          "timestamp" : "2018-01-02T05:01:07.000Z",
+          "type_of_mobile" : "Class A",
+          "arlas_es_id" : "211457860#1514869267"
+        },
+        "sort" : [
+          "211457860#1514869267"
+        ]
+      },
+      {
+        "_index" : "ais_filtered_data",
+        "_type" : "point",
+        "_id" : "211457860#1514869260",
+        "_score" : null,
+        "_source" : {
+          "arlas_partition" : 20180102,
+          "mmsi" : "211457860",
+          "arlas_timestamp" : 1514869260,
+          "arlas_visibility_state" : "APPEAR",
+          "arlas_visible_sequence_id" : "211457860#1514869260",
+          "cog" : 17.8,
+          "data_source_type" : "AIS",
+          "latitude" : 54.3,
+          "longitude" : 9.8,
+          "navigational_status" : "Under way using engine",
+          "ship_type" : "Undefined",
+          "sog" : 78.8,
+          "timestamp" : "2018-01-02T05:01:00.000Z",
+          "type_of_mobile" : "Class A",
+          "type_of_position_fixing_device" : "Undefined",
+          "arlas_es_id" : "211457860#1514869260"
+        },
+        "sort" : [
+          "211457860#1514869260"
+        ]
+      },
+      {
+        "_index" : "ais_filtered_data",
+        "_type" : "point",
+        "_id" : "211457860#1514851308",
+        "_score" : null,
+        "_source" : {
+          "arlas_partition" : 20180102,
+          "mmsi" : "211457860",
+          "arlas_timestamp" : 1514851308,
+          "arlas_visibility_state" : "DISAPPEAR",
+          "arlas_visible_sequence_id" : "211457860#1514850929",
+          "cog" : 23.2,
+          "data_source_type" : "AIS",
+          "heading" : 20.0,
+          "latitude" : 54.6,
+          "longitude" : 10.1,
+          "ship_type" : "Undefined",
+          "sog" : 84.8,
+          "timestamp" : "2018-01-02T00:01:48.000Z",
+          "type_of_mobile" : "Class A",
+          "arlas_es_id" : "211457860#1514851308"
+        },
+        "sort" : [
+          "211457860#1514851308"
+        ]
+      },
+      {
+        "_index" : "ais_filtered_data",
+        "_type" : "point",
+        "_id" : "211457860#1514851278",
+        "_score" : null,
+        "_source" : {
+          "arlas_partition" : 20180102,
+          "mmsi" : "211457860",
+          "arlas_timestamp" : 1514851278,
+          "arlas_visibility_state" : "VISIBLE",
+          "arlas_visible_sequence_id" : "211457860#1514850929",
+          "cog" : 21.4,
+          "data_source_type" : "AIS",
+          "latitude" : 54.5,
+          "longitude" : 10.0,
+          "navigational_status" : "Under way using engine",
+          "ship_type" : "Undefined",
+          "sog" : 82.8,
+          "timestamp" : "2018-01-02T00:01:18.000Z",
+          "type_of_mobile" : "Class A",
+          "arlas_es_id" : "211457860#1514851278"
+        },
+        "sort" : [
+          "211457860#1514851278"
+        ]
+      },
+      {
+        "_index" : "ais_filtered_data",
+        "_type" : "point",
+        "_id" : "211457860#1514851227",
+        "_score" : null,
+        "_source" : {
+          "arlas_partition" : 20180102,
+          "mmsi" : "211457860",
+          "arlas_timestamp" : 1514851227,
+          "arlas_visibility_state" : "VISIBLE",
+          "arlas_visible_sequence_id" : "211457860#1514850929",
+          "cog" : 19.6,
+          "data_source_type" : "AIS",
+          "latitude" : 54.4,
+          "longitude" : 9.9,
+          "navigational_status" : "Under way using engine",
+          "ship_type" : "Undefined",
+          "sog" : 80.8,
+          "timestamp" : "2018-01-02T00:00:27.000Z",
+          "type_of_mobile" : "Class A",
+          "arlas_es_id" : "211457860#1514851227"
+        },
+        "sort" : [
+          "211457860#1514851227"
         ]
       },
       {
@@ -876,11 +1400,10 @@
           "arlas_partition" : 20180102,
           "mmsi" : "211457860",
           "arlas_timestamp" : 1514851200,
-          "arlas_distance" : 35566.16525650544,
-          "arlas_timeserie_id" : "211457860#1514850929",
+          "arlas_visibility_state" : "VISIBLE",
+          "arlas_visible_sequence_id" : "211457860#1514850929",
           "cog" : 17.8,
           "data_source_type" : "AIS",
-          "imo" : "Unknown",
           "latitude" : 54.3,
           "longitude" : 9.8,
           "navigational_status" : "Under way using engine",
@@ -898,98 +1421,14 @@
       {
         "_index" : "ais_filtered_data",
         "_type" : "point",
-        "_id" : "211457860#1514851185",
+        "_id" : "211457860#1514851169",
         "_score" : null,
         "_source" : {
           "arlas_partition" : 20180101,
           "mmsi" : "211457860",
-          "arlas_timestamp" : 1514851185,
-          "arlas_distance" : 58878.890770364866,
-          "arlas_timeserie_id" : "211457860#1514850929",
-          "cog" : 21.910125902856493,
-          "data_source_type" : "AIS",
-          "imo" : "Unknown",
-          "latitude" : 54.52834032793647,
-          "longitude" : 10.028340327936473,
-          "navigational_status" : "Under way using engine",
-          "ship_type" : "Undefined",
-          "sog" : 83.36680655872944,
-          "timestamp" : "2018-01-01T23:59:45.000Z",
-          "type_of_mobile" : "Class A",
-          "type_of_position_fixing_device" : "Undefined",
-          "arlas_es_id" : "211457860#1514851185"
-        },
-        "sort" : [
-          "211457860#1514851185"
-        ]
-      },
-      {
-        "_index" : "ais_filtered_data",
-        "_type" : "point",
-        "_id" : "211457860#1514851170",
-        "_score" : null,
-        "_source" : {
-          "arlas_partition" : 20180101,
-          "mmsi" : "211457860",
-          "arlas_timestamp" : 1514851170,
-          "arlas_distance" : 58337.12320233118,
-          "arlas_timeserie_id" : "211457860#1514850929",
-          "cog" : 28.717425138306247,
-          "data_source_type" : "AIS",
-          "imo" : "Unknown",
-          "latitude" : 54.906523618794786,
-          "longitude" : 10.406523618794791,
-          "navigational_status" : "Under way using engine",
-          "ship_type" : "Undefined",
-          "sog" : 90.93047237589583,
-          "timestamp" : "2018-01-01T23:59:30.000Z",
-          "type_of_mobile" : "Class A",
-          "type_of_position_fixing_device" : "Undefined",
-          "arlas_es_id" : "211457860#1514851170"
-        },
-        "sort" : [
-          "211457860#1514851170"
-        ]
-      },
-      {
-        "_index" : "ais_filtered_data",
-        "_type" : "point",
-        "_id" : "211457860#1514851155",
-        "_score" : null,
-        "_source" : {
-          "arlas_partition" : 20180101,
-          "mmsi" : "211457860",
-          "arlas_timestamp" : 1514851155,
-          "arlas_distance" : 33990.698433124795,
-          "arlas_timeserie_id" : "211457860#1514850929",
-          "cog" : 35.46601180460287,
-          "data_source_type" : "AIS",
-          "imo" : "Unknown",
-          "latitude" : 55.281445100255716,
-          "longitude" : 10.781445100255716,
-          "navigational_status" : "Under way using engine",
-          "ship_type" : "Undefined",
-          "sog" : 98.42890200511431,
-          "timestamp" : "2018-01-01T23:59:15.000Z",
-          "type_of_mobile" : "Class A",
-          "type_of_position_fixing_device" : "Undefined",
-          "arlas_es_id" : "211457860#1514851155"
-        },
-        "sort" : [
-          "211457860#1514851155"
-        ]
-      },
-      {
-        "_index" : "ais_filtered_data",
-        "_type" : "point",
-        "_id" : "211457860#1514851140",
-        "_score" : null,
-        "_source" : {
-          "arlas_partition" : 20180101,
-          "mmsi" : "211457860",
-          "arlas_timestamp" : 1514851140,
-          "arlas_distance" : 0.0,
-          "arlas_timeserie_id" : "211457860#1514850929",
+          "arlas_timestamp" : 1514851169,
+          "arlas_visibility_state" : "VISIBLE",
+          "arlas_visible_sequence_id" : "211457860#1514850929",
           "cog" : 39.4,
           "data_source_type" : "AIS",
           "imo" : "Unknown",
@@ -998,26 +1437,26 @@
           "navigational_status" : "Under way using engine",
           "ship_type" : "Undefined",
           "sog" : 102.8,
-          "timestamp" : "2018-01-01T23:59:00.000Z",
+          "timestamp" : "2018-01-01T23:59:29.000Z",
           "type_of_mobile" : "Class A",
           "type_of_position_fixing_device" : "Undefined",
-          "arlas_es_id" : "211457860#1514851140"
+          "arlas_es_id" : "211457860#1514851169"
         },
         "sort" : [
-          "211457860#1514851140"
+          "211457860#1514851169"
         ]
       },
       {
         "_index" : "ais_filtered_data",
         "_type" : "point",
-        "_id" : "211457860#1514851125",
+        "_id" : "211457860#1514851109",
         "_score" : null,
         "_source" : {
           "arlas_partition" : 20180101,
           "mmsi" : "211457860",
-          "arlas_timestamp" : 1514851125,
-          "arlas_distance" : 0.0,
-          "arlas_timeserie_id" : "211457860#1514850929",
+          "arlas_timestamp" : 1514851109,
+          "arlas_visibility_state" : "VISIBLE",
+          "arlas_visible_sequence_id" : "211457860#1514850929",
           "cog" : 39.4,
           "data_source_type" : "AIS",
           "imo" : "Unknown",
@@ -1026,26 +1465,26 @@
           "navigational_status" : "Under way using engine",
           "ship_type" : "Undefined",
           "sog" : 102.8,
-          "timestamp" : "2018-01-01T23:58:45.000Z",
+          "timestamp" : "2018-01-01T23:58:29.000Z",
           "type_of_mobile" : "Class A",
           "type_of_position_fixing_device" : "Undefined",
-          "arlas_es_id" : "211457860#1514851125"
+          "arlas_es_id" : "211457860#1514851109"
         },
         "sort" : [
-          "211457860#1514851125"
+          "211457860#1514851109"
         ]
       },
       {
         "_index" : "ais_filtered_data",
         "_type" : "point",
-        "_id" : "211457860#1514851110",
+        "_id" : "211457860#1514851049",
         "_score" : null,
         "_source" : {
           "arlas_partition" : 20180101,
           "mmsi" : "211457860",
-          "arlas_timestamp" : 1514851110,
-          "arlas_distance" : 0.0,
-          "arlas_timeserie_id" : "211457860#1514850929",
+          "arlas_timestamp" : 1514851049,
+          "arlas_visibility_state" : "APPEAR",
+          "arlas_visible_sequence_id" : "211457860#1514850929",
           "cog" : 39.4,
           "data_source_type" : "AIS",
           "imo" : "Unknown",
@@ -1054,26 +1493,26 @@
           "navigational_status" : "Under way using engine",
           "ship_type" : "Undefined",
           "sog" : 102.8,
-          "timestamp" : "2018-01-01T23:58:30.000Z",
+          "timestamp" : "2018-01-01T23:57:29.000Z",
           "type_of_mobile" : "Class A",
           "type_of_position_fixing_device" : "Undefined",
-          "arlas_es_id" : "211457860#1514851110"
+          "arlas_es_id" : "211457860#1514851049"
         },
         "sort" : [
-          "211457860#1514851110"
+          "211457860#1514851049"
         ]
       },
       {
         "_index" : "ais_filtered_data",
         "_type" : "point",
-        "_id" : "211457860#1514851095",
+        "_id" : "211457860#1514850929",
         "_score" : null,
         "_source" : {
           "arlas_partition" : 20180101,
           "mmsi" : "211457860",
-          "arlas_timestamp" : 1514851095,
-          "arlas_distance" : 0.0,
-          "arlas_timeserie_id" : "211457860#1514850929",
+          "arlas_timestamp" : 1514850929,
+          "arlas_visibility_state" : "APPEAR",
+          "arlas_visible_sequence_id" : "211457860#1514850929",
           "cog" : 39.4,
           "data_source_type" : "AIS",
           "imo" : "Unknown",
@@ -1082,26 +1521,26 @@
           "navigational_status" : "Under way using engine",
           "ship_type" : "Undefined",
           "sog" : 102.8,
-          "timestamp" : "2018-01-01T23:58:15.000Z",
+          "timestamp" : "2018-01-01T23:55:29.000Z",
           "type_of_mobile" : "Class A",
           "type_of_position_fixing_device" : "Undefined",
-          "arlas_es_id" : "211457860#1514851095"
+          "arlas_es_id" : "211457860#1514850929"
         },
         "sort" : [
-          "211457860#1514851095"
+          "211457860#1514850929"
         ]
       },
       {
         "_index" : "ais_filtered_data",
         "_type" : "point",
-        "_id" : "211457860#1514851080",
+        "_id" : "211457860#1514783304",
         "_score" : null,
         "_source" : {
           "arlas_partition" : 20180101,
           "mmsi" : "211457860",
-          "arlas_timestamp" : 1514851080,
-          "arlas_distance" : 0.0,
-          "arlas_timeserie_id" : "211457860#1514850929",
+          "arlas_timestamp" : 1514783304,
+          "arlas_visibility_state" : "DISAPPEAR",
+          "arlas_visible_sequence_id" : "211457860#1514783233",
           "cog" : 39.4,
           "data_source_type" : "AIS",
           "imo" : "Unknown",
@@ -1110,432 +1549,333 @@
           "navigational_status" : "Under way using engine",
           "ship_type" : "Undefined",
           "sog" : 102.8,
-          "timestamp" : "2018-01-01T23:58:00.000Z",
+          "timestamp" : "2018-01-01T05:08:24.000Z",
           "type_of_mobile" : "Class A",
           "type_of_position_fixing_device" : "Undefined",
-          "arlas_es_id" : "211457860#1514851080"
+          "arlas_es_id" : "211457860#1514783304"
         },
         "sort" : [
-          "211457860#1514851080"
+          "211457860#1514783304"
         ]
       },
       {
         "_index" : "ais_filtered_data",
         "_type" : "point",
-        "_id" : "211457860#1514851065",
+        "_id" : "211457860#1514783299",
         "_score" : null,
         "_source" : {
           "arlas_partition" : 20180101,
           "mmsi" : "211457860",
-          "arlas_timestamp" : 1514851065,
-          "arlas_distance" : 0.0,
-          "arlas_timeserie_id" : "211457860#1514850929",
-          "cog" : 39.4,
+          "arlas_timestamp" : 1514783299,
+          "arlas_visibility_state" : "VISIBLE",
+          "arlas_visible_sequence_id" : "211457860#1514783233",
+          "cog" : 37.6,
           "data_source_type" : "AIS",
           "imo" : "Unknown",
-          "latitude" : 55.5,
-          "longitude" : 11.0,
+          "latitude" : 55.4,
+          "longitude" : 10.9,
           "navigational_status" : "Under way using engine",
           "ship_type" : "Undefined",
-          "sog" : 102.8,
-          "timestamp" : "2018-01-01T23:57:45.000Z",
+          "sog" : 100.8,
+          "timestamp" : "2018-01-01T05:08:19.000Z",
           "type_of_mobile" : "Class A",
           "type_of_position_fixing_device" : "Undefined",
-          "arlas_es_id" : "211457860#1514851065"
+          "arlas_es_id" : "211457860#1514783299"
         },
         "sort" : [
-          "211457860#1514851065"
+          "211457860#1514783299"
         ]
       },
       {
         "_index" : "ais_filtered_data",
         "_type" : "point",
-        "_id" : "211457860#1514851050",
+        "_id" : "211457860#1514783294",
         "_score" : null,
         "_source" : {
           "arlas_partition" : 20180101,
           "mmsi" : "211457860",
-          "arlas_timestamp" : 1514851050,
-          "arlas_distance" : 0.0,
-          "arlas_timeserie_id" : "211457860#1514850929",
-          "cog" : 39.4,
+          "arlas_timestamp" : 1514783294,
+          "arlas_visibility_state" : "VISIBLE",
+          "arlas_visible_sequence_id" : "211457860#1514783233",
+          "cog" : 35.8,
           "data_source_type" : "AIS",
+          "heading" : 53.0,
           "imo" : "Unknown",
-          "latitude" : 55.5,
-          "longitude" : 11.0,
+          "latitude" : 55.3,
+          "longitude" : 10.8,
           "navigational_status" : "Under way using engine",
           "ship_type" : "Undefined",
-          "sog" : 102.8,
-          "timestamp" : "2018-01-01T23:57:30.000Z",
+          "sog" : 98.8,
+          "timestamp" : "2018-01-01T05:08:14.000Z",
           "type_of_mobile" : "Class A",
           "type_of_position_fixing_device" : "Undefined",
-          "arlas_es_id" : "211457860#1514851050"
+          "arlas_es_id" : "211457860#1514783294"
         },
         "sort" : [
-          "211457860#1514851050"
+          "211457860#1514783294"
         ]
       },
       {
         "_index" : "ais_filtered_data",
         "_type" : "point",
-        "_id" : "211457860#1514851035",
+        "_id" : "211457860#1514783273",
         "_score" : null,
         "_source" : {
           "arlas_partition" : 20180101,
           "mmsi" : "211457860",
-          "arlas_timestamp" : 1514851035,
-          "arlas_distance" : 0.0,
-          "arlas_timeserie_id" : "211457860#1514850929",
-          "cog" : 39.4,
+          "arlas_timestamp" : 1514783273,
+          "arlas_visibility_state" : "VISIBLE",
+          "arlas_visible_sequence_id" : "211457860#1514783233",
+          "cog" : 34.0,
           "data_source_type" : "AIS",
+          "heading" : 20.0,
           "imo" : "Unknown",
-          "latitude" : 55.5,
-          "longitude" : 11.0,
-          "navigational_status" : "Under way using engine",
+          "latitude" : 55.2,
+          "longitude" : 10.7,
           "ship_type" : "Undefined",
-          "sog" : 102.8,
-          "timestamp" : "2018-01-01T23:57:15.000Z",
+          "sog" : 96.8,
+          "timestamp" : "2018-01-01T05:07:53.000Z",
           "type_of_mobile" : "Class A",
           "type_of_position_fixing_device" : "Undefined",
-          "arlas_es_id" : "211457860#1514851035"
+          "arlas_es_id" : "211457860#1514783273"
         },
         "sort" : [
-          "211457860#1514851035"
+          "211457860#1514783273"
         ]
       },
       {
         "_index" : "ais_filtered_data",
         "_type" : "point",
-        "_id" : "211457860#1514851020",
+        "_id" : "211457860#1514783263",
         "_score" : null,
         "_source" : {
           "arlas_partition" : 20180101,
           "mmsi" : "211457860",
-          "arlas_timestamp" : 1514851020,
-          "arlas_distance" : 0.0,
-          "arlas_timeserie_id" : "211457860#1514850929",
-          "cog" : 39.4,
+          "arlas_timestamp" : 1514783263,
+          "arlas_visibility_state" : "VISIBLE",
+          "arlas_visible_sequence_id" : "211457860#1514783233",
+          "cog" : 32.2,
           "data_source_type" : "AIS",
-          "imo" : "Unknown",
-          "latitude" : 55.5,
-          "longitude" : 11.0,
-          "navigational_status" : "Under way using engine",
+          "latitude" : 55.1,
+          "longitude" : 10.6,
+          "rot" : 0.4,
           "ship_type" : "Undefined",
-          "sog" : 102.8,
-          "timestamp" : "2018-01-01T23:57:00.000Z",
+          "sog" : 94.8,
+          "timestamp" : "2018-01-01T05:07:43.000Z",
           "type_of_mobile" : "Class A",
-          "type_of_position_fixing_device" : "Undefined",
-          "arlas_es_id" : "211457860#1514851020"
+          "arlas_es_id" : "211457860#1514783263"
         },
         "sort" : [
-          "211457860#1514851020"
+          "211457860#1514783263"
         ]
       },
       {
         "_index" : "ais_filtered_data",
         "_type" : "point",
-        "_id" : "211457860#1514851005",
+        "_id" : "211457860#1514783260",
         "_score" : null,
         "_source" : {
           "arlas_partition" : 20180101,
           "mmsi" : "211457860",
-          "arlas_timestamp" : 1514851005,
-          "arlas_distance" : 0.0,
-          "arlas_timeserie_id" : "211457860#1514850929",
-          "cog" : 39.4,
+          "arlas_timestamp" : 1514783260,
+          "arlas_visibility_state" : "VISIBLE",
+          "arlas_visible_sequence_id" : "211457860#1514783233",
+          "cog" : 30.4,
           "data_source_type" : "AIS",
-          "imo" : "Unknown",
-          "latitude" : 55.5,
-          "longitude" : 11.0,
-          "navigational_status" : "Under way using engine",
+          "latitude" : 55.0,
+          "longitude" : 10.5,
           "ship_type" : "Undefined",
-          "sog" : 102.8,
-          "timestamp" : "2018-01-01T23:56:45.000Z",
+          "sog" : 92.8,
+          "timestamp" : "2018-01-01T05:07:40.000Z",
           "type_of_mobile" : "Class A",
-          "type_of_position_fixing_device" : "Undefined",
-          "arlas_es_id" : "211457860#1514851005"
+          "arlas_es_id" : "211457860#1514783260"
         },
         "sort" : [
-          "211457860#1514851005"
+          "211457860#1514783260"
         ]
       },
       {
         "_index" : "ais_filtered_data",
         "_type" : "point",
-        "_id" : "211457860#1514850990",
+        "_id" : "211457860#1514783256",
         "_score" : null,
         "_source" : {
           "arlas_partition" : 20180101,
           "mmsi" : "211457860",
-          "arlas_timestamp" : 1514850990,
-          "arlas_distance" : 0.0,
-          "arlas_timeserie_id" : "211457860#1514850929",
-          "cog" : 39.4,
+          "arlas_timestamp" : 1514783256,
+          "arlas_visibility_state" : "VISIBLE",
+          "arlas_visible_sequence_id" : "211457860#1514783233",
+          "cog" : 28.6,
           "data_source_type" : "AIS",
-          "imo" : "Unknown",
-          "latitude" : 55.5,
-          "longitude" : 11.0,
-          "navigational_status" : "Under way using engine",
+          "latitude" : 54.9,
+          "longitude" : 10.4,
           "ship_type" : "Undefined",
-          "sog" : 102.8,
-          "timestamp" : "2018-01-01T23:56:30.000Z",
+          "sog" : 90.8,
+          "timestamp" : "2018-01-01T05:07:36.000Z",
           "type_of_mobile" : "Class A",
-          "type_of_position_fixing_device" : "Undefined",
-          "arlas_es_id" : "211457860#1514850990"
+          "arlas_es_id" : "211457860#1514783256"
         },
         "sort" : [
-          "211457860#1514850990"
+          "211457860#1514783256"
         ]
       },
       {
         "_index" : "ais_filtered_data",
         "_type" : "point",
-        "_id" : "211457860#1514850975",
+        "_id" : "211457860#1514783247",
         "_score" : null,
         "_source" : {
           "arlas_partition" : 20180101,
           "mmsi" : "211457860",
-          "arlas_timestamp" : 1514850975,
-          "arlas_distance" : 0.0,
-          "arlas_timeserie_id" : "211457860#1514850929",
-          "cog" : 39.4,
+          "arlas_timestamp" : 1514783247,
+          "arlas_visibility_state" : "VISIBLE",
+          "arlas_visible_sequence_id" : "211457860#1514783233",
+          "cog" : 26.8,
           "data_source_type" : "AIS",
-          "imo" : "Unknown",
-          "latitude" : 55.5,
-          "longitude" : 11.0,
+          "latitude" : 54.8,
+          "longitude" : 10.3,
           "navigational_status" : "Under way using engine",
+          "rot" : 0.3,
           "ship_type" : "Undefined",
-          "sog" : 102.8,
-          "timestamp" : "2018-01-01T23:56:15.000Z",
+          "sog" : 88.8,
+          "timestamp" : "2018-01-01T05:07:27.000Z",
           "type_of_mobile" : "Class A",
-          "type_of_position_fixing_device" : "Undefined",
-          "arlas_es_id" : "211457860#1514850975"
+          "arlas_es_id" : "211457860#1514783247"
         },
         "sort" : [
-          "211457860#1514850975"
+          "211457860#1514783247"
         ]
       },
       {
         "_index" : "ais_filtered_data",
         "_type" : "point",
-        "_id" : "211457860#1514850960",
+        "_id" : "211457860#1514783233",
         "_score" : null,
         "_source" : {
           "arlas_partition" : 20180101,
           "mmsi" : "211457860",
-          "arlas_timestamp" : 1514850960,
-          "arlas_distance" : 0.0,
-          "arlas_timeserie_id" : "211457860#1514850929",
-          "cog" : 39.4,
+          "arlas_timestamp" : 1514783233,
+          "arlas_visibility_state" : "APPEAR",
+          "arlas_visible_sequence_id" : "211457860#1514783233",
+          "cog" : 25.0,
           "data_source_type" : "AIS",
-          "imo" : "Unknown",
-          "latitude" : 55.5,
-          "longitude" : 11.0,
+          "heading" : 53.0,
+          "latitude" : 54.7,
+          "longitude" : 10.2,
           "navigational_status" : "Under way using engine",
           "ship_type" : "Undefined",
-          "sog" : 102.8,
-          "timestamp" : "2018-01-01T23:56:00.000Z",
+          "sog" : 86.8,
+          "timestamp" : "2018-01-01T05:07:13.000Z",
           "type_of_mobile" : "Class A",
-          "type_of_position_fixing_device" : "Undefined",
-          "arlas_es_id" : "211457860#1514850960"
+          "arlas_es_id" : "211457860#1514783233"
         },
         "sort" : [
-          "211457860#1514850960"
+          "211457860#1514783233"
         ]
       },
       {
         "_index" : "ais_filtered_data",
         "_type" : "point",
-        "_id" : "211457860#1514850945",
+        "_id" : "211457860#1514782892",
         "_score" : null,
         "_source" : {
           "arlas_partition" : 20180101,
           "mmsi" : "211457860",
-          "arlas_timestamp" : 1514850945,
-          "arlas_distance" : 0.0,
-          "arlas_timeserie_id" : "211457860#1514850929",
-          "cog" : 39.4,
+          "arlas_timestamp" : 1514782892,
+          "arlas_visibility_state" : "DISAPPEAR",
+          "arlas_visible_sequence_id" : "211457860#1514782860",
+          "cog" : 23.2,
           "data_source_type" : "AIS",
-          "imo" : "Unknown",
-          "latitude" : 55.5,
-          "longitude" : 11.0,
-          "navigational_status" : "Under way using engine",
+          "heading" : 20.0,
+          "latitude" : 54.6,
+          "longitude" : 10.1,
           "ship_type" : "Undefined",
-          "sog" : 102.8,
-          "timestamp" : "2018-01-01T23:55:45.000Z",
+          "sog" : 84.8,
+          "timestamp" : "2018-01-01T05:01:32.000Z",
           "type_of_mobile" : "Class A",
-          "type_of_position_fixing_device" : "Undefined",
-          "arlas_es_id" : "211457860#1514850945"
+          "arlas_es_id" : "211457860#1514782892"
         },
         "sort" : [
-          "211457860#1514850945"
+          "211457860#1514782892"
         ]
       },
       {
         "_index" : "ais_filtered_data",
         "_type" : "point",
-        "_id" : "211457860#1514850930",
+        "_id" : "211457860#1514782878",
         "_score" : null,
         "_source" : {
           "arlas_partition" : 20180101,
           "mmsi" : "211457860",
-          "arlas_timestamp" : 1514850930,
-          "arlas_distance" : 0.0,
-          "arlas_timeserie_id" : "211457860#1514850929",
-          "cog" : 39.4,
+          "arlas_timestamp" : 1514782878,
+          "arlas_visibility_state" : "VISIBLE",
+          "arlas_visible_sequence_id" : "211457860#1514782860",
+          "cog" : 21.4,
           "data_source_type" : "AIS",
-          "imo" : "Unknown",
-          "latitude" : 55.5,
-          "longitude" : 11.0,
+          "latitude" : 54.5,
+          "longitude" : 10.0,
           "navigational_status" : "Under way using engine",
           "ship_type" : "Undefined",
-          "sog" : 102.8,
-          "timestamp" : "2018-01-01T23:55:30.000Z",
+          "sog" : 82.8,
+          "timestamp" : "2018-01-01T05:01:18.000Z",
           "type_of_mobile" : "Class A",
-          "type_of_position_fixing_device" : "Undefined",
-          "arlas_es_id" : "211457860#1514850930"
+          "arlas_es_id" : "211457860#1514782878"
         },
         "sort" : [
-          "211457860#1514850930"
+          "211457860#1514782878"
         ]
       },
       {
         "_index" : "ais_filtered_data",
         "_type" : "point",
-        "_id" : "211457860#1514783280",
+        "_id" : "211457860#1514782867",
         "_score" : null,
         "_source" : {
           "arlas_partition" : 20180101,
           "mmsi" : "211457860",
-          "arlas_timestamp" : 1514783280,
-          "arlas_distance" : 7724.41962843913,
-          "arlas_timeserie_id" : "211457860#1514783233",
-          "cog" : 33.964803830131565,
+          "arlas_timestamp" : 1514782867,
+          "arlas_visibility_state" : "VISIBLE",
+          "arlas_visible_sequence_id" : "211457860#1514782860",
+          "cog" : 19.6,
           "data_source_type" : "AIS",
-          "imo" : "Unknown",
-          "latitude" : 55.19804465722953,
-          "longitude" : 10.698044657229532,
+          "latitude" : 54.4,
+          "longitude" : 9.9,
           "navigational_status" : "Under way using engine",
           "ship_type" : "Undefined",
-          "sog" : 96.76089314459063,
-          "timestamp" : "2018-01-01T05:08:00.000Z",
+          "sog" : 80.8,
+          "timestamp" : "2018-01-01T05:01:07.000Z",
           "type_of_mobile" : "Class A",
-          "type_of_position_fixing_device" : "Undefined",
-          "arlas_es_id" : "211457860#1514783280"
+          "arlas_es_id" : "211457860#1514782867"
         },
         "sort" : [
-          "211457860#1514783280"
+          "211457860#1514782867"
         ]
       },
       {
         "_index" : "ais_filtered_data",
         "_type" : "point",
-        "_id" : "211457860#1514783265",
+        "_id" : "211457860#1514782860",
         "_score" : null,
         "_source" : {
           "arlas_partition" : 20180101,
           "mmsi" : "211457860",
-          "arlas_timestamp" : 1514783265,
-          "arlas_distance" : 50644.428212158615,
-          "arlas_timeserie_id" : "211457860#1514783233",
-          "cog" : 33.071112460035685,
+          "arlas_timestamp" : 1514782860,
+          "arlas_visibility_state" : "APPEAR",
+          "arlas_visible_sequence_id" : "211457860#1514782860",
+          "cog" : 17.8,
           "data_source_type" : "AIS",
-          "imo" : "Unknown",
-          "latitude" : 55.148395136668654,
-          "longitude" : 10.648395136668649,
+          "latitude" : 54.3,
+          "longitude" : 9.8,
           "navigational_status" : "Under way using engine",
           "ship_type" : "Undefined",
-          "sog" : 95.76790273337296,
-          "timestamp" : "2018-01-01T05:07:45.000Z",
+          "sog" : 78.8,
+          "timestamp" : "2018-01-01T05:01:00.000Z",
           "type_of_mobile" : "Class A",
           "type_of_position_fixing_device" : "Undefined",
-          "arlas_es_id" : "211457860#1514783265"
+          "arlas_es_id" : "211457860#1514782860"
         },
         "sort" : [
-          "211457860#1514783265"
-        ]
-      },
-      {
-        "_index" : "ais_filtered_data",
-        "_type" : "point",
-        "_id" : "211457860#1514783250",
-        "_score" : null,
-        "_source" : {
-          "arlas_partition" : 20180101,
-          "mmsi" : "211457860",
-          "arlas_timestamp" : 1514783250,
-          "arlas_distance" : 16929.36418131899,
-          "arlas_timeserie_id" : "211457860#1514783233",
-          "cog" : 27.21343022540698,
-          "data_source_type" : "AIS",
-          "imo" : "Unknown",
-          "latitude" : 54.82296834585594,
-          "longitude" : 10.322968345855944,
-          "navigational_status" : "Under way using engine",
-          "ship_type" : "Undefined",
-          "sog" : 89.25936691711885,
-          "timestamp" : "2018-01-01T05:07:30.000Z",
-          "type_of_mobile" : "Class A",
-          "type_of_position_fixing_device" : "Undefined",
-          "arlas_es_id" : "211457860#1514783250"
-        },
-        "sort" : [
-          "211457860#1514783250"
-        ]
-      },
-      {
-        "_index" : "ais_filtered_data",
-        "_type" : "point",
-        "_id" : "211457860#1514783235",
-        "_score" : null,
-        "_source" : {
-          "arlas_partition" : 20180101,
-          "mmsi" : "211457860",
-          "arlas_timestamp" : 1514783235,
-          "arlas_distance" : 0.0,
-          "arlas_timeserie_id" : "211457860#1514783233",
-          "cog" : 25.255986590159967,
-          "data_source_type" : "AIS",
-          "imo" : "Unknown",
-          "latitude" : 54.71422147723111,
-          "longitude" : 10.214221477231108,
-          "navigational_status" : "Under way using engine",
-          "ship_type" : "Undefined",
-          "sog" : 87.08442954462218,
-          "timestamp" : "2018-01-01T05:07:15.000Z",
-          "type_of_mobile" : "Class A",
-          "type_of_position_fixing_device" : "Undefined",
-          "arlas_es_id" : "211457860#1514783235"
-        },
-        "sort" : [
-          "211457860#1514783235"
-        ]
-      },
-      {
-        "_index" : "ais_filtered_data",
-        "_type" : "point",
-        "_id" : "211457860#1514782875",
-        "_score" : null,
-        "_source" : {
-          "arlas_partition" : 20180101,
-          "mmsi" : "211457860",
-          "arlas_timestamp" : 1514782875,
-          "arlas_distance" : 0.0,
-          "arlas_timeserie_id" : "211457860#1514782860",
-          "cog" : 20.992901970518517,
-          "data_source_type" : "AIS",
-          "latitude" : 54.477383442806584,
-          "longitude" : 9.977383442806584,
-          "navigational_status" : "Under way using engine",
-          "ship_type" : "Undefined",
-          "sog" : 82.34766885613168,
-          "timestamp" : "2018-01-01T05:01:15.000Z",
-          "type_of_mobile" : "Class A",
-          "type_of_position_fixing_device" : "Undefined",
-          "arlas_es_id" : "211457860#1514782875"
-        },
-        "sort" : [
-          "211457860#1514782875"
+          "211457860#1514782860"
         ]
       }
     ]

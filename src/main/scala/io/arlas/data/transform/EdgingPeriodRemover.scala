@@ -31,7 +31,7 @@ class EdgingPeriodRemover(dataModel: DataModel,
                           spark: SparkSession)
     extends ArlasTransformer(
       dataModel,
-      Vector(arlasTimestampColumn, arlasPartitionColumn, arlasTimeSerieIdColumn)) {
+      Vector(arlasTimestampColumn, arlasPartitionColumn, arlasVisibleSequenceIdColumn)) {
 
   override def transform(dataset: Dataset[_]): DataFrame = {
 
@@ -43,7 +43,8 @@ class EdgingPeriodRemover(dataModel: DataModel,
     val filterByWarming = dataset
       .toDF()
       .map(row =>
-        (row.getString(row.fieldIndex(arlasTimeSerieIdColumn)), List(row.getValuesMap(columns))))
+        (row.getString(row.fieldIndex(arlasVisibleSequenceIdColumn)),
+         List(row.getValuesMap(columns))))
       .rdd
       .reduceByKey(_ ++ _)
       .flatMap {

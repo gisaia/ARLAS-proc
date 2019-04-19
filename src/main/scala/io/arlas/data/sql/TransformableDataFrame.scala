@@ -34,11 +34,8 @@ class TransformableDataFrame(df: DataFrame) {
                         new WithArlasPartition(dataModel))
   }
 
-  def asArlasTimeSeries(dataModel: DataModel): DataFrame = {
-    doPipelineTransform(df,
-                        new WithEmptyArlasTimeSerieId(dataModel),
-                        new WithArlasVisibilityState(dataModel),
-                        new ArlasTimeSerieIdFiller(dataModel))
+  def asArlasVisibleSequences(dataModel: DataModel): DataFrame = {
+    doPipelineTransform(df, new WithArlasVisibleSequence(dataModel))
   }
 
   def asArlasMotions(dataModel: DataModel): DataFrame = {
@@ -68,9 +65,6 @@ class TransformableDataFrame(df: DataFrame) {
 // Consider them as interfaces to describe how code may be organized
 // TODO implement following ArlasTransformers
 
-class WithArlasVisibilityState(dataModel: DataModel) extends ArlasTransformer(dataModel) {
-  override def transform(dataset: Dataset[_]): DataFrame = dataset.toDF
-}
 class WithArlasMovingState(dataModel: DataModel) extends ArlasTransformer(dataModel) {
   override def transform(dataset: Dataset[_]): DataFrame = dataset.toDF
 }
