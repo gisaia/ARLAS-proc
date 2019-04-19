@@ -25,75 +25,40 @@ import java.time.format.DateTimeFormatter
 import io.arlas.data.model.DataModel
 import io.arlas.data.sql._
 import io.arlas.data.transform.ArlasTransformerColumns._
-import io.arlas.data.{DataFrameTester, TestSparkSession}
 import org.apache.spark.sql.DataFrame
-import org.scalatest.{FlatSpec, Matchers}
+import org.apache.spark.sql.functions._
 
-class ArlasTimeSerieIdFillerTest
-    extends FlatSpec
-    with Matchers
-    with TestSparkSession
-    with DataFrameTester {
-
-  import spark.implicits._
-
-  var source = Seq(
-    // null ==> TimeSerieIdFiller transformation should generate new timeserieId
-    ("02/01/2018 00:00:00+02:00", 265513250, 55.915727, 12.621154, null),
-    ("02/01/2018 00:00:30+02:00", 265513250, 55.916692, 12.620489, null),
-    ("02/01/2018 00:01:23+02:00", 265513250, 55.918345, 12.629845, null),
-    ("02/01/2018 00:01:59+02:00", 265513250, 55.913415, 12.635524, null),
-    ("02/01/2018 03:00:00+02:00", 265513250, 55.925727, 12.651154, "265513250#1514862000"),
-    ("02/01/2018 03:00:12+02:00", 265513250, 55.926692, 12.650489, "265513250#1514862000"),
-    ("02/01/2018 03:00:23+02:00", 265513250, 55.928345, 12.649845, null),
-    ("02/01/2018 03:00:34+02:00", 265513250, 55.973415, 12.645524, null),
-    // existence timeserieId ==> TimeSerieIdFiller transformation should not overwrite this; NOTE: 1514862999 is wrong timestamp value
-    ("02/01/2018 03:06:11+02:00", 265513260, 56.013067, 12.644289, "265513260#1514862999"),
-    ("02/01/2018 03:06:23+02:00", 265513260, 56.035357, 12.645459, null),
-    ("02/01/2018 03:06:34+02:00", 265513260, 56.073053, 12.585218, null),
-    ("02/01/2018 03:06:41+02:00", 265513260, 56.118303, 12.497399, null),
-    ("02/01/2018 03:06:44+02:00", 265513260, 56.169133, 12.29887, null),
-    ("02/01/2018 03:06:51+02:00", 265513260, 56.170132, 12.058547, null),
-    ("02/01/2018 03:09:13+02:00", 265513260, 56.174596, 11.885253, null),
-    ("02/01/2018 03:09:17+02:00", 265513260, 56.11243, 11.666634, null),
-    ("02/01/2018 03:09:22+02:00", 265513260, 56.148124, 11.390748, null),
-    ("02/01/2018 03:09:26+02:00", 265513260, 56.080822, 11.026482, null)
-  )
-
-  var expected = Seq(
-    ("02/01/2018 00:00:00+02:00", 265513250, 55.915727, 12.621154, "265513250#1514844000"),
-    ("02/01/2018 00:00:30+02:00", 265513250, 55.916692, 12.620489, "265513250#1514844000"),
-    ("02/01/2018 00:01:23+02:00", 265513250, 55.918345, 12.629845, "265513250#1514844000"),
-    ("02/01/2018 00:01:59+02:00", 265513250, 55.913415, 12.635524, "265513250#1514844000"),
-    ("02/01/2018 03:00:00+02:00", 265513250, 55.925727, 12.651154, "265513250#1514862000"),
-    ("02/01/2018 03:00:12+02:00", 265513250, 55.926692, 12.650489, "265513250#1514862000"),
-    ("02/01/2018 03:00:23+02:00", 265513250, 55.928345, 12.649845, "265513250#1514862000"),
-    ("02/01/2018 03:00:34+02:00", 265513250, 55.973415, 12.645524, "265513250#1514862000"),
-    ("02/01/2018 03:06:11+02:00", 265513260, 56.013067, 12.644289, "265513260#1514862999"),
-    ("02/01/2018 03:06:23+02:00", 265513260, 56.035357, 12.645459, "265513260#1514862999"),
-    ("02/01/2018 03:06:34+02:00", 265513260, 56.073053, 12.585218, "265513260#1514862999"),
-    ("02/01/2018 03:06:41+02:00", 265513260, 56.118303, 12.497399, "265513260#1514862999"),
-    ("02/01/2018 03:06:44+02:00", 265513260, 56.169133, 12.29887, "265513260#1514862999"),
-    ("02/01/2018 03:06:51+02:00", 265513260, 56.170132, 12.058547, "265513260#1514862999"),
-    ("02/01/2018 03:09:13+02:00", 265513260, 56.174596, 11.885253, "265513260#1514855353"),
-    ("02/01/2018 03:09:17+02:00", 265513260, 56.11243, 11.666634, "265513260#1514855353"),
-    ("02/01/2018 03:09:22+02:00", 265513260, 56.148124, 11.390748, "265513260#1514855353"),
-    ("02/01/2018 03:09:26+02:00", 265513260, 56.080822, 11.026482, "265513260#1514855353")
-  )
+class ArlasTimeSerieIdFillerTest extends ArlasTest {
 
   "ArlasTimeSerieIdFiller transformation " should " fill/generate timeserie id against dataframe's timeseries" in {
 
-    val dataModel = DataModel(timeFormat = "dd/MM/yyyy HH:mm:ssXXX", timeserieGap = 120)
-
-    val sourceDF = source
-      .toDF("timestamp", "id", "lat", "lon", arlasTimeSerieIdColumn)
-      .asArlasCleanedData(dataModel)
+    val sourceDF = cleanedDF
 
     val transformedDF: DataFrame = sourceDF
-      .enrichWithArlas(new ArlasTimeSerieIdFiller(dataModel))
-      .drop(arlasTimestampColumn, arlasPartitionColumn)
+      .enrichWithArlas(new WithEmptyArlasTimeSerieId(dataModel),
+                       new ArlasTimeSerieIdFiller(dataModel))
 
-    val expectedDF = expected.toDF("timestamp", "id", "lat", "lon", arlasTimeSerieIdColumn)
+    val expectedDF = timeseriesDF.drop(arlasVisibilityStateColumn)
+
+    assertDataFrameEquality(transformedDF, expectedDF)
+  }
+
+  "ArlasTimeSerieIdFiller transformation " should " resume timeserie id when adding a warm up period" in {
+
+    val sourceDF = cleanedDF
+
+    val warmupDF: DataFrame = sourceDF
+      .filter(col(arlasTimestampColumn) < 1527804100)
+      .enrichWithArlas(new WithEmptyArlasTimeSerieId(dataModel),
+                       new ArlasTimeSerieIdFiller(dataModel))
+
+    val transformedDF: DataFrame = sourceDF
+      .filter(col(arlasTimestampColumn) >= 1527804100)
+      .enrichWithArlas(new WithEmptyArlasTimeSerieId(dataModel))
+      .unionByName(warmupDF)
+      .enrichWithArlas(new ArlasTimeSerieIdFiller(dataModel))
+
+    val expectedDF = timeseriesDF.drop(arlasVisibilityStateColumn)
 
     assertDataFrameEquality(transformedDF, expectedDF)
   }
@@ -107,60 +72,50 @@ class ArlasTimeSerieIdFillerTest
       lonColumn = "longitude",
       dynamicFields = Array("latitude", "longitude"),
       timeFormat = "dd/MM/yyyy HH:mm:ssXXX",
-      timeserieGap = 120
+      timeserieGap = 300
     )
 
-    val sourceDF = source
-      .toDF("t", "identifier", "latitude", "longitude", arlasTimeSerieIdColumn)
-      .asArlasCleanedData(dataModel)
+    val sourceDF = cleanedDF
+      .withColumnRenamed("id", "identifier")
+      .withColumnRenamed("timestamp", "t")
+      .withColumnRenamed("lat", "latitude")
+      .withColumnRenamed("lon", "longitude")
 
     val transformedDF: DataFrame = sourceDF
-      .enrichWithArlas(new ArlasTimeSerieIdFiller(dataModel))
-      .drop(arlasTimestampColumn, arlasPartitionColumn)
+      .enrichWithArlas(new WithEmptyArlasTimeSerieId(dataModel),
+                       new ArlasTimeSerieIdFiller(dataModel))
 
-    val expectedDF =
-      expected.toDF("t", "identifier", "latitude", "longitude", arlasTimeSerieIdColumn)
+    val expectedDF = timeseriesDF
+      .withColumnRenamed("id", "identifier")
+      .withColumnRenamed("timestamp", "t")
+      .withColumnRenamed("lat", "latitude")
+      .withColumnRenamed("lon", "longitude")
+      .drop(arlasVisibilityStateColumn)
 
     assertDataFrameEquality(transformedDF, expectedDF)
   }
 
   "ArlasTimeSerieIdFiller transformation " should "consider timestamp without timezone as UTC" in {
 
-    val oldTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ssXXX")
-    val newTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")
+    val dataModel = DataModel(timeFormat = "dd/MM/yyyy HH:mm:ss", timeserieGap = 300)
+    val getNewTimestamp = udf((t: String) => {
+      val oldTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ssXXX")
+      val newTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")
+      LocalDateTime
+        .parse(t, oldTimeFormatter)
+        .minusHours(2)
+        .format(newTimeFormatter)
+    })
 
-    val dataModel = DataModel(timeFormat = "dd/MM/yyyy HH:mm:ss", timeserieGap = 120)
-
-    val sourceDF = source
-      .map(
-        row =>
-          (LocalDateTime
-             .parse(row._1, oldTimeFormatter)
-             .minusHours(2)
-             .format(newTimeFormatter),
-           row._2,
-           row._3,
-           row._4,
-           row._5))
-      .toDF("timestamp", "id", "lat", "lon", arlasTimeSerieIdColumn)
-      .asArlasCleanedData(dataModel)
+    val sourceDF = cleanedDF.withColumn("timestamp", getNewTimestamp(col("timestamp")))
 
     val transformedDF: DataFrame = sourceDF
-      .enrichWithArlas(new ArlasTimeSerieIdFiller(dataModel))
-      .drop(arlasTimestampColumn, arlasPartitionColumn)
+      .enrichWithArlas(new WithEmptyArlasTimeSerieId(dataModel),
+                       new ArlasTimeSerieIdFiller(dataModel))
 
-    val expectedDF = expected
-      .map(
-        row =>
-          (LocalDateTime
-             .parse(row._1, oldTimeFormatter)
-             .minusHours(2)
-             .format(newTimeFormatter),
-           row._2,
-           row._3,
-           row._4,
-           row._5))
-      .toDF("timestamp", "id", "lat", "lon", arlasTimeSerieIdColumn)
+    val expectedDF = timeseriesDF
+      .withColumn("timestamp", getNewTimestamp(col("timestamp")))
+      .drop(arlasVisibilityStateColumn)
 
     assertDataFrameEquality(transformedDF, expectedDF)
   }
