@@ -26,7 +26,7 @@ import io.arlas.data.model.DataModel
 import io.arlas.data.transform.ArlasTransformerColumns._
 import org.apache.spark.sql.expressions.UserDefinedFunction
 import org.apache.spark.sql.functions._
-import org.apache.spark.sql.types.{StructField, StructType, TimestampType}
+import org.apache.spark.sql.types.{LongType, StructField, StructType}
 import org.apache.spark.sql.{DataFrame, Dataset}
 
 class WithArlasTimestamp(dataModel: DataModel) extends ArlasTransformer(dataModel) {
@@ -59,6 +59,6 @@ class WithArlasTimestamp(dataModel: DataModel) extends ArlasTransformer(dataMode
   }
 
   override def transformSchema(schema: StructType): StructType = {
-    checkSchema(schema).add(StructField(arlasTimestampColumn, TimestampType, false))
+    checkSchema(schema).add(StructField(arlasTimestampColumn, LongType, false))
   }
 }

@@ -22,21 +22,19 @@ package io.arlas.data.transform
 import java.time._
 import java.time.format.DateTimeFormatter
 
-import io.arlas.data.model.{DataModel, Period, RunOptions}
+import io.arlas.data.model.DataModel
 import io.arlas.data.sql._
 import io.arlas.data.transform.ArlasTransformerColumns._
-import io.arlas.data.{DataFrameTester, TestSparkSession}
 import org.apache.commons.math3.analysis.interpolation.SplineInterpolator
-import org.scalatest.{FlatSpec, Matchers}
 
-class ArlasResamplerTest extends FlatSpec with Matchers with TestSparkSession with DataFrameTester {
+class ArlasResamplerTest extends ArlasTest {
 
   import spark.implicits._
 
   val timeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ssXXX")
   timeFormatter.withZone(ZoneOffset.UTC)
 
-  val source = testData
+  val source = rawData
 
   val expected = {
     val objectASeq1Raw = source.filter(
@@ -101,22 +99,12 @@ class ArlasResamplerTest extends FlatSpec with Matchers with TestSparkSession wi
 
     val sourceDF = source.toDF("id", "timestamp", "lat", "lon")
 
-    val timeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ssXXX")
-    val runOptions = new RunOptions(
-      source = "",
-      target = "",
-      Period(Some(ZonedDateTime.parse("01/06/2018 00:00:00+02:00", timeFormatter)),
-             Some(ZonedDateTime.parse("01/06/2018 00:15:00+02:00", timeFormatter))),
-      warmingPeriod = Some(0l),
-      endingPeriod = Some(0l)
-    )
-
     val transformedDf = sourceDF
       .asArlasCleanedData(dataModel)
       .enrichWithArlas(new WithEmptyArlasTimeSerieId(dataModel),
                        new ArlasTimeSerieIdFiller(dataModel),
                        new ArlasResampler(dataModel, arlasTimeSerieIdColumn, spark))
-      .drop(arlasTimestampColumn, arlasPartitionColumn)
+      .drop(arlasTimestampColumn, arlasPartitionColumn, arlasVisibilityStateColumn)
 
     val expectedDF = expected
       .toDF("id", "timestamp", "lat", "lon", arlasTimeSerieIdColumn)

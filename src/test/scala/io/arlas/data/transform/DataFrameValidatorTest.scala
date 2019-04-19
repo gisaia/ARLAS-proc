@@ -21,44 +21,22 @@ package io.arlas.data.transform
 
 import io.arlas.data.model.DataModel
 import io.arlas.data.sql._
-import io.arlas.data.{DataFrameTester, TestSparkSession}
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types._
-import org.scalatest.{FlatSpec, Matchers}
 
-class DataFrameValidatorTest
-    extends FlatSpec
-    with Matchers
-    with TestSparkSession
-    with DataFrameTester {
-
-  import spark.implicits._
-
-  val schema = StructType(
-    List(
-      StructField("id", StringType, true),
-      StructField("timestamp", StringType, true),
-      StructField("lat", DoubleType, true),
-      StructField("lon", DoubleType, true)
-    )
-  )
-
-  val testDataDF = spark.createDataFrame(
-    testData.toDF.rdd,
-    schema
-  )
+class DataFrameValidatorTest extends ArlasTest {
 
   "DataFrameValidator " should " fix invalid column names" in {
 
     val dataModel = DataModel(timeFormat = "dd/MM/yyyy HH:mm:ssXXX", timeserieGap = 120)
 
-    val sourceDF = testDataDF
+    val sourceDF = rawDF
       .withColumn("white space", lit(0).cast(IntegerType))
       .withColumn("special:*$char/;?", lit(1).cast(IntegerType))
       .withColumn("_start_with_underscore", lit(2).cast(IntegerType))
 
-    val expectedDF = testDataDF
+    val expectedDF = rawDF
       .withColumn("white_space", lit(0).cast(IntegerType))
       .withColumn("specialchar", lit(1).cast(IntegerType))
       .withColumn("start_with_underscore", lit(2).cast(IntegerType))
@@ -73,14 +51,14 @@ class DataFrameValidatorTest
 
     val dataModel = DataModel(timeFormat = "dd/MM/yyyy HH:mm:ssXXX", timeserieGap = 120)
 
-    val sourceDF = testDataDF
+    val sourceDF = rawDF
       .withColumnRenamed("lat", "oldlat")
       .withColumnRenamed("lon", "oldlon")
       .withColumn("lat", col("oldlat").cast(StringType))
       .withColumn("lon", col("oldlon").cast(FloatType))
       .drop("oldlat", "oldlon")
 
-    val expectedDF = testDataDF
+    val expectedDF = rawDF
       .withColumnRenamed("lon", "oldlon")
       .withColumn("newlon", col("oldlon").cast(FloatType))
       .withColumn("lon", col("newlon").cast(DoubleType))
