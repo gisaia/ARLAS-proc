@@ -63,7 +63,7 @@ Start an interactive spark-shell session. For example :
 docker run -ti \
        --network gisaia-network \
        -w /opt/work \
-       -v ${PWD}:/opt/work \
+       -v ${PWD}:/opt/proc \
        -v $HOME/.m2:/root/.m2 \
        -v $HOME/.ivy2:/root/.ivy2 \
        -p "4040:4040" \
@@ -72,7 +72,7 @@ docker run -ti \
         --packages datastax:spark-cassandra-connector:2.3.1-s_2.11,org.elasticsearch:elasticsearch-spark-20_2.11:6.4.0,org.geotools:gt-referencing:20.1,org.geotools:gt-geometry:20.1,org.geotools:gt-epsg-hsql:20.1 \
         --exclude-packages javax.media:jai_core \
         --repositories http://repo.boundlessgeo.com/main,http://download.osgeo.org/webdav/geotools/,http://central.maven.org/maven2/ \
-        --jars /opt/work/target/scala-2.11/arlas-proc_2.11-0.3.0-SNAPSHOT.jar \
+        --jars /opt/proc/target/scala-2.11/arlas-proc_2.11-0.3.0-SNAPSHOT.jar \
         --conf spark.es.nodes="gisaia-elasticsearch" \
         --conf spark.es.index.auto.create="true" \
         --conf spark.cassandra.connection.host="gisaia-scylla-db" \
@@ -100,7 +100,7 @@ Paste (using `:paste`) the following code snippet :
     )
 
     // extract and format raw data
-    val data = readFromCsv(spark, "/opt/work/scripts/tests/resources/ais-sample-data-1.csv")
+    val data = readFromCsv(spark, "/opt/proc/scripts/tests/resources/ais-sample-data-1.csv")
       .asArlasCleanedData(dataModel)
       
 
