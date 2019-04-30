@@ -27,6 +27,7 @@ docker run --rm \
         -v $PWD:/opt/work \
         -v $HOME/.m2:/root/.m2 \
         -v $HOME/.ivy2:/root/.ivy2 \
+        -e CLOUDSMITH_TOKEN \
         gisaia/sbt:1.2.7_jdk8 \
         /bin/bash -c 'sbt clean test package; mv target/scala-2.11/arlas-proc*.jar target/arlas-proc.jar'
 

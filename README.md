@@ -35,7 +35,7 @@ It's very important to check the version of spark being used, here we are using 
 
 ```bash
 # Build jar
-sbt package
+sbt clean assembly
 
 # Deploy jar
 # Ensure to provide your Google Cloud Storage credentials
@@ -71,13 +71,13 @@ docker run -ti \
        spark-shell \
         --packages datastax:spark-cassandra-connector:2.3.1-s_2.11,org.elasticsearch:elasticsearch-spark-20_2.11:6.4.0,org.geotools:gt-referencing:20.1,org.geotools:gt-geometry:20.1,org.geotools:gt-epsg-hsql:20.1 \
         --exclude-packages javax.media:jai_core \
-        --repositories http://repo.boundlessgeo.com/main,http://download.osgeo.org/webdav/geotools/,http://central.maven.org/maven2/ \
-        --jars /opt/proc/target/scala-2.11/arlas-proc_2.11-0.3.0-SNAPSHOT.jar \
+        --repositories http://repo.boundlessgeo.com/main,http://download.osgeo.org/webdav/geotools/ \
+        --jars /opt/proc/target/scala-2.11/arlas-proc_0.3.0-SNAPSHOT-assembly.jar \
         --conf spark.es.nodes="gisaia-elasticsearch" \
         --conf spark.es.index.auto.create="true" \
         --conf spark.cassandra.connection.host="gisaia-scylla-db" \
         --conf spark.driver.allowMultipleContexts="true" \
-        --conf spark.rpc.netty.dispatcher.numThreads="2"
+        --conf spark.rpc.netty.dispatcher.numThreads="2" 
 ```
 
 Paste (using `:paste`) the following code snippet :
@@ -90,9 +90,11 @@ Paste (using `:paste`) the following code snippet :
       idColumn = "mmsi",
       latColumn = "latitude",
       lonColumn = "longitude",
+      speedColumn = "sog",
       dynamicFields = Array("latitude", "longitude", "sog", "cog", "heading", "rot", "draught"),
       timeFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSX",
-      visibilityTimeout = 120
+      visibilityTimeout = 120,
+      movingStateModelPath = "/opt/proc/src/test/resources/hmm_test_model.json"
     )
     val period = getPeriod(
       start = "2018-01-01T00:00:00+00:00",
@@ -107,8 +109,8 @@ Paste (using `:paste`) the following code snippet :
     // transform and resample data
     val transformedData = data
       .asArlasVisibleSequences(dataModel)
-      .asArlasMotions(dataModel)
-      .asArlasResampledMotions(dataModel, spark)
+      .asArlasMotions(dataModel, spark)
+//      .asArlasResampledMotions(dataModel, spark)
     
     // save result in ScyllaDB
     transformedData.writeToScyllaDB(spark, dataModel, "data.geo_points")
@@ -117,6 +119,23 @@ Paste (using `:paste`) the following code snippet :
     val storedData = readFromScyllaDB(spark, "data.geo_points")
     storedData.writeToElasticsearch(spark, dataModel, "data/geo_points")
 ```
+
+### ARLAS-ML dependency
+The Cloudsmith token is a required environment variable for arlas-ml dependency to be downloaded.
+
+`export CLOUDSMITH_TOKEN="the-token"`
+
+You may add it in your `.bash_profile` file.
+
+**Note for Intellij users:** 
+
+Starting intellij from a terminal where CLOUDSMITH_TOKEN is set, the dependency will be downloaded with no issue.
+
+For this, go in `Tools => Create command line launcher` and validate. 
+
+Then from the terminal, type `idea`.
+
+**You must start intellij from the terminal, for example if you keep it in the dock and start it from the dock, it will fail.**
 
 # Contributing
 

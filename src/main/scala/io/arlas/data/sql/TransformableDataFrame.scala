@@ -19,7 +19,7 @@
 
 package io.arlas.data.sql
 
-import io.arlas.data.model.DataModel
+import io.arlas.data.model.{DataModel}
 import io.arlas.data.transform._
 import io.arlas.data.transform.ArlasTransformerColumns._
 import org.apache.spark.ml.Pipeline
@@ -38,12 +38,15 @@ class TransformableDataFrame(df: DataFrame) {
     doPipelineTransform(df, new WithArlasVisibleSequence(dataModel))
   }
 
-  def asArlasMotions(dataModel: DataModel): DataFrame = {
-    doPipelineTransform(df,
-                        new WithArlasMovingState(dataModel),
-                        new ArlasStillSimplifier(dataModel),
-                        new WithArlasMotionId(dataModel),
-                        new WithArlasMoveSimplifier(dataModel))
+  def asArlasMotions(dataModel: DataModel,
+                     spark: SparkSession): DataFrame = {
+    doPipelineTransform(
+      df,
+      new WithArlasMovingState(dataModel, spark),
+      new ArlasStillSimplifier(dataModel),
+      new WithArlasMotionId(dataModel),
+      new WithArlasMoveSimplifier(dataModel)
+      )
   }
 
   def asArlasResampledMotions(dataModel: DataModel, spark: SparkSession): DataFrame = {
@@ -65,9 +68,6 @@ class TransformableDataFrame(df: DataFrame) {
 // Consider them as interfaces to describe how code may be organized
 // TODO implement following ArlasTransformers
 
-class WithArlasMovingState(dataModel: DataModel) extends ArlasTransformer(dataModel) {
-  override def transform(dataset: Dataset[_]): DataFrame = dataset.toDF
-}
 class ArlasStillSimplifier(dataModel: DataModel) extends ArlasTransformer(dataModel) {
   override def transform(dataset: Dataset[_]): DataFrame = dataset.toDF
 }

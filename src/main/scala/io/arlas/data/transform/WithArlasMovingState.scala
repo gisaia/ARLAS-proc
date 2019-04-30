@@ -19,16 +19,15 @@
 
 package io.arlas.data.transform
 
-object ArlasTransformerColumns {
-  val arlasTimestampColumn = "arlas_timestamp"
-  val arlasPartitionColumn = "arlas_partition"
-  val arlasDistanceColumn = "arlas_distance"
-  val arlasVisibilityStateColumn = "arlas_visibility_state"
-  val arlasVisibleSequenceIdColumn = "arlas_visible_sequence_id"
-  val arlasMotionIdColumn = "arlas_motion_id"
-  val arlasGeoPointColumn = "arlas_geopoint"
-  val arlasDeltaTimestampColumn          = "arlas_delta_timestamp"
-  val arlasPreviousDeltaTimestampColumn  = "arlas_previous_delta_timestamp"
-  val arlasDeltaTimestampVariationColumn = "arlas_delta_timestamp_variation"
-  val arlasMovingStateColumn = "arlas_moving_state"
-}
+import io.arlas.data.model.DataModel
+import io.arlas.data.transform.ArlasTransformerColumns.{arlasMovingStateColumn, arlasVisibleSequenceIdColumn}
+import org.apache.spark.sql.SparkSession
+
+class WithArlasMovingState(dataModel: DataModel,
+                           spark    : SparkSession)
+  extends HmmProcessor(dataModel,
+                       spark,
+                       dataModel.speedColumn,
+                       dataModel.movingStateModelPath,
+                       arlasVisibleSequenceIdColumn,
+                       arlasMovingStateColumn)
