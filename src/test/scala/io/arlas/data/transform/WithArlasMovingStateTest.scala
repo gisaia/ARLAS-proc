@@ -19,7 +19,7 @@
 
 package io.arlas.data.transform
 
-import io.arlas.data.model.DataModel
+import io.arlas.data.model.{DataModel, MLModelHosted, MLModelLocal}
 import io.arlas.data.sql._
 import io.arlas.data.transform.ArlasTransformerColumns._
 import org.apache.spark.sql.types.{DoubleType, StringType, StructField, StructType}
@@ -116,8 +116,8 @@ class WithArlasMovingStateTest extends ArlasTest {
   "WithArlasMovingState transformation" should " compute the moving state of a dataframe's timeseries" in {
 
     val dataModel =
-      new DataModel(timeFormat = "dd/MM/yyyy HH:mm:ssXXX", visibilityTimeout = 300, speedColumn = "speed", movingStateModelPath =
-        "src/test/resources/hmm_test_model.json")
+      new DataModel(timeFormat = "dd/MM/yyyy HH:mm:ssXXX", visibilityTimeout = 300, speedColumn = "speed", movingStateModel =
+        MLModelLocal(spark, "src/test/resources/hmm_test_model.json"))
 
     val transformedDf = visibleSequencesDF
       .enrichWithArlas(
