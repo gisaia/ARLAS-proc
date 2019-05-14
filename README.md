@@ -55,7 +55,7 @@ sbt [-DgcsProject=arlas-lsfp] [-DgcsBucket=arlas-proc] [-DgcsBucketPath=/artifac
 
 Start ScyllaDB and Elasticsearch clusters. For example : 
 ```bash
-docker-compose -f scripts/tests/docker-compose-standalone.yml up -d gisaia-scylla-db
+docker-compose -f scripts/tests/docker-compose-standalone.yml up -d gisaia-scylla-db gisaia-elasticsearch
 ```
 
 Start an interactive spark-shell session. For example :
@@ -92,7 +92,7 @@ Paste (using `:paste`) the following code snippet :
       lonColumn = "longitude",
       dynamicFields = Array("latitude", "longitude", "sog", "cog", "heading", "rot", "draught"),
       timeFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSX",
-      timeserieGap = 120
+      visibilityTimeout = 120
     )
     val period = getPeriod(
       start = "2018-01-01T00:00:00+00:00",
@@ -106,7 +106,7 @@ Paste (using `:paste`) the following code snippet :
 
     // transform and resample data
     val transformedData = data
-      .asArlasTimeSeries(dataModel)
+      .asArlasVisibleSequences(dataModel)
       .asArlasMotions(dataModel)
       .asArlasResampledMotions(dataModel, spark)
     

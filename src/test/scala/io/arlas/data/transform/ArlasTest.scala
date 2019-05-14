@@ -30,7 +30,7 @@ import org.scalatest.{FlatSpec, Matchers}
 
 trait ArlasTest extends FlatSpec with Matchers with TestSparkSession with DataFrameTester {
 
-  val dataModel = DataModel(timeFormat = "dd/MM/yyyy HH:mm:ssXXX", timeserieGap = 300)
+  val dataModel = DataModel(timeFormat = "dd/MM/yyyy HH:mm:ssXXX", visibilityTimeout = 300)
 
   val rawData = Seq(
     //ObjectA : first time serie
@@ -144,33 +144,35 @@ trait ArlasTest extends FlatSpec with Matchers with TestSparkSession with DataFr
     cleanedSchema
   )
 
-  val timeseriesSchema = cleanedSchema
-    .add(StructField(arlasTimeSerieIdColumn, StringType, true))
+  val visibleSequencesSchema = cleanedSchema
+    .add(StructField(arlasVisibleSequenceIdColumn, StringType, true))
     .add(StructField(arlasVisibilityStateColumn, StringType, true))
 
-  val timeseriesData = cleanedData.map {
+  val visibleSequencesData = cleanedData.map {
     case (id, date, lat, lon, partition, timestamp) => {
-      val timeserie =
+      val sequence =
         if (id.equals("ObjectA") && timestamp < 1527804601) "ObjectA#1527804000"
         else if (id.equals("ObjectA") && timestamp >= 1527804601) "ObjectA#1527804601"
         else if (id.equals("ObjectB") && timestamp < 1527804451) "ObjectB#1527804000"
         else if (id.equals("ObjectB") && timestamp >= 1527804451) "ObjectB#1527804451"
         else "N/A"
       val visibility =
-        if (id.equals("ObjectA") && (date.equals("01/06/2018 00:04:51+02:00"))) "DISAPPEAR"
+        if (id.equals("ObjectA") && (date.equals("01/06/2018 00:04:51+02:00") || date.equals(
+              "01/06/2018 00:12:51+02:00"))) "DISAPPEAR"
         else if (id.equals("ObjectA") && (date.equals("01/06/2018 00:10:01+02:00") || date.equals(
                    "01/06/2018 00:00:00+02:00"))) "APPEAR"
-        else if (id.equals("ObjectB") && date.equals("01/06/2018 00:01:00+02:00")) "DISAPPEAR"
+        else if (id.equals("ObjectB") && date.equals("01/06/2018 00:01:00+02:00") || date.equals(
+                   "01/06/2018 00:10:00+02:00")) "DISAPPEAR"
         else if (id.equals("ObjectB") && (date.equals("01/06/2018 00:07:31+02:00") || date.equals(
                    "01/06/2018 00:00:00+02:00"))) "APPEAR"
-        else null
+        else "VISIBLE"
 
-      (id, date, lat, lon, partition, timestamp, timeserie, visibility)
+      (id, date, lat, lon, partition, timestamp, sequence, visibility)
     }
   }
 
-  val timeseriesDF = spark.createDataFrame(
-    timeseriesData.toDF.rdd,
-    timeseriesSchema
+  val visibleSequencesDF = spark.createDataFrame(
+    visibleSequencesData.toDF.rdd,
+    visibleSequencesSchema
   )
 }

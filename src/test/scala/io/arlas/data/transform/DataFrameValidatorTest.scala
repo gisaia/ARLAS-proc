@@ -29,7 +29,7 @@ class DataFrameValidatorTest extends ArlasTest {
 
   "DataFrameValidator " should " fix invalid column names" in {
 
-    val dataModel = DataModel(timeFormat = "dd/MM/yyyy HH:mm:ssXXX", timeserieGap = 120)
+    val dataModel = DataModel(timeFormat = "dd/MM/yyyy HH:mm:ssXXX", visibilityTimeout = 120)
 
     val sourceDF = rawDF
       .withColumn("white space", lit(0).cast(IntegerType))
@@ -49,7 +49,7 @@ class DataFrameValidatorTest extends ArlasTest {
 
   "DataFrameValidator " should " cast dynamic column to DoubleType if necessary" in {
 
-    val dataModel = DataModel(timeFormat = "dd/MM/yyyy HH:mm:ssXXX", timeserieGap = 120)
+    val dataModel = DataModel(timeFormat = "dd/MM/yyyy HH:mm:ssXXX", visibilityTimeout = 120)
 
     val sourceDF = rawDF
       .withColumnRenamed("lat", "oldlat")

@@ -74,7 +74,7 @@ submit_spark_job() {
             --id mmsi \
             --lon longitude \
             --lat latitude \
-            --gap 120 \
+            --timeout 120 \
             --dynamic latitude,longitude,sog,cog,heading,rot,draught \
             --timeformat "yyyy-MM-dd'T'HH:mm:ss.SSSX"
 }

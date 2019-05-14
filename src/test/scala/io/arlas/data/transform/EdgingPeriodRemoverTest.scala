@@ -136,19 +136,18 @@ class EdgingPeriodRemoverTest extends ArlasTest {
     ("ObjectB", "01/06/2018 00:10:00+02:00", 56.58327, 11.830705, "ObjectB#1527804451")
   )
 
-  val schema = rawSchema.add(StructField(arlasTimeSerieIdColumn, StringType, true))
+  val schema = rawSchema.add(StructField(arlasVisibleSequenceIdColumn, StringType, true))
 
   def performTestByPeriod(warmingPeriod: Int, endingPeriod: Int, expectedDF: DataFrame) = {
 
     val dataModel =
-      new DataModel(timeFormat = "dd/MM/yyyy HH:mm:ssXXX", timeserieGap = 300)
+      new DataModel(timeFormat = "dd/MM/yyyy HH:mm:ssXXX", visibilityTimeout = 300)
 
     val oldTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ssXXX")
 
     val transformedDf: DataFrame = rawDF
       .asArlasCleanedData(dataModel)
-      .enrichWithArlas(new WithEmptyArlasTimeSerieId(dataModel),
-                       new ArlasTimeSerieIdFiller(dataModel))
+      .enrichWithArlas(new WithArlasVisibleSequence(dataModel))
       .enrichWithArlas(
         new EdgingPeriodRemover(dataModel, Some(warmingPeriod), Some(endingPeriod), spark))
       .drop(arlasTimestampColumn, arlasPartitionColumn, arlasVisibilityStateColumn)
@@ -157,39 +156,39 @@ class EdgingPeriodRemoverTest extends ArlasTest {
 
   }
 
-  "withoutEdgingPeriod (warming period = 30 & ending period =30 ) transformation" should " filter data using both `warming/ending` periods against dataframe's timeseries" in {
+  "withoutEdgingPeriod (warming period = 30 & ending period =30 ) transformation" should " filter data using both `warming/ending` periods against dataframe's visible sequences" in {
     val expectedDF = spark.createDataFrame(
       (seq_A_1_middle ++
         seq_A_2_middle ++
         seq_B_1_middle ++
         seq_B_2_middle)
-        .toDF("id", "timestamp", "lat", "lon", arlasTimeSerieIdColumn)
+        .toDF("id", "timestamp", "lat", "lon", arlasVisibleSequenceIdColumn)
         .rdd,
       schema
     )
     performTestByPeriod(30, 30, expectedDF)
   }
 
-  "withoutEdgingPeriod (warming period = 30 & ending period =0 ) transformation" should " filter data using only `warming` period against dataframe's timeseries" in {
+  "withoutEdgingPeriod (warming period = 30 & ending period =0 ) transformation" should " filter data using only `warming` period against dataframe's visible sequences" in {
     val expectedDF = spark.createDataFrame(
       (seq_A_1_middle ++ seq_A_1_last_30 ++
         seq_A_2_middle ++ seq_A_2_last_30 ++
         seq_B_1_middle ++ seq_B_1_last_30 ++
         seq_B_2_middle ++ seq_B_2_last_30)
-        .toDF("id", "timestamp", "lat", "lon", arlasTimeSerieIdColumn)
+        .toDF("id", "timestamp", "lat", "lon", arlasVisibleSequenceIdColumn)
         .rdd,
       schema
     )
     performTestByPeriod(30, 0, expectedDF)
   }
 
-  "withoutEdgingPeriod (warming period = 0 & ending period =30 ) transformation" should " filter data using only `ending` period against dataframe's timeseries" in {
+  "withoutEdgingPeriod (warming period = 0 & ending period =30 ) transformation" should " filter data using only `ending` period against dataframe's visible sequences" in {
     val expectedDF = spark.createDataFrame(
       (seq_A_1_first_30 ++ seq_A_1_middle ++
         seq_A_2_first_30 ++ seq_A_2_middle ++
         seq_B_1_first_30 ++ seq_B_1_middle ++
         seq_B_2_first_30 ++ seq_B_2_middle)
-        .toDF("id", "timestamp", "lat", "lon", arlasTimeSerieIdColumn)
+        .toDF("id", "timestamp", "lat", "lon", arlasVisibleSequenceIdColumn)
         .rdd,
       schema
     )
@@ -202,7 +201,7 @@ class EdgingPeriodRemoverTest extends ArlasTest {
         seq_A_2_first_30 ++ seq_A_2_middle ++ seq_A_2_last_30 ++
         seq_B_1_first_30 ++ seq_B_1_middle ++ seq_B_1_last_30 ++
         seq_B_2_first_30 ++ seq_B_2_middle ++ seq_B_2_last_30)
-        .toDF("id", "timestamp", "lat", "lon", arlasTimeSerieIdColumn)
+        .toDF("id", "timestamp", "lat", "lon", arlasVisibleSequenceIdColumn)
         .rdd,
       schema
     )

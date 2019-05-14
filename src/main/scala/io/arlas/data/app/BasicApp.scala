@@ -38,7 +38,7 @@ trait BasicApp {
               [--lat string]
               [--lon string]
               [--dynamic coma,separated,string]
-              [--gap int]
+              [--timeout int]
               [--start YYYY-MM-DDThh:mm:ss+00:00]
               [--stop YYYY-MM-DDThh:mm:ss+00:00]
               --source string
@@ -89,8 +89,8 @@ trait BasicApp {
         getArgs(map ++ Map("lon" -> value), tail)
       case "--dynamic" :: value :: tail =>
         getArgs(map ++ Map("dynamic" -> value), tail)
-      case "--gap" :: value :: tail =>
-        getArgs(map ++ Map("gap" -> value), tail)
+      case "--timeout" :: value :: tail =>
+        getArgs(map ++ Map("timeout" -> value), tail)
       case "--warmingPeriod" :: value :: tail =>
         getArgs(map ++ Map("warmingPeriod" -> value), tail)
       case "--endingPeriod" :: value :: tail =>
@@ -117,7 +117,7 @@ trait BasicApp {
       arguments.getOrElse("lat", "lat"),
       arguments.getOrElse("lon", "lon"),
       arguments.getOrElse("dynamic", "lat,lon").split(","),
-      arguments.getOrElse("gap", "3600").toInt
+      arguments.getOrElse("timeout", "3600").toInt
     )
   }
 

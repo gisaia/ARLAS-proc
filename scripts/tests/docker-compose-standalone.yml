@@ -56,7 +56,7 @@ services:
         - /tmp/data/scylla-db:/var/lib/scylla-db
       networks:
         - gisaia-network
-  elasticsearch:
+  gisaia-elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:${ELASTIC_VERSION:-6.4.0}
     hostname: gisaia-elasticsearch
     container_name: gisaia-elasticsearch
