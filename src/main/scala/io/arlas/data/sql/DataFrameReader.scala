@@ -23,9 +23,10 @@ import org.apache.spark.sql.{DataFrame, SparkSession}
 
 class DataFrameReader {
 
-  def readFromCsv(spark: SparkSession, source: String): DataFrame = {
+  def readFromCsv(spark: SparkSession, source: String, delimiter: String = ","): DataFrame = {
     spark.read
       .option("header", "true")
+      .option("delimiter", delimiter)
       .csv(source)
   }
 
