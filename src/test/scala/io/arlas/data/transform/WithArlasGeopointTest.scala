@@ -19,12 +19,22 @@
 
 package io.arlas.data.transform
 
-object ArlasTransformerColumns {
-  val arlasTimestampColumn = "arlas_timestamp"
-  val arlasPartitionColumn = "arlas_partition"
-  val arlasDistanceColumn = "arlas_distance"
-  val arlasVisibilityStateColumn = "arlas_visibility_state"
-  val arlasVisibleSequenceIdColumn = "arlas_visible_sequence_id"
-  val arlasMotionIdColumn = "arlas_motion_id"
-  val arlasGeoPointColumn = "arlas_geopoint"
+import org.apache.spark.sql.DataFrame
+import io.arlas.data.sql._
+import io.arlas.data.transform.ArlasTransformerColumns._
+
+class WithArlasGeopointTest extends ArlasTest {
+
+  "WithArlasGeopoint" should "compute a geopoint from lat/lon" in {
+
+    val sourceDF = cleanedDF
+
+    val transformedDF: DataFrame = sourceDF
+      .enrichWithArlas(new WithArlasGeopoint(dataModel, spark))
+
+    transformedDF.collect().foreach(row => {
+      assert(row.getAs[String](arlasGeoPointColumn) == row.getAs[Double]("lat") + "," + row.getAs[Double]("lon"))
+    })
+  }
+
 }

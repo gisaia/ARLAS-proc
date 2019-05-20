@@ -19,12 +19,23 @@
 
 package io.arlas.data.transform
 
-object ArlasTransformerColumns {
-  val arlasTimestampColumn = "arlas_timestamp"
-  val arlasPartitionColumn = "arlas_partition"
-  val arlasDistanceColumn = "arlas_distance"
-  val arlasVisibilityStateColumn = "arlas_visibility_state"
-  val arlasVisibleSequenceIdColumn = "arlas_visible_sequence_id"
-  val arlasMotionIdColumn = "arlas_motion_id"
-  val arlasGeoPointColumn = "arlas_geopoint"
+import io.arlas.data.model.DataModel
+import io.arlas.data.transform.ArlasTransformerColumns._
+import org.apache.spark.sql.functions._
+import org.apache.spark.sql.types._
+import org.apache.spark.sql.{DataFrame, Dataset, SparkSession}
+
+class WithArlasGeopoint(dataModel            : DataModel,
+                        spark                : SparkSession)
+  extends ArlasTransformer(dataModel) {
+
+  override def transform(dataset: Dataset[_]): DataFrame = {
+    dataset.withColumn(arlasGeoPointColumn, concat(col(dataModel.latColumn), lit(","), col(dataModel.lonColumn)))
+  }
+
+  override def transformSchema(schema: StructType): StructType = {
+    checkSchema(schema)
+      .add(StructField(arlasGeoPointColumn, StringType, false))
+  }
+
 }
