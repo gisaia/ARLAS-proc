@@ -25,6 +25,7 @@ import java.time.format.DateTimeFormatter
 import io.arlas.data.model.DataModel
 import io.arlas.data.transform.ArlasTransformerColumns._
 import io.arlas.data.{DataFrameTester, TestSparkSession}
+import org.apache.spark.sql.Row
 import org.apache.spark.sql.types._
 import org.scalatest.{FlatSpec, Matchers}
 
@@ -174,4 +175,5 @@ trait ArlasTest extends FlatSpec with Matchers with TestSparkSession with DataFr
     visibleSequencesData.toDF.rdd,
     visibleSequencesSchema
   )
+
 }
