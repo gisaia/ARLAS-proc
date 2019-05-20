@@ -69,4 +69,23 @@ class DataFrameValidatorTest extends ArlasTest {
 
     assertDataFrameEquality(transformedDF, expectedDF)
   }
+
+  "DataFrameValidator " should " cast dynamic column with european format to DoubleType if necessary" in {
+
+    val dataModel = DataModel(timeFormat = "dd/MM/yyyy HH:mm:ssXXX", visibilityTimeout = 120)
+
+    val sourceDF = rawDF
+      .withColumnRenamed("lat", "oldlat")
+      .withColumnRenamed("lon", "oldlon")
+      .withColumn("lat", regexp_replace(col("oldlat").cast(StringType), "\\.", ","))
+      .withColumn("lon", regexp_replace(col("oldlon").cast(StringType), "\\.", ","))
+      .drop("oldlat", "oldlon")
+
+    val expectedDF = rawDF
+
+    val transformedDF: DataFrame = sourceDF
+      .enrichWithArlas(new DataFrameValidator(dataModel))
+
+    assertDataFrameEquality(transformedDF, expectedDF)
+  }
 }

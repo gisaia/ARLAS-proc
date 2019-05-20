@@ -20,8 +20,9 @@
 package io.arlas.data.transform
 
 import io.arlas.data.model.DataModel
-import org.apache.spark.sql.types.{DoubleType, StructField, StructType}
+import org.apache.spark.sql.types.{DataType, DoubleType, StringType, StructField, StructType, TimestampType}
 import org.apache.spark.sql.{DataFrame, Dataset}
+import org.apache.spark.sql.functions.{col, regexp_replace, to_timestamp}
 
 class DataFrameValidator(dataModel: DataModel) extends ArlasTransformer(dataModel) {
 
@@ -48,13 +49,19 @@ class DataFrameValidator(dataModel: DataModel) extends ArlasTransformer(dataMode
   }
 
   def withValidDynamicColumnsType()(df: DataFrame): DataFrame = {
+
     //Dynamic columns only support double values
-    val columns = df.columns.map(column => {
-      if (dataModel.dynamicFields.contains(column))
-        df.col(column).cast(DoubleType)
-      else df.col(column)
-    })
-    df.select(columns: _*)
+    //For those dynamic columns, if it is a string, replace possible coma "," (decimal european format) in decimal with a dot ".", that spark supports
+    df.columns.filter(dataModel.dynamicFields.contains(_)).foldLeft(df){
+                             (dataframe, column) =>
+                               if (df.schema.filter(c => c.name == column && c.dataType == StringType).nonEmpty) {
+                                 dataframe
+                                   .withColumn(column, regexp_replace(col(column), ",", ".").cast(DoubleType))
+                               } else if (df.schema.filter(c => c.name == column && c.dataType == DoubleType).isEmpty) {
+                                 dataframe.withColumn(column, col(column).cast(DoubleType))
+                               } else dataframe
+                                           }
+
   }
 
   def withNoDuplicates()(df: DataFrame): DataFrame = {
