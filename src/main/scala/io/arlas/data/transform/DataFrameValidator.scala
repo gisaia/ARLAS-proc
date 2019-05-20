@@ -29,6 +29,7 @@ class DataFrameValidator(dataModel: DataModel) extends ArlasTransformer(dataMode
     dataset.toDF
       .transform(withValidColumnNames())
       .transform(withValidDynamicColumnsType())
+      .transform(withNoDuplicates())
   }
 
   def withValidColumnNames()(df: DataFrame): DataFrame = {
@@ -54,6 +55,10 @@ class DataFrameValidator(dataModel: DataModel) extends ArlasTransformer(dataMode
       else df.col(column)
     })
     df.select(columns: _*)
+  }
+
+  def withNoDuplicates()(df: DataFrame): DataFrame = {
+    df.dropDuplicates(dataModel.idColumn, dataModel.timestampColumn)
   }
 
   override def transformSchema(schema: StructType): StructType = {
