@@ -30,13 +30,16 @@ import org.geotools.geometry.jts.JTS
 import org.geotools.referencing.CRS
 import org.locationtech.jts.geom.Coordinate
 
-class WithArlasDistance(dataModel: DataModel, spark: SparkSession)
+class WithArlasDistance(
+                         dataModel: DataModel,
+                         spark: SparkSession,
+                         aggregationColumnName: String = arlasVisibleSequenceIdColumn)
     extends ArlasTransformer(dataModel, Vector(arlasTimestampColumn, arlasPartitionColumn)) {
 
   override def transform(dataset: Dataset[_]): DataFrame = {
 
     val window = Window
-      .partitionBy(arlasVisibleSequenceIdColumn)
+      .partitionBy(aggregationColumnName)
       .orderBy(arlasTimestampColumn)
       .rowsBetween(-1, 0)
 
