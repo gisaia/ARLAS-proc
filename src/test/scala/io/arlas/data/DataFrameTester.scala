@@ -25,40 +25,47 @@ import org.apache.spark.sql.functions._
 trait DataFrameTester {
 
   def assertDataFrameEquality(actualDF: DataFrame, expectedDF: DataFrame): Unit = {
-    //Check scheme equality
-    if (!actualDF.schema.equals(expectedDF.schema)) {
-      throw DataFrameMismatchException(
-        schemeMismatchMessage(actualDF, expectedDF)
-      )
-    }
 
     //Check content equality
-    val a = defaultSort(actualDF).collect()
-    val e = defaultSort(expectedDF).collect()
-    if (!a.sameElements(e)) {
+    val a = defaultSortAndColsOrder(actualDF)
+    val e = defaultSortAndColsOrder(expectedDF)
+
+    //Check scheme equality
+    if (!a.schema.equals(e.schema)) {
       throw DataFrameMismatchException(
-        contentMismatchMessage(a, e)
-      )
+        schemeMismatchMessage(actualDF, expectedDF)
+        )
+    }
+
+    val aElements = a.collect()
+    val eElements = e.collect()
+
+    if (!aElements.sameElements(eElements)) {
+      throw DataFrameMismatchException(
+        contentMismatchMessage(aElements, eElements)
+        )
     }
   }
 
-  def defaultSort(ds: DataFrame): DataFrame = {
+  def defaultSortAndColsOrder(ds: DataFrame): DataFrame = {
     val colNames = ds.columns.sorted
     val cols = colNames.map(col)
-    ds.sort(cols: _*)
+    ds
+      .sort(cols: _*) //sort rows
+      .select(cols: _*) //sort columns for a consistent schema
   }
 
   private def contentMismatchMessage[Row](a: Array[Row], e: Array[Row]): String = {
     "DataFrame content mismatch [ actual rows | expected rows ]\n" + a
       .zip(e)
       .map {
-        case (r1, r2) =>
-          if (r1.equals(r2)) {
-            s"= [ $r1 | $r2 ]"
-          } else {
-            s"# [ $r1 | $r2 ]"
-          }
-      }
+             case (r1, r2) =>
+               if (r1.equals(r2)) {
+                 s"= [ $r1 | $r2 ]"
+               } else {
+                 s"# [ $r1 | $r2 ]"
+               }
+           }
       .mkString("\n")
   }
 
@@ -70,6 +77,7 @@ trait DataFrameTester {
           ${expectedDF.schema}
         """
   }
+
 }
 
 case class DataFrameMismatchException(msg: String) extends Exception(msg)
