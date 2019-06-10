@@ -25,7 +25,9 @@ case class DataModel(
     timeFormat: String = "yyyy-MM-dd'T'HH:mm:ssZ",
     latColumn: String = "lat",
     lonColumn: String = "lon",
+    speedColumn: String = "",
     dynamicFields: Array[String] = Array("lat", "lon"),
     visibilityTimeout: Int = 3600, //in seconds
-    timeSampling: Long = 15 //in seconds
+    timeSampling: Long = 15, //in seconds
+    movingStateModelPath: String = ""
 )

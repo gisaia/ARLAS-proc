@@ -21,11 +21,9 @@ package io.arlas.data.transform
 
 import java.time._
 import java.time.format.DateTimeFormatter
-
 import io.arlas.data.model.DataModel
 import io.arlas.data.sql._
 import io.arlas.data.transform.ArlasTransformerColumns._
-import io.arlas.data.transform.WithArlasVisibleSequence._
 import org.apache.commons.math3.analysis.interpolation.SplineInterpolator
 
 class ArlasResamplerTest extends ArlasTest {
@@ -67,18 +65,20 @@ class ArlasResamplerTest extends ArlasTest {
       15) ++ expectedInterpolation(objectBSeq2Raw, 15)
   }
 
-  def expectedInterpolation(data: Seq[(String, String, Double, Double)],
-                            timeSampling: Long): Seq[(String, String, Double, Double, String)] = {
+  def expectedInterpolation(data: Seq[(String, String, Double, Double, Double)],
+                            timeSampling: Long): Seq[(String, String, Double, Double, Double, String)] = {
     val dataTimestamped = data
-      .map(row => (ZonedDateTime.parse(row._2, timeFormatter).toEpochSecond(), row._3, row._4))
+      .map(row => (ZonedDateTime.parse(row._2, timeFormatter).toEpochSecond(), row._3, row._4, row._5))
       .distinct
       .sortBy(_._1)
     val ts = dataTimestamped.map(_._1.toDouble).toArray
     val lat = dataTimestamped.map(_._2).toArray
     val lon = dataTimestamped.map(_._3).toArray
+    val speed = dataTimestamped.map(_._4).toArray
     val interpolator = new SplineInterpolator()
     val functionLat = interpolator.interpolate(ts, lat);
     val functionLon = interpolator.interpolate(ts, lon);
+    val functionSpeed = interpolator.interpolate(ts, speed);
     val minTs = (ts.min - ts.min % timeSampling + timeSampling).toLong
     val maxTs = (ts.max - ts.max % timeSampling).toLong
     val id = data.head._1
@@ -90,15 +90,16 @@ class ArlasResamplerTest extends ArlasTest {
          s"${ZonedDateTime.ofInstant(Instant.ofEpochSecond(ts), ZoneOffset.UTC).format(timeFormatter)}",
          functionLat.value(ts),
          functionLon.value(ts),
+         functionSpeed.value(ts),
          timeserie))
   }
 
   "ArlasResampler transformation" should " resample data against dataframe's timeseries" in {
 
     val dataModel =
-      new DataModel(timeFormat = "dd/MM/yyyy HH:mm:ssXXX", visibilityTimeout = 300)
+      new DataModel(timeFormat = "dd/MM/yyyy HH:mm:ssXXX", visibilityTimeout = 300, dynamicFields = Array("lat", "lon", "speed"))
 
-    val sourceDF = source.toDF("id", "timestamp", "lat", "lon")
+    val sourceDF = source.toDF("id", "timestamp", "lat", "lon", "speed")
 
     val transformedDf = sourceDF
       .asArlasCleanedData(dataModel)
@@ -107,7 +108,7 @@ class ArlasResamplerTest extends ArlasTest {
       .drop(arlasTimestampColumn, arlasPartitionColumn, arlasVisibilityStateColumn)
 
     val expectedDF = expected
-      .toDF("id", "timestamp", "lat", "lon", arlasVisibleSequenceIdColumn)
+      .toDF("id", "timestamp", "lat", "lon", "speed", arlasVisibleSequenceIdColumn)
 
     assertDataFrameEquality(transformedDf, expectedDF)
   }
