@@ -87,10 +87,6 @@ class WithArlasVisibleSequence(dataModel: DataModel)
       .drop("row_sequence_id", "previousGap", "nextGap")
   }
 
-  def withEmptyNullableStringColumn(columnName: String)(df: DataFrame): DataFrame = {
-    df.withColumn(columnName, lit(null).cast(StringType))
-  }
-
   override def transformSchema(schema: StructType): StructType = {
     newColumns.foldLeft(checkSchema(schema)) { (newSchema, columnName) =>
       {

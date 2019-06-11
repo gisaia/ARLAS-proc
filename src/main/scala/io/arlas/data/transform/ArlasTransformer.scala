@@ -23,7 +23,9 @@ import io.arlas.data.model.DataModel
 import org.apache.spark.ml.param.ParamMap
 import org.apache.spark.ml.util.Identifiable
 import org.apache.spark.ml.{Transformer => SparkTransformer}
-import org.apache.spark.sql.types.StructType
+import org.apache.spark.sql.DataFrame
+import org.apache.spark.sql.functions.lit
+import org.apache.spark.sql.types.{StringType, StructType}
 
 abstract class ArlasTransformer(val dataModel: DataModel,
                                 val requiredCols: Vector[String] = Vector.empty)
@@ -54,6 +56,10 @@ abstract class ArlasTransformer(val dataModel: DataModel,
 
   override val uid: String = {
     Identifiable.randomUID(this.getClass.getSimpleName)
+  }
+
+  def withEmptyNullableStringColumn(columnName: String)(df: DataFrame): DataFrame = {
+    df.withColumn(columnName, lit(null).cast(StringType))
   }
 }
 

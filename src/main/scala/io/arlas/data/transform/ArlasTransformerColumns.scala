@@ -32,3 +32,13 @@ object ArlasTransformerColumns {
   val arlasDeltaTimestampVariationColumn = "arlas_delta_timestamp_variation"
   val arlasMovingStateColumn = "arlas_moving_state"
 }
+
+object ArlasVisibilityStates  {
+  sealed abstract class ArlasVisibilityStatesVal(visibilityState: String) {
+    override def toString: String = visibilityState
+  }
+  case object APPEAR extends ArlasVisibilityStatesVal("appear")
+  case object DISAPPEAR extends ArlasVisibilityStatesVal("disappear")
+  case object VISIBLE extends ArlasVisibilityStatesVal("visible")
+  case object INVISIBLE extends ArlasVisibilityStatesVal("invisible")
+}
