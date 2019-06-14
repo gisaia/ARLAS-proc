@@ -60,6 +60,7 @@ class WithArlasDeltaTimestamp(dataModel: DataModel,
     checkSchema(schema)
       .add(StructField(arlasDeltaTimestampColumn, LongType, true))
       .add(StructField(arlasPreviousDeltaTimestampColumn, LongType, true))
+      .add(StructField(arlasDeltaTimestampVariationColumn, LongType, true))
   }
 
 }
