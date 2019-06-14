@@ -42,7 +42,7 @@ class HmmProcessor(dataModel: DataModel,
   val TEMP_COLUMN    = "_tempColumn"
 
   override def transformSchema(schema: StructType): StructType = {
-    checkSchema(schema).add(StructField(resultColumn, StringType, false))
+    checkSchema(schema).add(StructField(resultColumn, StringType, true))
   }
 
   override def transform(dataset: Dataset[_]): DataFrame = {

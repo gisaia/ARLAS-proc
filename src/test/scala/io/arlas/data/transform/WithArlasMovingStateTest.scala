@@ -108,7 +108,7 @@ class WithArlasMovingStateTest extends ArlasTest {
       StructField("id", StringType, true),
       StructField("timestamp", StringType, true),
       StructField("speed", DoubleType, true),
-      StructField(arlasMovingStateColumn, StringType, false)
+      StructField(arlasMovingStateColumn, StringType, true)
       ))
 
   val expectedDf = spark.createDataFrame(expectedData.toDF("id", "timestamp", "speed", arlasMovingStateColumn).rdd, expectedSchema)
