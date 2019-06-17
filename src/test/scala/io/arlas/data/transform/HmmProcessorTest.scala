@@ -37,7 +37,7 @@ class HmmProcessorTest extends ArlasTest {
           dataModel,
           spark,
           "notExisting",
-          MLModelLocal(spark, "src/test/resources/hmm_test_model.json"),
+          MLModelLocal(spark, "src/test/resources/hmm_stillmove_model.json"),
           arlasVisibleSequenceIdColumn,
           "result")
         )

@@ -117,7 +117,7 @@ class WithArlasMovingStateTest extends ArlasTest {
 
     val dataModel =
       new DataModel(timeFormat = "dd/MM/yyyy HH:mm:ssXXX", visibilityTimeout = 300, speedColumn = "speed", movingStateModel =
-        MLModelLocal(spark, "src/test/resources/hmm_test_model.json"))
+        MLModelLocal(spark, "src/test/resources/hmm_stillmove_model.json"))
 
     val transformedDf = visibleSequencesDF
       .enrichWithArlas(

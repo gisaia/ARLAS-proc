@@ -28,7 +28,6 @@ import org.apache.spark.sql.{DataFrame, Dataset, SparkSession}
 
 class WithArlasVisibilityStateFromTempo(dataModel: DataModel,
                                         spark: SparkSession,
-                                        tempoCol: String,
                                         appearTempo: String)
   extends ArlasTransformer(dataModel, Vector(arlasTimestampColumn)) {
 
@@ -39,12 +38,12 @@ class WithArlasVisibilityStateFromTempo(dataModel: DataModel,
     else dataset.toDF()
 
     val window = Window.partitionBy(dataModel.idColumn).orderBy(arlasTimestampColumn)
-    val nextTempo = lead(tempoCol, 1).over(window)
+    val nextTempo = lead(arlasTempoColumn, 1).over(window)
     df.withColumn(
       arlasVisibilityStateColumn,
-      when(col(tempoCol).equalTo(appearTempo), lit(ArlasVisibilityStates.APPEAR.toString))
+      when(col(arlasTempoColumn).equalTo(appearTempo), lit(ArlasVisibilityStates.APPEAR.toString))
         .otherwise(
-          when(nextTempo.equalTo(appearTempo).and(col(tempoCol).notEqual(appearTempo)), ArlasVisibilityStates.DISAPPEAR.toString)
+          when(nextTempo.equalTo(appearTempo).and(col(arlasTempoColumn).notEqual(appearTempo)), ArlasVisibilityStates.DISAPPEAR.toString)
           .otherwise(lit(ArlasVisibilityStates.VISIBLE.toString))))
   }
 
