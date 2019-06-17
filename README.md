@@ -77,8 +77,11 @@ docker run -ti \
         --conf spark.es.index.auto.create="true" \
         --conf spark.cassandra.connection.host="gisaia-scylla-db" \
         --conf spark.driver.allowMultipleContexts="true" \
-        --conf spark.rpc.netty.dispatcher.numThreads="2" 
+        --conf spark.rpc.netty.dispatcher.numThreads="2" \
+        --conf spark.driver.CLOUDSMITH_TOKEN="$CLOUDSMITH_TOKEN"
 ```
+
+$CLOUDSMITH_TOKEN is required when using ML models from cloudsmith. Its value should be asked to a developer.
 
 Paste (using `:paste`) the following code snippet :
 ```scala
@@ -94,7 +97,7 @@ Paste (using `:paste`) the following code snippet :
       dynamicFields = Array("latitude", "longitude", "sog", "cog", "heading", "rot", "draught"),
       timeFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSX",
       visibilityTimeout = 120,
-      movingStateModelPath = "/opt/proc/src/test/resources/hmm_test_model.json"
+      movingStateModel = new MLModelLocal("/opt/proc/src/test/resources/hmm_test_model.json")
     )
     val period = getPeriod(
       start = "2018-01-01T00:00:00+00:00",

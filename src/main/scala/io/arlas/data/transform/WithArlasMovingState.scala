@@ -19,7 +19,7 @@
 
 package io.arlas.data.transform
 
-import io.arlas.data.model.DataModel
+import io.arlas.data.model.{DataModel}
 import io.arlas.data.transform.ArlasTransformerColumns.{arlasMovingStateColumn, arlasVisibleSequenceIdColumn}
 import org.apache.spark.sql.SparkSession
 
@@ -28,6 +28,6 @@ class WithArlasMovingState(dataModel: DataModel,
   extends HmmProcessor(dataModel,
                        spark,
                        dataModel.speedColumn,
-                       dataModel.movingStateModelPath,
+                       dataModel.movingStateModel,
                        arlasVisibleSequenceIdColumn,
                        arlasMovingStateColumn)

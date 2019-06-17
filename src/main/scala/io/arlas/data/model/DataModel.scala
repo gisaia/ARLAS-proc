@@ -20,14 +20,14 @@
 package io.arlas.data.model
 
 case class DataModel(
-    idColumn: String = "id",
-    timestampColumn: String = "timestamp",
-    timeFormat: String = "yyyy-MM-dd'T'HH:mm:ssZ",
-    latColumn: String = "lat",
-    lonColumn: String = "lon",
-    speedColumn: String = "",
-    dynamicFields: Array[String] = Array("lat", "lon"),
-    visibilityTimeout: Int = 3600, //in seconds
-    timeSampling: Long = 15, //in seconds
-    movingStateModelPath: String = ""
+                      idColumn         : String = "id",
+                      timestampColumn  : String = "timestamp",
+                      timeFormat       : String = "yyyy-MM-dd'T'HH:mm:ssZ",
+                      latColumn        : String = "lat",
+                      lonColumn        : String = "lon",
+                      speedColumn      : String = "",
+                      dynamicFields    : Array[String] = Array("lat", "lon"),
+                      visibilityTimeout: Int = 3600, //in seconds
+                      timeSampling     : Long = 15, //in seconds
+                      movingStateModel : MLModel = null
 )

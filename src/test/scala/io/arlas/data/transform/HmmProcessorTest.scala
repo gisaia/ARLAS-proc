@@ -19,7 +19,7 @@
 
 package io.arlas.data.transform
 
-import io.arlas.data.model.DataModel
+import io.arlas.data.model.{DataModel, MLModelLocal}
 import io.arlas.data.transform.ArlasTransformerColumns.{arlasMovingStateColumn, arlasTimestampColumn, arlasVisibleSequenceIdColumn}
 import io.arlas.data.sql._
 import org.apache.spark.sql.functions._
@@ -37,7 +37,7 @@ class HmmProcessorTest extends ArlasTest {
           dataModel,
           spark,
           "notExisting",
-          "src/test/resources/hmm_test_model.json",
+          MLModelLocal(spark, "src/test/resources/hmm_test_model.json"),
           arlasVisibleSequenceIdColumn,
           "result")
         )
@@ -58,7 +58,7 @@ class HmmProcessorTest extends ArlasTest {
           dataModel,
           spark,
           "speed",
-          "src/test/resources/not_existing.json",
+          MLModelLocal(spark, "src/test/resources/not_existing.json"),
           arlasVisibleSequenceIdColumn,
           "result")
         )

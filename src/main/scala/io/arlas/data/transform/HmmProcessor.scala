@@ -19,27 +19,27 @@
 
 package io.arlas.data.transform
 
-import io.arlas.data.model.DataModel
+import io.arlas.data.model.{DataModel, MLModel}
 import org.apache.spark.sql.functions._
 import io.arlas.ml.classification.Hmm
 import org.apache.spark.sql.types.{DoubleType, StringType, StructField, StructType}
 import org.apache.spark.sql.{DataFrame, Dataset, Row, SparkSession}
 import org.apache.spark.sql.functions.col
 import org.slf4j.LoggerFactory
+import scala.util.{Failure, Success}
 
-import scala.util.{Failure, Success, Try}
 
 class HmmProcessor(dataModel: DataModel,
                    spark                 : SparkSession,
-                   sourceColumn: String,
-                   hmmModelPath          : String,
+                   sourceColumn          : String,
+                   hmmModel              : MLModel,
                    partitionColumn       : String,
                    resultColumn          : String )
     extends ArlasTransformer(dataModel, Vector(partitionColumn)) {
 
   @transient lazy val logger = LoggerFactory.getLogger(this.getClass)
   val UNKNOWN_RESULT = "Unknown"
-  val TEMP_COLUMN = "_tempColumn"
+  val TEMP_COLUMN    = "_tempColumn"
 
   override def transformSchema(schema: StructType): StructType = {
     checkSchema(schema).add(StructField(resultColumn, StringType, false))
@@ -48,10 +48,17 @@ class HmmProcessor(dataModel: DataModel,
   override def transform(dataset: Dataset[_]): DataFrame = {
 
     val columns = dataset.columns
-    val hmmModelContent = Try(spark.sparkContext.textFile(hmmModelPath, 1).toLocalIterator.mkString)
 
-    if (!dataset.columns.contains(sourceColumn) || hmmModelContent.isFailure) {
+    val hmmModelContent = hmmModel.getModelString()
+
+    if (!dataset.columns.contains(sourceColumn)) {
+      logger.error(s"Missing required column ${sourceColumn} to compute HMM")
       dataset.withColumn(resultColumn, lit(UNKNOWN_RESULT))
+
+    } else if (hmmModelContent.isFailure) {
+      logger.error(s"HMM model not found")
+      dataset.withColumn(resultColumn, lit(UNKNOWN_RESULT))
+
     } else {
       interpolateRows(dataset, hmmModelContent.get)
     }
@@ -89,5 +96,5 @@ class HmmProcessor(dataModel: DataModel,
 
     spark.sqlContext.createDataFrame(interpolatedRows, transformSchema(dataset.schema))
   }
-
 }
+
