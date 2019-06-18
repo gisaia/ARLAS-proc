@@ -29,7 +29,7 @@ import org.apache.spark.sql.{DataFrame, Dataset, SparkSession}
 class WithArlasDeltaTimestamp(dataModel: DataModel,
                               spark: SparkSession,
                               aggregationColumnName: String)
-    extends ArlasTransformer(dataModel, Vector(arlasTimestampColumn, arlasPartitionColumn)) {
+    extends ArlasTransformer(dataModel, Vector(arlasTimestampColumn, aggregationColumnName)) {
 
   override def transform(dataset: Dataset[_]): DataFrame = {
 
@@ -60,6 +60,7 @@ class WithArlasDeltaTimestamp(dataModel: DataModel,
     checkSchema(schema)
       .add(StructField(arlasDeltaTimestampColumn, LongType, true))
       .add(StructField(arlasPreviousDeltaTimestampColumn, LongType, true))
+      .add(StructField(arlasDeltaTimestampVariationColumn, LongType, true))
   }
 
 }

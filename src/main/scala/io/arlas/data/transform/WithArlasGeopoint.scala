@@ -35,7 +35,7 @@ class WithArlasGeopoint(dataModel            : DataModel,
 
   override def transformSchema(schema: StructType): StructType = {
     checkSchema(schema)
-      .add(StructField(arlasGeoPointColumn, StringType, false))
+      .add(StructField(arlasGeoPointColumn, StringType, true))
   }
 
 }
