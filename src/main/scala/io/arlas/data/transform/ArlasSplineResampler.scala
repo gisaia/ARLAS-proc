@@ -19,12 +19,12 @@
 
 package io.arlas.data.transform
 
-import io.arlas.data.math.interpolations.splineInterpolateAndResample
 import io.arlas.data.model.DataModel
 import io.arlas.data.transform.ArlasTransformerColumns._
 import org.apache.spark.sql.{DataFrame, Dataset, Row, SparkSession}
+import io.arlas.data.math.interpolations.splineInterpolateAndResample
 
-class ArlasResampler(dataModel: DataModel, aggregationColumnName: String, spark: SparkSession)
+class ArlasSplineResampler(dataModel: DataModel, aggregationColumnName: String, spark: SparkSession)
     extends ArlasTransformer(
       dataModel,
       Vector(arlasTimestampColumn, arlasPartitionColumn, aggregationColumnName)) {

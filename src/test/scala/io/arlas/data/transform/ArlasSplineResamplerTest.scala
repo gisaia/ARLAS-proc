@@ -26,7 +26,7 @@ import io.arlas.data.sql._
 import io.arlas.data.transform.ArlasTransformerColumns._
 import org.apache.commons.math3.analysis.interpolation.SplineInterpolator
 
-class ArlasResamplerTest extends ArlasTest {
+class ArlasSplineResamplerTest extends ArlasTest {
 
   import spark.implicits._
 
@@ -104,7 +104,7 @@ class ArlasResamplerTest extends ArlasTest {
     val transformedDf = sourceDF
       .asArlasCleanedData(dataModel)
       .enrichWithArlas(new WithArlasVisibleSequence(dataModel),
-                       new ArlasResampler(dataModel, arlasVisibleSequenceIdColumn, spark))
+                       new ArlasSplineResampler(dataModel, arlasVisibleSequenceIdColumn, spark))
       .drop(arlasTimestampColumn, arlasPartitionColumn, arlasVisibilityStateColumn)
 
     val expectedDF = expected

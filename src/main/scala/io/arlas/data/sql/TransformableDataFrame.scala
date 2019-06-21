@@ -50,7 +50,7 @@ class TransformableDataFrame(df: DataFrame) {
   }
 
   def asArlasResampledMotions(dataModel: DataModel, spark: SparkSession): DataFrame = {
-    doPipelineTransform(df, new ArlasResampler(dataModel, arlasMotionIdColumn, spark))
+    doPipelineTransform(df, new ArlasSplineResampler(dataModel, arlasMotionIdColumn, spark))
   }
 
   def enrichWithArlas(transformers: ArlasTransformer*): DataFrame = {

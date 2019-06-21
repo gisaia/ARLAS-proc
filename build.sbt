@@ -25,6 +25,8 @@ val gtReferencing = "org.geotools" % "gt-referencing" % "20.1" % "provided"
 val gtGeometry = "org.geotools" % "gt-geometry" % "20.1" % "provided"
 val geotools = Seq(gtReferencing, gtGeometry)
 
+val geographicLib = "net.sf.geographiclib" % "GeographicLib-Java" % "1.49"
+
 val arlasMl = "io.arlas" %% "arlas-ml" % "0.1.0"
 val arlas = Seq(arlasMl)
 
@@ -36,6 +38,7 @@ lazy val arlasData = (project in file("."))
     libraryDependencies ++= elastic,
     libraryDependencies ++= geotools,
     libraryDependencies ++= arlas,
+    libraryDependencies += geographicLib,
     libraryDependencies += scalaTest % Test
   )
 

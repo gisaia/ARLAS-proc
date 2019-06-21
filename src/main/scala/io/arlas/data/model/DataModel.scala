@@ -29,5 +29,10 @@ case class DataModel(
                       dynamicFields    : Array[String] = Array("lat", "lon"),
                       visibilityTimeout: Int = 3600, //in seconds
                       timeSampling     : Long = 15, //in seconds
-                      movingStateModel : MLModel = null
-)
+                      movingStateModel : MLModel = null,
+                      basicOutlierFilterModel: BasicOutlierFilterModel = new BasicOutlierFilterModel(),
+                      golayFilterModel: GolayFilterModel = new GolayFilterModel()
+                    )
+
+case class BasicOutlierFilterModel(median: Int = 5, innovationWindowSize: Int = 3)
+case class GolayFilterModel(window: Long = 10, windowMinSize: Int = 3)

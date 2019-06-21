@@ -41,10 +41,11 @@ trait BasicApp {
               [--timeout int]
               [--start YYYY-MM-DDThh:mm:ss+00:00]
               [--stop YYYY-MM-DDThh:mm:ss+00:00]
-              [--hmmModelPath string]
+              [--movingStateModelPath string]
               --source string
               --target string
   """
+  //TODO check if we should add golay params
 
   def run(spark: SparkSession, dataModel: DataModel, runOptions: RunOptions): Unit
 
