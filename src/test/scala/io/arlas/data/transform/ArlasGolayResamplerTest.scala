@@ -25,7 +25,7 @@ import io.arlas.data.model.{DataModel}
 import io.arlas.data.sql._
 import io.arlas.data.transform.ArlasTransformerColumns._
 
-class ArlasSequenceGolayResamplerTest
+class ArlasGolayResamplerTest
   extends ArlasTest {
 
   import spark.implicits._
@@ -39,7 +39,7 @@ class ArlasSequenceGolayResamplerTest
 
     val transformedDf = visibleSequencesDF
       .enrichWithArlas(
-        new ArlasSequenceGolayResampler(dataModel, spark, Some(ZonedDateTime.parse("01/06/2018 00:00:00+02:00", timeFormatter)), arlasVisibleSequenceIdColumn))
+        new ArlasGolayResampler(dataModel, spark, Some(ZonedDateTime.parse("01/06/2018 00:00:00+02:00", timeFormatter)), arlasVisibleSequenceIdColumn))
 //      .drop(arlasTimestampColumn, arlasPartitionColumn)
 
     //force to compute the result in order to check it

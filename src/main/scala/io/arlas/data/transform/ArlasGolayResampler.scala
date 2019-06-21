@@ -25,11 +25,10 @@ import org.apache.spark.sql.{DataFrame, Dataset, Row, SparkSession}
 import io.arlas.data.transform.ArlasTransformerColumns._
 import io.arlas.data.math.interpolations.golayInterpolateAndResample
 
-class ArlasSequenceGolayResampler(dataModel: DataModel,
-                                  spark: SparkSession,
-                                  start: Option[ZonedDateTime],
-                                  partitionColumn: String
-                                  )
+class ArlasGolayResampler(dataModel      : DataModel,
+                          spark          : SparkSession,
+                          start          : Option[ZonedDateTime],
+                          partitionColumn: String)
   extends ArlasTransformer(
     dataModel,
     Vector(arlasTimestampColumn, partitionColumn)) {
