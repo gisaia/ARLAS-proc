@@ -73,9 +73,6 @@ class OtherColValueReplacerTest extends ArlasTest {
     val transformedDF = testDF.enrichWithArlas(
       new OtherColValueReplacer(dataModel, "colnull", "colstring", null, null))
 
-    expectedDF.show()
-    transformedDF.show()
-
     assertDataFrameEquality(transformedDF, expectedDF)
   }
 

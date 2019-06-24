@@ -19,10 +19,12 @@
 
 package io.arlas.data.sql
 
-import io.arlas.data.model.{DataModel}
+import io.arlas.data.model.DataModel
 import io.arlas.data.transform._
 import io.arlas.data.transform.ArlasTransformerColumns._
 import org.apache.spark.ml.Pipeline
+import org.apache.spark.sql.functions.lit
+import org.apache.spark.sql.types.{DataType, StringType}
 import org.apache.spark.sql.{DataFrame, Dataset, SparkSession}
 
 class TransformableDataFrame(df: DataFrame) {
@@ -34,8 +36,11 @@ class TransformableDataFrame(df: DataFrame) {
                         new WithArlasPartition(dataModel))
   }
 
-  def asArlasVisibleSequences(dataModel: DataModel): DataFrame = {
-    doPipelineTransform(df, new WithArlasVisibleSequence(dataModel))
+  def asArlasVisibleSequencesFromTimestamp(dataModel: DataModel): DataFrame = {
+    doPipelineTransform(
+      df,
+      new WithArlasVisibilityStateFromTimestamp(dataModel),
+      new WithArlasStateIdFromState(dataModel, arlasVisibilityStateColumn, ArlasVisibilityStates.APPEAR.toString, arlasVisibleSequenceIdColumn))
   }
 
   def asArlasMotions(dataModel: DataModel,
@@ -62,6 +67,8 @@ class TransformableDataFrame(df: DataFrame) {
     pipeline.setStages(transformers.toArray)
     pipeline.fit(df).transform(df)
   }
+
+  def withEmptyCol(colName: String, colType: DataType = StringType) = df.withColumn(colName, lit(null).cast(colType))
 }
 
 // Classes below do not transform input data

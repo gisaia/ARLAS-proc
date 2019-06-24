@@ -151,7 +151,7 @@ class EdgingPeriodRemoverTest extends ArlasTest {
 
     val transformedDf: DataFrame = rawDF
       .asArlasCleanedData(dataModel)
-      .enrichWithArlas(new WithArlasVisibleSequence(dataModel))
+      .asArlasVisibleSequencesFromTimestamp(dataModel)
       .enrichWithArlas(
         new EdgingPeriodRemover(dataModel, Some(warmingPeriod), Some(endingPeriod), spark))
       .select("id", "timestamp", arlasVisibleSequenceIdColumn)

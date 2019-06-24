@@ -97,7 +97,7 @@ Paste (using `:paste`) the following code snippet :
       dynamicFields = Array("latitude", "longitude", "sog", "cog", "heading", "rot", "draught"),
       timeFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSX",
       visibilityTimeout = 120,
-      movingStateModel = new MLModelLocal("/opt/proc/src/test/resources/hmm_test_model.json")
+      movingStateModel = new MLModelLocal(spark, "/opt/proc/src/test/resources/hmm_stillmove_model.json")
     )
     val period = getPeriod(
       start = "2018-01-01T00:00:00+00:00",
@@ -111,7 +111,7 @@ Paste (using `:paste`) the following code snippet :
 
     // transform and resample data
     val transformedData = data
-      .asArlasVisibleSequences(dataModel)
+      .asArlasVisibleSequencesFromTimestamp(dataModel)
       .asArlasMotions(dataModel, spark)
 //      .asArlasResampledMotions(dataModel, spark)
     
