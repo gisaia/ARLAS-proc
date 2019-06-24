@@ -24,23 +24,23 @@ import io.arlas.data.transform.ArlasTransformerColumns._
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.functions._
 
-class WithArlasStateIdFromStateTest extends ArlasTest {
+class WithStateIdFromStateTest extends ArlasTest {
 
-  "WithArlasStateIdFromStates transformation " should " fill/generate state id against dataframe's timeseries" in {
+  "WithStateIdFromState transformation " should " fill/generate state id against dataframe's timeseries" in {
 
     val sourceDF = cleanedDF
 
     val transformedDF: DataFrame = sourceDF
       .enrichWithArlas(
         new WithArlasVisibilityStateFromTimestamp(dataModel),
-        new WithArlasStateIdFromState(dataModel, arlasVisibilityStateColumn, ArlasVisibilityStates.APPEAR.toString, arlasVisibleSequenceIdColumn))
+        new WithStateIdFromState(dataModel, arlasVisibilityStateColumn, ArlasVisibilityStates.APPEAR.toString, arlasVisibleSequenceIdColumn))
 
     val expectedDF = visibleSequencesDF
 
     assertDataFrameEquality(transformedDF, expectedDF)
   }
 
-  "WithArlasStateIdFromStates transformation " should " resume state id when adding a warm up period" in {
+  "WithStateIdFromState transformation " should " resume state id when adding a warm up period" in {
 
     val sourceDF = cleanedDF
 
@@ -48,7 +48,7 @@ class WithArlasStateIdFromStateTest extends ArlasTest {
       .filter(col(arlasTimestampColumn) < 1527804100)
       .enrichWithArlas(
         new WithArlasVisibilityStateFromTimestamp(dataModel),
-        new WithArlasStateIdFromState(dataModel, arlasVisibilityStateColumn, ArlasVisibilityStates.APPEAR.toString, arlasVisibleSequenceIdColumn))
+        new WithStateIdFromState(dataModel, arlasVisibilityStateColumn, ArlasVisibilityStates.APPEAR.toString, arlasVisibleSequenceIdColumn))
 
     val transformedDF: DataFrame = sourceDF
       .withEmptyCol(arlasVisibleSequenceIdColumn)
@@ -57,7 +57,7 @@ class WithArlasStateIdFromStateTest extends ArlasTest {
       .unionByName(warmupDF)
       .enrichWithArlas(
         new WithArlasVisibilityStateFromTimestamp(dataModel),
-        new WithArlasStateIdFromState(dataModel, arlasVisibilityStateColumn, ArlasVisibilityStates.APPEAR.toString, arlasVisibleSequenceIdColumn))
+        new WithStateIdFromState(dataModel, arlasVisibilityStateColumn, ArlasVisibilityStates.APPEAR.toString, arlasVisibleSequenceIdColumn))
 
     val expectedDF = visibleSequencesDF
 

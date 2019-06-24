@@ -25,13 +25,15 @@ object ArlasTransformerColumns {
   val arlasDistanceColumn = "arlas_distance"
   val arlasVisibilityStateColumn = "arlas_visibility_state"
   val arlasVisibleSequenceIdColumn = "arlas_visible_sequence_id"
-  val arlasMotionIdColumn = "arlas_motion_id"
   val arlasGeoPointColumn = "arlas_geopoint"
   val arlasDeltaTimestampColumn          = "arlas_delta_timestamp"
   val arlasPreviousDeltaTimestampColumn  = "arlas_previous_delta_timestamp"
   val arlasDeltaTimestampVariationColumn = "arlas_delta_timestamp_variation"
   val arlasMovingStateColumn = "arlas_moving_state"
   val arlasTempoColumn = "arlas_tempo"
+  val arlasMotionIdColumn = "arlas_motion_id"
+  val arlasMotionStateColumn = "arlas_motion_state"
+  val arlasMotionDurationColumn = "arlas_motion_duration"
 }
 
 /**
@@ -48,4 +50,20 @@ object ArlasVisibilityStates  {
   case object DISAPPEAR extends ArlasVisibilityStatesVal("DISAPPEAR")
   case object VISIBLE extends ArlasVisibilityStatesVal("VISIBLE")
   case object INVISIBLE extends ArlasVisibilityStatesVal("INVISIBLE")
+}
+
+object ArlasMovingStates  {
+  sealed abstract class ArlasMovingStates(movingState: String) {
+    override def toString: String = movingState
+  }
+  case object STILL extends ArlasMovingStates("STILL")
+  case object MOVE extends ArlasMovingStates("MOVE")
+}
+
+object ArlasMotionStates  {
+  sealed abstract class ArlasMotionStates(motionState: String) {
+    override def toString: String = motionState
+  }
+  case object PAUSE extends ArlasMotionStates("PAUSE")
+  case object MOTION extends ArlasMotionStates("MOTION")
 }
