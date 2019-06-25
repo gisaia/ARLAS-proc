@@ -2,12 +2,13 @@ ThisBuild / version      := "0.3.0-SNAPSHOT"
 ThisBuild / scalaVersion := "2.11.8"
 ThisBuild / organization := "io.arlas"
 
-resolvers += "osgeo" at "http://download.osgeo.org/webdav/geotools/"
-resolvers += "gisaia-ml" at s"https://dl.cloudsmith.io/${sys.env.getOrElse("CLOUDSMITH_TOKEN", "basic")}/gisaia/ml/maven"
-resolvers += "boundless" at "http://repo.boundlessgeo.com/main"
-resolvers += "geotoolkit" at "http://maven.geotoolkit.org/"
-resolvers += "jboss" at "https://repository.jboss.org/maven2/"
-resolvers += DefaultMavenRepository
+//https://github.com/sbt/sbt/issues/1138
+resolvers := Seq(DefaultMavenRepository,
+                 "boundless" at "http://repo.boundlessgeo.com/main",
+                 "osgeo" at "http://download.osgeo.org/webdav/geotools/",
+                 "jboss" at "https://repository.jboss.org/maven2/",
+                 "gisaia-ml" at s"https://dl.cloudsmith.io/${sys.env.getOrElse("CLOUDSMITH_TOKEN", "basic")}/gisaia/ml/maven",
+                 "geotoolkit" at "http://maven.geotoolkit.org/")
 
 val sparkSQL = "org.apache.spark" %% "spark-sql" % "2.3.1" % "provided"
 val sparkMLlib = "org.apache.spark" %% "spark-mllib" % "2.3.1" % "provided"
