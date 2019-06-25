@@ -7,6 +7,7 @@ resolvers += "gisaia-ml" at s"https://dl.cloudsmith.io/${sys.env.getOrElse("CLOU
 resolvers += "boundless" at "http://repo.boundlessgeo.com/main"
 resolvers += "geotoolkit" at "http://maven.geotoolkit.org/"
 resolvers += "jboss" at "https://repository.jboss.org/maven2/"
+resolvers += DefaultMavenRepository
 
 val sparkSQL = "org.apache.spark" %% "spark-sql" % "2.3.1" % "provided"
 val sparkMLlib = "org.apache.spark" %% "spark-mllib" % "2.3.1" % "provided"
