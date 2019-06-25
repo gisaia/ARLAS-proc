@@ -33,10 +33,10 @@ val arlas = Seq(arlasMl)
 lazy val arlasData = (project in file("."))
   .settings(
     name := "arlas-proc",
+    libraryDependencies ++= geotools,
     libraryDependencies ++= spark,
     libraryDependencies ++= cassandra,
     libraryDependencies ++= elastic,
-    libraryDependencies ++= geotools,
     libraryDependencies ++= arlas,
     libraryDependencies += scalaTest % Test
   )
