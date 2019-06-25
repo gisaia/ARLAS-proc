@@ -7,8 +7,9 @@ services:
 
 cache:
   directories:
-  - $HOME/.ivy2
+  - $HOME/.ivy2/cache
   - $HOME/.m2
+  - $HOME/.sbt
 
 before_cache:
   # Cleanup the cached directories to avoid unnecessary cache updates, cf https://www.scala-sbt.org/1.x/docs/Travis-CI-with-sbt.html
