@@ -3,7 +3,7 @@ ThisBuild / scalaVersion := "2.11.8"
 ThisBuild / organization := "io.arlas"
 
 //https://github.com/sbt/sbt/issues/1138
-resolvers := Seq(DefaultMavenRepository,
+fullResolvers := Seq(DefaultMavenRepository,
                  "boundless" at "http://repo.boundlessgeo.com/main",
                  "osgeo" at "http://download.osgeo.org/webdav/geotools/",
                  "jboss" at "https://repository.jboss.org/maven2/",
