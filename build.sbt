@@ -5,7 +5,6 @@ ThisBuild / organization := "io.arlas"
 resolvers += "osgeo" at "http://download.osgeo.org/webdav/geotools/"
 resolvers += "gisaia-ml" at s"https://dl.cloudsmith.io/${sys.env.getOrElse("CLOUDSMITH_TOKEN", "basic")}/gisaia/ml/maven"
 resolvers += "boundless" at "http://repo.boundlessgeo.com/main"
-resolvers += "geotoolkit" at "http://maven.geotoolkit.org/"
 resolvers += "jboss" at "https://repository.jboss.org/maven2/"
 
 val sparkSQL = "org.apache.spark" %% "spark-sql" % "2.3.1" % "provided"
