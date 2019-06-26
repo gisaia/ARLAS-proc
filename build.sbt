@@ -25,8 +25,8 @@ val scalaTest = "org.scalatest" %% "scalatest" % "2.2.5"
 val elasticSearch = "org.elasticsearch" %% "elasticsearch-spark-20" % "6.4.0" % "provided"
 val elastic = Seq(elasticSearch)
 
-val gtReferencing = "org.geotools" % "gt-referencing" % "20.1" % "provided"
-val gtGeometry = "org.geotools" % "gt-geometry" % "20.1" % "provided"
+val gtReferencing = "org.geotools" % "gt-referencing" % "20.1" % "provided" intransitive()
+val gtGeometry = "org.geotools" % "gt-geometry" % "20.1" % "provided" intransitive()
 val geotools = Seq(gtReferencing, gtGeometry)
 
 val arlasMl = "io.arlas" %% "arlas-ml" % "0.1.0"
