@@ -38,17 +38,28 @@ abstract class ArlasTransformer(val dataModel: DataModel,
   }
 
   def checkSchema(schema: StructType): StructType = {
-    val allRequiredCols = requiredCols ++ Vector(
-      dataModel.timestampColumn,
-      dataModel.idColumn,
-      dataModel.latColumn,
-      dataModel.lonColumn) ++ dataModel.dynamicFields.toSeq
-    val colsNotFound = allRequiredCols.distinct.diff(schema.fieldNames)
+    checkColsAreInSchema(requiredCols, schema)
+    checkDataModelCols(schema)
+  }
+
+  protected def checkColsAreInSchema(cols: Vector[String], schema: StructType) = {
+    val colsNotFound = cols.distinct.diff(schema.fieldNames)
     if (colsNotFound.length > 0) {
       throw new DataFrameException(
         s"The ${colsNotFound.mkString(", ")} columns are not included in the DataFrame with the following columns ${schema.fieldNames
           .mkString(", ")}")
     }
+  }
+
+  protected def checkDataModelCols(schema: StructType): StructType = {
+    checkColsAreInSchema(
+      Vector(
+        dataModel.timestampColumn,
+        dataModel.idColumn,
+        dataModel.latColumn,
+        dataModel.lonColumn)
+      ++ dataModel.dynamicFields.toSeq,
+      schema)
     schema
   }
 
