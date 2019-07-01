@@ -20,14 +20,14 @@
 package io.arlas.data.transform
 
 import io.arlas.data.model.{DataModel, MLModel}
-import org.apache.spark.sql.functions._
 import io.arlas.ml.classification.Hmm
-import org.apache.spark.sql.types.{DoubleType, StringType, StructField, StructType}
+import org.apache.spark.sql.types.{DoubleType, LongType, StringType, StructField, StructType}
 import org.apache.spark.sql.{DataFrame, Dataset, Row, SparkSession}
 import org.apache.spark.sql.functions.col
 import org.slf4j.LoggerFactory
 import scala.util.{Failure, Success}
-
+import io.arlas.data.transform.ArlasTransformerColumns._
+import org.apache.spark.sql.functions._
 
 class HmmProcessor(dataModel: DataModel,
                    spark                 : SparkSession,
@@ -38,8 +38,9 @@ class HmmProcessor(dataModel: DataModel,
     extends ArlasTransformer(dataModel, Vector(partitionColumn)) {
 
   @transient lazy val logger = LoggerFactory.getLogger(this.getClass)
-  val UNKNOWN_RESULT = "Unknown"
-  val TEMP_COLUMN    = "_tempColumn"
+  val UNKNOWN_RESULT       = "Unknown"
+  val SOURCE_DOUBLE_COLUMN = "_tempColumn"
+  val UNIQUEID_COLUMN      = "_uniqueIdColumn"
 
   override def transformSchema(schema: StructType): StructType = {
     checkSchema(schema).add(StructField(resultColumn, StringType, true))
@@ -67,34 +68,46 @@ class HmmProcessor(dataModel: DataModel,
   def interpolateRows(dataset: Dataset[_], hmmModelContent: String) = {
 
     import spark.implicits._
-    val columns = dataset.columns
 
-    val interpolatedRows = dataset
-      .withColumn(TEMP_COLUMN, col(sourceColumn).cast(DoubleType))
-      .toDF()
+    val hmmSchema = StructType(Seq(
+      StructField(UNIQUEID_COLUMN, StringType),
+      StructField(resultColumn, StringType)
+      ))
+
+    val idDF = dataset
+      .withColumn(UNIQUEID_COLUMN, concat(col(dataModel.idColumn), col(arlasTimestampColumn)))
+
+    val hmmRDD = idDF
+      .withColumn(SOURCE_DOUBLE_COLUMN, col(sourceColumn).cast(DoubleType))
+      .select(col(UNIQUEID_COLUMN), col(partitionColumn), col(SOURCE_DOUBLE_COLUMN))
       .map(row =>
-             (row.getString(row.fieldIndex(partitionColumn)), List(row.getValuesMap(columns :+ TEMP_COLUMN))))
+             (row.getString(row.fieldIndex(partitionColumn)), List(row.getValuesMap(Seq(UNIQUEID_COLUMN, SOURCE_DOUBLE_COLUMN)))))
       .rdd
       .reduceByKey(_ ++ _)
       .flatMap {
                  case (_, timeserie: List[Map[String, Any]]) => {
-                   Hmm.predictStatesSequence(timeserie.map(_.getOrElse(TEMP_COLUMN, 0d)),
+                   Hmm.predictStatesSequence(timeserie.map(_.getOrElse(SOURCE_DOUBLE_COLUMN, 0d)),
                                              hmmModelContent) match {
                      case Failure(exception) =>
                        logger.error("HMM failed", exception)
-                       //do not block the processing, add a default value
-                       timeserie.map(_ + (resultColumn -> UNKNOWN_RESULT))
+//                       //do not block the processing, add a default value
+                       timeserie.map(ts => Map(
+                         UNIQUEID_COLUMN -> ts.getOrElse(UNIQUEID_COLUMN, null),
+                         resultColumn -> UNKNOWN_RESULT))
                      case Success(statesSequence) =>
                        timeserie.zip(statesSequence).map {
-                                                           case (ts, state) => ts + (resultColumn -> state.state)
+                                                           case (ts, state) => Map(
+                                                             UNIQUEID_COLUMN -> ts.getOrElse(UNIQUEID_COLUMN, null),
+                                                             resultColumn -> state.state)
                                                          }
                    }
                  }
                }
       .map((entry: Map[String, Any]) =>
-             Row.fromSeq((columns :+ resultColumn).map(entry.getOrElse(_, null)).toSeq))
+             Row.fromSeq(Seq(UNIQUEID_COLUMN, resultColumn).map(entry.getOrElse(_, null))))
 
-    spark.sqlContext.createDataFrame(interpolatedRows, transformSchema(dataset.schema))
+    val hmmDF: DataFrame = spark.createDataFrame(hmmRDD, hmmSchema)
+    idDF.join(hmmDF, UNIQUEID_COLUMN)
   }
 }
 
