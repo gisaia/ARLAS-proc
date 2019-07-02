@@ -20,13 +20,10 @@
 package io.arlas.data.app.transform
 
 import java.time.{Instant, ZoneOffset, ZonedDateTime}
-
 import io.arlas.data.app.BasicApp
 import io.arlas.data.model.{DataModel, Period, RunOptions}
 import io.arlas.data.sql._
-import io.arlas.data.transform.WithArlasVisibleSequence._
 import io.arlas.data.transform.ArlasTransformerColumns._
-import io.arlas.data.transform._
 import io.arlas.data.utils.CassandraTool
 import org.apache.spark.sql.functions.min
 import org.apache.spark.sql.{DataFrame, SparkSession}
@@ -42,9 +39,7 @@ object Transformer extends BasicApp with CassandraTool {
 
     // transform raw data
     val transformedDf: DataFrame = df
-      .enrichWithArlas(
-        new WithArlasVisibleSequence(dataModel)
-      )
+      .asArlasVisibleSequencesFromTimestamp(dataModel)
 
     transformedDf.writeToScyllaDB(spark, dataModel, runOptions.target)
   }
@@ -58,8 +53,8 @@ object Transformer extends BasicApp with CassandraTool {
         readFromScyllaDB(spark, runOptions.source)
       }
     }.filterOnPeriod(runOptions.period)
-      .transform(withEmptyVisibileSequenceId())
-      .transform(withEmptyVisibilityState())
+      .withEmptyCol(arlasVisibleSequenceIdColumn)
+      .withEmptyCol(arlasVisibilityStateColumn)
 
     df.transform(addWarmUpPeriodData(spark, runOptions, dataModel))
   }

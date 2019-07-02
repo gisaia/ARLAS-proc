@@ -156,13 +156,13 @@ trait ArlasTest extends FlatSpec with Matchers with TestSparkSession with DataFr
         else "N/A"
       val visibility =
         if (id.equals("ObjectA") && (date.equals("01/06/2018 00:04:51+02:00") || date.equals(
-              "01/06/2018 00:12:51+02:00"))) "DISAPPEAR"
+              "01/06/2018 00:12:51+02:00"))) ArlasVisibilityStates.DISAPPEAR.toString
         else if (id.equals("ObjectA") && (date.equals("01/06/2018 00:10:01+02:00") || date.equals(
-                   "01/06/2018 00:00:00+02:00"))) "APPEAR"
+                   "01/06/2018 00:00:00+02:00"))) ArlasVisibilityStates.APPEAR.toString
         else if (id.equals("ObjectB") && date.equals("01/06/2018 00:01:00+02:00") || date.equals(
-                   "01/06/2018 00:10:00+02:00")) "DISAPPEAR"
+                   "01/06/2018 00:10:00+02:00")) ArlasVisibilityStates.DISAPPEAR.toString
         else if (id.equals("ObjectB") && (date.equals("01/06/2018 00:07:31+02:00") || date.equals(
-                   "01/06/2018 00:00:00+02:00"))) "APPEAR"
+                   "01/06/2018 00:00:00+02:00"))) ArlasVisibilityStates.APPEAR.toString
         else "VISIBLE"
 
       (id, date, lat, lon, speed, partition, timestamp, sequence, visibility)

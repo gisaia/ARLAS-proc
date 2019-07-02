@@ -32,3 +32,19 @@ object ArlasTransformerColumns {
   val arlasDeltaTimestampVariationColumn = "arlas_delta_timestamp_variation"
   val arlasMovingStateColumn = "arlas_moving_state"
 }
+
+/**
+ * APPEAR = first point of a visible sequence
+ * DISAPPEAR = last point of a visible sequence
+ * VISIBLE = other points of the sequence
+ * INVISIBLE = points that are not visible
+ */
+object ArlasVisibilityStates  {
+  sealed abstract class ArlasVisibilityStatesVal(visibilityState: String) {
+    override def toString: String = visibilityState
+  }
+  case object APPEAR extends ArlasVisibilityStatesVal("APPEAR")
+  case object DISAPPEAR extends ArlasVisibilityStatesVal("DISAPPEAR")
+  case object VISIBLE extends ArlasVisibilityStatesVal("VISIBLE")
+  case object INVISIBLE extends ArlasVisibilityStatesVal("INVISIBLE")
+}

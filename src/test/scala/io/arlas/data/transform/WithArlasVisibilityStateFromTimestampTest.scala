@@ -21,49 +21,28 @@ package io.arlas.data.transform
 
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-
 import io.arlas.data.model.DataModel
 import io.arlas.data.sql._
 import io.arlas.data.transform.ArlasTransformerColumns._
-import io.arlas.data.transform.WithArlasVisibleSequence._
 import org.apache.spark.sql.DataFrame
-import org.apache.spark.sql.functions._
+import org.apache.spark.sql.functions.{col, udf}
 
-class WithArlasVisibleSequenceTest extends ArlasTest {
+class WithArlasVisibil0ityStateFromTimestampTest extends ArlasTest {
 
-  "WithArlasVisibleSequence transformation " should " fill/generate visible sequence id against dataframe's timeseries" in {
+  "WithArlasVisibilityStateFromTimestamp" should "generate visibility state against dataframe's timeseries" in {
 
     val sourceDF = cleanedDF
 
     val transformedDF: DataFrame = sourceDF
-      .enrichWithArlas(new WithArlasVisibleSequence(dataModel))
+      .enrichWithArlas(
+        new WithArlasVisibilityStateFromTimestamp(dataModel))
 
-    val expectedDF = visibleSequencesDF
-
-    assertDataFrameEquality(transformedDF, expectedDF)
-  }
-
-  "WithArlasVisibleSequence transformation " should " resume sequence id when adding a warm up period" in {
-
-    val sourceDF = cleanedDF
-
-    val warmupDF: DataFrame = sourceDF
-      .filter(col(arlasTimestampColumn) < 1527804100)
-      .enrichWithArlas(new WithArlasVisibleSequence(dataModel))
-
-    val transformedDF: DataFrame = sourceDF
-      .transform(withEmptyVisibileSequenceId())
-      .transform(withEmptyVisibilityState())
-      .filter(col(arlasTimestampColumn) >= 1527804100)
-      .unionByName(warmupDF)
-      .enrichWithArlas(new WithArlasVisibleSequence(dataModel))
-
-    val expectedDF = visibleSequencesDF
+    val expectedDF = visibleSequencesDF.drop(arlasVisibleSequenceIdColumn)
 
     assertDataFrameEquality(transformedDF, expectedDF)
   }
 
-  "WithArlasVisibleSequence transformation" should "be able to work with custom data model columns" in {
+  "WithArlasStateIdFromStates transformation" should "be able to work with custom data model columns" in {
 
     val dataModel = DataModel(
       idColumn = "identifier",
@@ -73,7 +52,7 @@ class WithArlasVisibleSequenceTest extends ArlasTest {
       dynamicFields = Array("latitude", "longitude"),
       timeFormat = "dd/MM/yyyy HH:mm:ssXXX",
       visibilityTimeout = 300
-    )
+      )
 
     val sourceDF = cleanedDF
       .withColumnRenamed("id", "identifier")
@@ -82,18 +61,19 @@ class WithArlasVisibleSequenceTest extends ArlasTest {
       .withColumnRenamed("lon", "longitude")
 
     val transformedDF: DataFrame = sourceDF
-      .enrichWithArlas(new WithArlasVisibleSequence(dataModel))
+      .enrichWithArlas(new WithArlasVisibilityStateFromTimestamp(dataModel))
 
     val expectedDF = visibleSequencesDF
       .withColumnRenamed("id", "identifier")
       .withColumnRenamed("timestamp", "t")
       .withColumnRenamed("lat", "latitude")
       .withColumnRenamed("lon", "longitude")
+      .drop(arlasVisibleSequenceIdColumn)
 
     assertDataFrameEquality(transformedDF, expectedDF)
   }
 
-  "WithArlasVisibleSequence transformation " should "consider timestamp without timezone as UTC" in {
+  "WithArlasVisibleSequence? transformation " should "consider timestamp without timezone as UTC" in {
 
     val dataModel = DataModel(timeFormat = "dd/MM/yyyy HH:mm:ss", visibilityTimeout = 300)
     val getNewTimestamp = udf((t: String) => {
@@ -108,11 +88,13 @@ class WithArlasVisibleSequenceTest extends ArlasTest {
     val sourceDF = cleanedDF.withColumn("timestamp", getNewTimestamp(col("timestamp")))
 
     val transformedDF: DataFrame = sourceDF
-      .enrichWithArlas(new WithArlasVisibleSequence(dataModel))
+      .enrichWithArlas(new WithArlasVisibilityStateFromTimestamp(dataModel))
 
     val expectedDF = visibleSequencesDF
       .withColumn("timestamp", getNewTimestamp(col("timestamp")))
+      .drop(arlasVisibleSequenceIdColumn)
 
     assertDataFrameEquality(transformedDF, expectedDF)
   }
+
 }

@@ -19,6 +19,7 @@
 
 package io.arlas.data.transform
 
+import io.arlas.data.sql._
 import io.arlas.data.model.DataModel
 import io.arlas.data.transform.ArlasTransformerColumns._
 import org.apache.spark.sql.expressions.Window
@@ -27,29 +28,18 @@ import org.apache.spark.sql.types.{StringType, StructField, StructType}
 import org.apache.spark.sql.{DataFrame, Dataset}
 
 /*
- * Group data by id and split groups into sequences separated by gaps larger than visibilityTimeout.
- *
- * Add 2 columns to enrich geo points information :
- * - arlas_visibility_state = APPEAR|VISIBLE|DISAPPEAR
- *     + APPEAR = first point of a visible sequence
- *     + DISAPPEAR = last point of a visible sequence
- *     + VISIBLE = other points of the sequence
- * - arlas_visible_sequence_id = id#timestampOfTheFirstPointOfTheSequence
+ * Split groups into sequences separated by gaps larger than visibilityTimeout.
+ * Add arlas_visibility_state column (available values in ArlasVisibilityStates)
  */
-class WithArlasVisibleSequence(dataModel: DataModel)
+class WithArlasVisibilityStateFromTimestamp(dataModel: DataModel)
     extends ArlasTransformer(dataModel, Vector(arlasTimestampColumn, arlasPartitionColumn)) {
-
-  val newColumns = List(arlasVisibleSequenceIdColumn, arlasVisibilityStateColumn)
 
   override def transform(dataset: Dataset[_]): DataFrame = {
 
-    val df = newColumns.foldLeft(dataset.toDF) { (newDF, columnName) =>
-      {
-        if (!newDF.columns.contains(columnName))
-          newDF.transform(withEmptyNullableStringColumn(columnName))
-        else newDF
-      }
-    }
+    val datasetDF = dataset.toDF()
+    val df = if (!datasetDF.columns.contains(arlasVisibilityStateColumn))
+      datasetDF.withEmptyCol(arlasVisibilityStateColumn)
+        else datasetDF
 
     // prequisites visibility timeout computations
     val window = Window.partitionBy(dataModel.idColumn).orderBy(arlasTimestampColumn)
@@ -61,9 +51,9 @@ class WithArlasVisibleSequence(dataModel: DataModel)
       col("previousGap").isNull || col("previousGap") > dataModel.visibilityTimeout,
       concat(col(dataModel.idColumn), lit("#"), col(arlasTimestampColumn)))
     val visibilityState =
-      when(col("previousGap").isNull || col("previousGap") > dataModel.visibilityTimeout, "APPEAR")
-        .when(col("nextGap").isNull || col("nextGap") > dataModel.visibilityTimeout, "DISAPPEAR")
-        .otherwise("VISIBLE")
+      when(col("previousGap").isNull || col("previousGap") > dataModel.visibilityTimeout, ArlasVisibilityStates.APPEAR.toString)
+        .when(col("nextGap").isNull || col("nextGap") > dataModel.visibilityTimeout, ArlasVisibilityStates.DISAPPEAR.toString)
+        .otherwise(ArlasVisibilityStates.VISIBLE.toString)
 
     // dataframe enrichment
     df.withColumn("previousGap", previousGap)
@@ -78,38 +68,14 @@ class WithArlasVisibleSequence(dataModel: DataModel)
           visibilityState
         ).otherwise(col(arlasVisibilityStateColumn))
       )
-      .withColumn("row_sequence_id",
-                  when(col(arlasVisibleSequenceIdColumn).isNull, sequenceId)
-                    .otherwise(col(arlasVisibleSequenceIdColumn)))
-      .withColumn(arlasVisibleSequenceIdColumn,
-                  last("row_sequence_id", ignoreNulls = true)
-                    .over(window.rowsBetween(Window.unboundedPreceding, 0)))
-      .drop("row_sequence_id", "previousGap", "nextGap")
-  }
-
-  def withEmptyNullableStringColumn(columnName: String)(df: DataFrame): DataFrame = {
-    df.withColumn(columnName, lit(null).cast(StringType))
+      .drop("previousGap", "nextGap")
   }
 
   override def transformSchema(schema: StructType): StructType = {
-    newColumns.foldLeft(checkSchema(schema)) { (newSchema, columnName) =>
-      {
-        if (!newSchema.fieldNames.contains(columnName))
-          newSchema.add(StructField(columnName, StringType, true))
-        else newSchema
-      }
-    }
+    if (!schema.fieldNames.contains(arlasVisibilityStateColumn))
+      schema.add(StructField(arlasVisibilityStateColumn, StringType, true))
+    else schema
   }
 
 }
 
-object WithArlasVisibleSequence {
-
-  def withEmptyVisibileSequenceId()(df: DataFrame): DataFrame = {
-    df.withColumn(arlasVisibleSequenceIdColumn, lit(null).cast(StringType))
-  }
-
-  def withEmptyVisibilityState()(df: DataFrame): DataFrame = {
-    df.withColumn(arlasVisibilityStateColumn, lit(null).cast(StringType))
-  }
-}

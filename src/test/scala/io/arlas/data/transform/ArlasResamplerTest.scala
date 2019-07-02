@@ -103,8 +103,9 @@ class ArlasResamplerTest extends ArlasTest {
 
     val transformedDf = sourceDF
       .asArlasCleanedData(dataModel)
-      .enrichWithArlas(new WithArlasVisibleSequence(dataModel),
-                       new ArlasResampler(dataModel, arlasVisibleSequenceIdColumn, spark))
+      .asArlasVisibleSequencesFromTimestamp(dataModel)
+      .enrichWithArlas(
+        new ArlasResampler(dataModel, arlasVisibleSequenceIdColumn, spark))
       .drop(arlasTimestampColumn, arlasPartitionColumn, arlasVisibilityStateColumn)
 
     val expectedDF = expected
