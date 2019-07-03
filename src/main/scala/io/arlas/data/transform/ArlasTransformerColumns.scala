@@ -31,6 +31,7 @@ object ArlasTransformerColumns {
   val arlasPreviousDeltaTimestampColumn  = "arlas_previous_delta_timestamp"
   val arlasDeltaTimestampVariationColumn = "arlas_delta_timestamp_variation"
   val arlasMovingStateColumn = "arlas_moving_state"
+  val arlasTempoColumn = "arlas_tempo"
 }
 
 /**
