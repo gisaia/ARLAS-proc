@@ -36,7 +36,7 @@ import org.apache.spark.sql.types.{StringType, StructField, StructType}
   * For example, if you expect the rows to have the same state_id for each consecutive row with the same state,
   * you should return a 'true' at each state change.
   */
-class WithArlasStateId(dataModel: DataModel, stateColumn: String, targetIdColumn: String, isNewIdColumn: Column)
+class WithStateId(dataModel: DataModel, stateColumn: String, targetIdColumn: String, isNewIdColumn: Column)
   extends ArlasTransformer(dataModel, Vector(stateColumn)){
 
   override def transform(dataset: Dataset[_]): DataFrame = {

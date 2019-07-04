@@ -30,8 +30,8 @@ import org.apache.spark.sql.functions._
   * @param stateColumn
   * @param targetIdColumn
   */
-class WithArlasStateIdOnStateChange(dataModel: DataModel, stateColumn: String, targetIdColumn: String)
-  extends WithArlasStateId(
+class WithStateIdOnStateChange(dataModel: DataModel, stateColumn: String, targetIdColumn: String)
+  extends WithStateId(
     dataModel,
     stateColumn,
     targetIdColumn, {

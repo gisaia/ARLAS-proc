@@ -40,14 +40,14 @@ class TransformableDataFrame(df: DataFrame) {
     doPipelineTransform(
       df,
       new WithArlasVisibilityStateFromTimestamp(dataModel),
-      new WithArlasStateIdFromState(dataModel, arlasVisibilityStateColumn, ArlasVisibilityStates.APPEAR.toString, arlasVisibleSequenceIdColumn))
+      new WithStateIdFromState(dataModel, arlasVisibilityStateColumn, ArlasVisibilityStates.APPEAR.toString, arlasVisibleSequenceIdColumn))
   }
 
   def asArlasMotions(dataModel: DataModel,
                      spark: SparkSession): DataFrame = {
     doPipelineTransform(
       df,
-      new WithArlasMovingState(dataModel, spark),
+      new WithArlasMovingState(dataModel, spark, arlasVisibleSequenceIdColumn),
       new ArlasStillSimplifier(dataModel),
       new WithArlasMotionId(dataModel),
       new WithArlasMoveSimplifier(dataModel)

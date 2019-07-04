@@ -24,7 +24,7 @@ import io.arlas.data.transform.ArlasTransformerColumns._
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.DataFrame
 
-class WithArlasStateIdOnStateChangeTest extends ArlasTest {
+class WithStateIdOnStateChangeTest extends ArlasTest {
 
   val stateCol  = when(col(arlasTimestampColumn).lt(lit(1527804601)), lit("state1")).otherwise(lit("state2"))
   val baseDF = cleanedDF
@@ -41,12 +41,12 @@ class WithArlasStateIdOnStateChangeTest extends ArlasTest {
                        lit("#"),
                        when(col(dataModel.idColumn).equalTo("ObjectA"), idObjectA).otherwise(idObjectB)))
 
-  "WithArlasStateIdOnStateChange transformation " should " fill/generate state id against dataframe's timeseries" in {
+  "WithStateIdOnStateChange transformation " should " fill/generate state id against dataframe's timeseries" in {
 
     val transformedDF: DataFrame = baseDF
       .withColumn("state", stateCol)
       .enrichWithArlas(
-        new WithArlasStateIdOnStateChange(dataModel, "state", "state_id"))
+        new WithStateIdOnStateChange(dataModel, "state", "state_id"))
 
     assertDataFrameEquality(transformedDF, expectedDF)
   }
