@@ -120,9 +120,11 @@ class WithArlasMovingStateTest extends ArlasTest {
         MLModelLocal(spark, "src/test/resources/hmm_stillmove_model.json"))
 
     val transformedDf = visibleSequencesDF
+      //avoid natural ordering to ensure that hmm doesn't depend on initial order
+      .sort(dataModel.latColumn, dataModel.lonColumn)
       .enrichWithArlas(
         new WithArlasMovingState(dataModel, spark, arlasVisibleSequenceIdColumn))
-      .select("id", "timestamp", "speed", arlasMovingStateColumn)
+      .drop(dataModel.latColumn, dataModel.lonColumn, arlasPartitionColumn, arlasTimestampColumn, arlasVisibleSequenceIdColumn, arlasVisibilityStateColumn)
 
     assertDataFrameEquality(transformedDf, expectedDf)
   }
