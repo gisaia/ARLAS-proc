@@ -17,18 +17,12 @@
  * under the License.
  */
 
-package io.arlas.data.model
+package io.arlas.data.transform
 
-case class DataModel(
-                      idColumn         : String = "id",
-                      timestampColumn  : String = "timestamp",
-                      timeFormat       : String = "yyyy-MM-dd'T'HH:mm:ssZ",
-                      latColumn        : String = "lat",
-                      lonColumn        : String = "lon",
-                      speedColumn      : String = "",
-                      dynamicFields    : Array[String] = Array("lat", "lon"),
-                      visibilityTimeout: Int = 3600, //in seconds
-                      courseTimeout    : Int = 3600, //in seconds
-                      timeSampling     : Long = 15, //in seconds
-                      movingStateModel : MLModel = null
-)
+import io.arlas.data.model.DataModel
+import io.arlas.data.transform.ArlasTransformerColumns._
+import org.apache.spark.sql.SparkSession
+
+class WithArlasCourseIdFromCourseState(dataModel      : DataModel,
+                                       spark          : SparkSession)
+  extends WithStateIdOnStateChange(dataModel, arlasCourseStateColumn, arlasCourseIdColumn)

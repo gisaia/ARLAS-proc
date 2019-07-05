@@ -34,6 +34,9 @@ object ArlasTransformerColumns {
   val arlasMotionIdColumn = "arlas_motion_id"
   val arlasMotionStateColumn = "arlas_motion_state"
   val arlasMotionDurationColumn = "arlas_motion_duration"
+  val arlasCourseStateColumn = "arlas_course_state"
+  val arlasCourseIdColumn = "arlas_course_id"
+  val arlasCourseDurationColumn = "arlas_course_duration"
 }
 
 /**
@@ -66,4 +69,12 @@ object ArlasMotionStates  {
   }
   case object PAUSE extends ArlasMotionStates("PAUSE")
   case object MOTION extends ArlasMotionStates("MOTION")
+}
+
+object ArlasCourseStates  {
+  sealed abstract class ArlasCourseStates(courseState: String) {
+    override def toString: String = courseState
+  }
+  case object STOP extends ArlasCourseStates("STOP")
+  case object COURSE extends ArlasCourseStates("COURSE")
 }
