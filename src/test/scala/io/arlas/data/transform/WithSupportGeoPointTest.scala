@@ -19,6 +19,7 @@
 
 package io.arlas.data.transform
 
+import io.arlas.data.model.DataModel
 import org.apache.spark.sql.functions._
 import io.arlas.data.sql._
 import org.apache.spark.sql.types.{DoubleType, LongType, StringType, StructField}
@@ -27,6 +28,14 @@ import io.arlas.data.transform.ArlasTransformerColumns._
 class WithSupportGeoPointTest extends ArlasTest {
 
   import spark.implicits._
+
+  val testDataModel = DataModel(
+    timeFormat = "dd/MM/yyyy HH:mm:ssXXX",
+    visibilityTimeout = 300,
+    speedColumn = "speed",
+    distanceColumn = "distance",
+    supportPointDeltaTime = 5,
+    supportPointColsToPropagate = Seq("id", "lat", "lon", arlasTimestampColumn))
 
   val testData = Seq(
     ("ObjectA", "01/06/2018 00:00:00+02:00", 55.921028, 17.320418, 0.280577132616533, 0.42065662232025, ArlasVisibilityStates.APPEAR.toString),
@@ -66,11 +75,10 @@ class WithSupportGeoPointTest extends ArlasTest {
   "WithSupportGeoPoint " should "add invisible support geopoint" in {
 
     val transformedDF = testDF.enrichWithArlas(
-      new WithArlasPartition(dataModel),
-      new WithArlasTimestamp(dataModel),
-      new WithArlasDeltaTimestamp(dataModel, spark, dataModel.idColumn),
-      new WithSupportGeoPoint(dataModel, spark, "distance", 5,
-                              Seq(dataModel.idColumn, dataModel.latColumn, dataModel.lonColumn, arlasTimestampColumn)))
+      new WithArlasPartition(testDataModel),
+      new WithArlasTimestamp(testDataModel),
+      new WithArlasDeltaTimestamp(testDataModel, spark, testDataModel.idColumn),
+      new WithSupportGeoPoint(testDataModel, spark))
         .drop(arlasPartitionColumn, arlasDeltaTimestampColumn, arlasPreviousDeltaTimestampColumn, arlasDeltaTimestampVariationColumn, "keep")
 
     assertDataFrameEquality(transformedDF, expectedDF)

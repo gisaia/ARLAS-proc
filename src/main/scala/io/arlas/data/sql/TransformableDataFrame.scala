@@ -43,14 +43,61 @@ class TransformableDataFrame(df: DataFrame) {
       new WithStateIdFromState(dataModel, arlasVisibilityStateColumn, ArlasVisibilityStates.APPEAR.toString, arlasVisibleSequenceIdColumn))
   }
 
-  def asArlasMotions(dataModel: DataModel,
+  def asArlasBasicData(dataModel: DataModel, spark: SparkSession): DataFrame = {
+    doPipelineTransform(
+      df,
+      new WithArlasDeltaTimestamp(dataModel, spark, dataModel.idColumn),
+      new WithArlasGeopoint(dataModel, spark))
+  }
+
+  def asArlasVisibleSequencesThroughTempo(dataModel: DataModel, spark: SparkSession): DataFrame = {
+    val tempoDF = doPipelineTransform(
+      df,
+      new WithArlasTempo(dataModel, spark, dataModel.idColumn),
+      new OtherColValueReplacer(dataModel, arlasDeltaTimestampColumn, arlasTempoColumn, null, dataModel.irregularTempo))
+
+    val salvoDF = dataModel.salvoTempoValues.foldLeft(tempoDF) {
+                                                (df: DataFrame, salvo: String) => doPipelineTransform(
+                                                  df,
+                                                  new SameColValueReplacer(dataModel, arlasTempoColumn, salvo, dataModel.salvoTempo)
+                                                )
+                                              }
+
+    doPipelineTransform(
+      salvoDF,
+      new WithArlasVisibilityStateFromTempo(dataModel, spark, dataModel.irregularTempo))
+  }
+
+  def asArlasMovingState(dataModel: DataModel,
+                         spark: SparkSession): DataFrame = {
+
+    doPipelineTransform(
+      df,
+      new WithSupportGeoPoint(dataModel, spark),
+      new WithArlasMovingState(dataModel, spark, dataModel.idColumn),
+      new RowRemover(dataModel, "keep", false))
+  }
+
+    def asArlasMotions(dataModel: DataModel,
+                     spark: SparkSession): DataFrame = {
+
+      doPipelineTransform(
+        df,
+        new OtherColValuesMapper(dataModel, arlasMovingStateColumn, arlasMotionStateColumn,
+                               Map(ArlasMovingStates.MOVE.toString -> ArlasMotionStates.MOTION.toString,
+                                   ArlasMovingStates.STILL.toString -> ArlasMotionStates.PAUSE.toString)),
+        new WithArlasMotionIdFromMotionState(dataModel, spark),
+        new WithArlasMotionDurationFromId(dataModel))
+      .drop("keep")
+  }
+
+  def asArlasCourses(dataModel: DataModel,
                      spark: SparkSession): DataFrame = {
     doPipelineTransform(
       df,
-      new WithArlasMovingState(dataModel, spark, arlasVisibleSequenceIdColumn),
-      new ArlasStillSimplifier(dataModel),
-      new WithArlasMotionId(dataModel),
-      new WithArlasMoveSimplifier(dataModel)
+      new WithArlasCourseStateFromMotion(dataModel),
+      new WithArlasCourseIdFromCourseState(dataModel, spark),
+      new WithArlasCourseDurationFromId(dataModel)
       )
   }
 
@@ -69,18 +116,4 @@ class TransformableDataFrame(df: DataFrame) {
   }
 
   def withEmptyCol(colName: String, colType: DataType = StringType) = df.withColumn(colName, lit(null).cast(colType))
-}
-
-// Classes below do not transform input data
-// Consider them as interfaces to describe how code may be organized
-// TODO implement following ArlasTransformers
-
-class ArlasStillSimplifier(dataModel: DataModel) extends ArlasTransformer(dataModel) {
-  override def transform(dataset: Dataset[_]): DataFrame = dataset.toDF
-}
-class WithArlasMotionId(dataModel: DataModel) extends ArlasTransformer(dataModel) {
-  override def transform(dataset: Dataset[_]): DataFrame = dataset.toDF
-}
-class WithArlasMoveSimplifier(dataModel: DataModel) extends ArlasTransformer(dataModel) {
-  override def transform(dataset: Dataset[_]): DataFrame = dataset.toDF
 }

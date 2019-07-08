@@ -116,14 +116,14 @@ trait BasicApp {
 
   def getDataModel(arguments: ArgumentMap): DataModel = {
     DataModel(
-      arguments.getOrElse("id", "id"),
-      arguments.getOrElse("timestamp", "timestamp"),
-      arguments.getOrElse("timeformat", "yyyy-MM-dd'T'HH:mm:ssXXX"),
-      arguments.getOrElse("lat", "lat"),
-      arguments.getOrElse("lon", "lon"),
-      arguments.getOrElse("speed", "speed"),
-      arguments.getOrElse("dynamic", "lat,lon,speed").split(","),
-      arguments.getOrElse("timeout", "3600").toInt
+      idColumn = arguments.getOrElse("id", "id"),
+      timestampColumn = arguments.getOrElse("timestamp", "timestamp"),
+      timeFormat = arguments.getOrElse("timeformat", "yyyy-MM-dd'T'HH:mm:ssXXX"),
+      latColumn = arguments.getOrElse("lat", "lat"),
+      lonColumn = arguments.getOrElse("lon", "lon"),
+      speedColumn = arguments.getOrElse("speed", "speed"),
+      dynamicFields = arguments.getOrElse("dynamic", "lat,lon,speed").split(","),
+      visibilityTimeout = arguments.getOrElse("timeout", "3600").toInt
     )
   }
 

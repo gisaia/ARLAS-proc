@@ -20,15 +20,27 @@
 package io.arlas.data.model
 
 case class DataModel(
-                      idColumn         : String = "id",
-                      timestampColumn  : String = "timestamp",
-                      timeFormat       : String = "yyyy-MM-dd'T'HH:mm:ssZ",
-                      latColumn        : String = "lat",
-                      lonColumn        : String = "lon",
-                      speedColumn      : String = "",
-                      dynamicFields    : Array[String] = Array("lat", "lon"),
-                      visibilityTimeout: Int = 3600, //in seconds
-                      courseTimeout    : Int = 3600, //in seconds
-                      timeSampling     : Long = 15, //in seconds
-                      movingStateModel : MLModel = null
+                      idColumn                       : String = "id",
+                      timestampColumn                : String = "timestamp",
+                      timeFormat                     : String = "yyyy-MM-dd'T'HH:mm:ssZ",
+                      latColumn                      : String = "lat",
+                      lonColumn                      : String = "lon",
+                      speedColumn                    : String = "",
+                      distanceColumn                 : String = "",
+                      dynamicFields                  : Array[String] = Array("lat", "lon"),
+                      visibilityTimeout              : Int = 3600, //in seconds
+                      timeSampling                   : Long = 15, //in seconds
+                      movingStateModel               : MLModel = null,
+                      courseTimeout                  : Int = 3600, //in seconds
+                      //support point
+                      supportPointDeltaTime          : Int = 120,
+                      supportPointColsToPropagate    : Seq[String] = Seq(),
+                      supportPointMaxNumberInGap     : Int = 10,
+                      supportPointMeanSpeedMultiplier: Double = 1.0,
+                      //tempo
+                      tempoModel                     : MLModel = null,
+                      irregularTempo                 : String = "",
+                      irregularTempoThreshold        : Double = 0.0,
+                      salvoTempo                     : String = "tempo_salvo",
+                      salvoTempoValues               : Seq[String] = Seq()
 )
