@@ -125,7 +125,7 @@ class WithArlasCourseIdFromCourseStateTest extends ArlasTest {
       .enrichWithArlas(
         new WithArlasMovingState(testDataModel, spark, testDataModel.idColumn),
         new OtherColValuesMapper(dataModel, arlasMovingStateColumn, arlasMotionStateColumn, Map("MOVE" -> "MOTION", "STILL" -> "PAUSE")),
-        new WithArlasMotionIdFromMovingState(testDataModel, spark),
+        new WithArlasMotionIdFromMotionState(testDataModel, spark),
         new WithDurationFromId(dataModel, arlasMotionIdColumn, arlasMotionDurationColumn),
         new WithArlasCourseStateFromMotion(testDataModel),
         new WithArlasCourseIdFromCourseState(testDataModel, spark))

@@ -23,8 +23,8 @@ import io.arlas.data.model.DataModel
 import org.apache.spark.sql.SparkSession
 import io.arlas.data.transform.ArlasTransformerColumns._
 
-class WithArlasMotionIdFromMovingState(dataModel      : DataModel,
-                                       spark          : SparkSession)
-  extends WithStateIdOnStateChange(dataModel, arlasMovingStateColumn, arlasMotionIdColumn) {
+class WithArlasMotionIdFromMotionState(dataModel: DataModel,
+                                       spark    : SparkSession)
+  extends WithStateIdOnStateChange(dataModel, arlasMotionStateColumn, arlasMotionIdColumn) {
 
 }
