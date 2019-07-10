@@ -26,9 +26,8 @@ import io.arlas.data.transform.ArlasTransformerColumns._
 import org.apache.spark.sql.catalyst.encoders.RowEncoder
 import org.apache.spark.sql.types.{BooleanType, DoubleType, StructField, StructType}
 
-class WithSupportGeoPoint(dataModel: DataModel, spark: SparkSession, realDistanceCol: String, supportPointLength: Int,
-                          colsToPropagate: Seq[String], windowSize: Int = 10, meanSpeedMultiplier: Double = 1.0)
-  extends ArlasTransformer(dataModel, Vector(arlasTimestampColumn, arlasDeltaTimestampColumn, arlasVisibilityStateColumn)) {
+class WithSupportGeoPoint(dataModel      : DataModel, spark: SparkSession)
+  extends ArlasTransformer(dataModel, Vector(arlasTimestampColumn, arlasDeltaTimestampColumn, arlasVisibilityStateColumn, dataModel.distanceColumn)) {
 
   override def transform(dataset: Dataset[_]): DataFrame = {
 
@@ -37,27 +36,23 @@ class WithSupportGeoPoint(dataModel: DataModel, spark: SparkSession, realDistanc
     val columns = datasetWithKeep.columns
     val encoder = RowEncoder(datasetWithKeep.schema)
     datasetWithKeep.toDF()
-      .withColumn("_cast_distance", col(realDistanceCol).cast(DoubleType))
       .flatMap((row: Row) => {
         var rows = Seq(row)
 
-        val deltaTs = row.getAs[Long](arlasDeltaTimestampColumn)
+        val gapDuration = row.getAs[Long](arlasDeltaTimestampColumn)
 
-       if (deltaTs != null) {
-         val nbPeriods = deltaTs / supportPointLength
-         val halfWindowSize = math.min(nbPeriods, windowSize) / 2
+       if (gapDuration != null) {
+         val nbPeriods = gapDuration / dataModel.supportPointDeltaTime
+         val halfWindowSize = math.min(nbPeriods, dataModel.supportPointMaxNumberInGap) / 2
          if (halfWindowSize > 0) {
 
-           val realDistance = row.getAs[Double]("_cast_distance")
-           val meanSpeed = 1.0 * realDistance * meanSpeedMultiplier / deltaTs
-
            val currentTs = row.getAs[Long](arlasTimestampColumn)
-           val previousTs = currentTs - deltaTs
+           val previousTs = currentTs - gapDuration
            val shiftedCurrentTs = currentTs - 1
            val shiftedPreviousTs = previousTs + 1
 
-           val leftWindow = Vector.range(shiftedPreviousTs, shiftedPreviousTs + halfWindowSize * supportPointLength, supportPointLength)
-           val rightWindow = Vector.range(shiftedCurrentTs, shiftedCurrentTs - halfWindowSize * supportPointLength, -supportPointLength).reverse
+           val leftWindow = Vector.range(shiftedPreviousTs, shiftedPreviousTs + halfWindowSize * dataModel.supportPointDeltaTime, dataModel.supportPointDeltaTime)
+           val rightWindow = Vector.range(shiftedCurrentTs, shiftedCurrentTs - halfWindowSize * dataModel.supportPointDeltaTime, -dataModel.supportPointDeltaTime).reverse
            val window = leftWindow ++ rightWindow
 
            rows ++= window.zipWithIndex.map {
@@ -67,11 +62,13 @@ class WithSupportGeoPoint(dataModel: DataModel, spark: SparkSession, realDistanc
                                                   val speedColumn = dataModel.speedColumn
 
                                                   seq.updated(row.fieldIndex(col), col match {
-                                                    case `speedColumn` => meanSpeed
+                                                    case `speedColumn` => row.getAs[Double](dataModel.distanceColumn) * dataModel.supportPointMeanSpeedMultiplier /
+                                                                          gapDuration
                                                     case `arlasTimestampColumn` => ts
                                                     case "keep" => index == 0 || index == window.size - 1
                                                     case `arlasVisibilityStateColumn` => ArlasVisibilityStates.INVISIBLE.toString
-                                                    case c if (!colsToPropagate.contains(c)) => null
+                                                    case `arlasTempoColumn` => dataModel.irregularTempo
+                                                    case c if (!dataModel.supportPointColsToPropagate.contains(c)) => null
                                                     case _ => row.get(row.fieldIndex(col))
                                                   })
                                                 })
@@ -82,7 +79,6 @@ class WithSupportGeoPoint(dataModel: DataModel, spark: SparkSession, realDistanc
        }
         rows
       })(encoder)
-      .drop("_cast_distance")
   }
 
   override def transformSchema(schema: StructType): StructType = {
