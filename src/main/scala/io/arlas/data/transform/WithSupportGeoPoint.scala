@@ -70,7 +70,7 @@ class WithSupportGeoPoint(dataModel: DataModel, spark: SparkSession, realDistanc
                                                     case `speedColumn` => meanSpeed
                                                     case `arlasTimestampColumn` => ts
                                                     case "keep" => index == 0 || index == window.size - 1
-                                                    case `arlasVisibilityStateColumn` => "invisible"
+                                                    case `arlasVisibilityStateColumn` => ArlasVisibilityStates.INVISIBLE.toString
                                                     case c if (!colsToPropagate.contains(c)) => null
                                                     case _ => row.get(row.fieldIndex(col))
                                                   })

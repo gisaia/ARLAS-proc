@@ -37,7 +37,7 @@ class WithDurationFromIdTest extends ArlasTest {
                 when(col(dataModel.idColumn).equalTo("ObjectA"), durationObjA).otherwise(durationObjB))
     .withColumn("duration", when(col("duration").isNotNull, col("duration")).otherwise(lit(null)))
 
-  "WithArlasDurationFromId transformation " should " compute duration of visibility sequences" in {
+  "WithDurationFromId transformation " should " compute duration of visibility sequences" in {
 
     val transformedDF: DataFrame = baseDF
       .enrichWithArlas(
