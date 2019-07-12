@@ -19,7 +19,7 @@
 
 package io.arlas.data.transform
 
-import io.arlas.data.model.{DataModel, MLModelHosted, MLModelLocal}
+import io.arlas.data.model.{DataModel, MLModelLocal}
 import io.arlas.data.sql._
 import io.arlas.data.transform.ArlasTransformerColumns._
 import org.apache.spark.sql.types.{DoubleType, StringType, StructField, StructType}
@@ -29,6 +29,7 @@ class WithArlasMovingStateTest extends ArlasTest {
   import spark.implicits._
 
   val expectedData = Seq(
+    //Object A
     ("ObjectA", "01/06/2018 00:00:00+02:00", 0.280577132616533, ArlasMovingStates.STILL.toString),
     ("ObjectA", "01/06/2018 00:00:10+02:00", 0.032068662532024, ArlasMovingStates.STILL.toString),
     ("ObjectA", "01/06/2018 00:00:31+02:00", 0.178408676103601, ArlasMovingStates.STILL.toString),
@@ -57,7 +58,6 @@ class WithArlasMovingStateTest extends ArlasTest {
     ("ObjectA", "01/06/2018 00:04:31+02:00", 0.01784086761036, ArlasMovingStates.STILL.toString),
     ("ObjectA", "01/06/2018 00:04:40+02:00", 0.021282527439162, ArlasMovingStates.STILL.toString),
     ("ObjectA", "01/06/2018 00:04:51+02:00", 0.028057713261653, ArlasMovingStates.STILL.toString),
-    //ObjectA : second time serie
     ("ObjectA", "01/06/2018 00:10:01+02:00", 0.315663876001882, ArlasMovingStates.STILL.toString),
     ("ObjectA", "01/06/2018 00:10:11+02:00", 0.456108807052109, ArlasMovingStates.STILL.toString),
     ("ObjectA", "01/06/2018 00:10:21+02:00", 0.228462068370223, ArlasMovingStates.STILL.toString),
@@ -76,7 +76,7 @@ class WithArlasMovingStateTest extends ArlasTest {
     ("ObjectA", "01/06/2018 00:12:30+02:00", 13.9539835805817, ArlasMovingStates.MOVE.toString),
     ("ObjectA", "01/06/2018 00:12:39+02:00", 15.9843172672194, ArlasMovingStates.MOVE.toString),
     ("ObjectA", "01/06/2018 00:12:51+02:00", 10.0170687089863, ArlasMovingStates.MOVE.toString),
-    //Object B : first time serie
+    //Object B
     ("ObjectB", "01/06/2018 00:00:00+02:00", 7.40493227823278, ArlasMovingStates.MOVE.toString),
     ("ObjectB", "01/06/2018 00:00:10+02:00", 9.05637224437842, ArlasMovingStates.MOVE.toString),
     ("ObjectB", "01/06/2018 00:00:21+02:00", 8.46042615525682, ArlasMovingStates.MOVE.toString),
@@ -84,7 +84,6 @@ class WithArlasMovingStateTest extends ArlasTest {
     ("ObjectB", "01/06/2018 00:00:40+02:00", 0.440739581348716, ArlasMovingStates.STILL.toString),
     ("ObjectB", "01/06/2018 00:00:50+02:00", 0.444570858095414, ArlasMovingStates.STILL.toString),
     ("ObjectB", "01/06/2018 00:01:00+02:00", 0.221747356810941, ArlasMovingStates.STILL.toString),
-    //Object B : second time serie
     ("ObjectB", "01/06/2018 00:07:31+02:00", 0.124387757577155, ArlasMovingStates.STILL.toString),
     ("ObjectB", "01/06/2018 00:07:41+02:00", 0.181239176204038, ArlasMovingStates.STILL.toString),
     ("ObjectB", "01/06/2018 00:07:50+02:00", 0.309184859549785, ArlasMovingStates.STILL.toString),
@@ -115,17 +114,36 @@ class WithArlasMovingStateTest extends ArlasTest {
 
   "WithArlasMovingState transformation" should " compute the moving state of a dataframe's timeseries" in {
 
-    val dataModel =
+    val testDataModel =
       new DataModel(timeFormat = "dd/MM/yyyy HH:mm:ssXXX", visibilityTimeout = 300, speedColumn = "speed", movingStateModel =
         MLModelLocal(spark, "src/test/resources/hmm_stillmove_model.json"))
 
     val transformedDf = visibleSequencesDF
       //avoid natural ordering to ensure that hmm doesn't depend on initial order
-      .sort(dataModel.latColumn, dataModel.lonColumn)
+      .sort(testDataModel.latColumn, testDataModel.lonColumn)
       .enrichWithArlas(
-        new WithArlasMovingState(dataModel, spark, arlasVisibleSequenceIdColumn))
-      .drop(dataModel.latColumn, dataModel.lonColumn, arlasPartitionColumn, arlasTimestampColumn, arlasVisibleSequenceIdColumn, arlasVisibilityStateColumn)
+        new WithArlasMovingState(testDataModel, spark, arlasVisibleSequenceIdColumn))
+      .drop(testDataModel.latColumn, testDataModel.lonColumn, arlasPartitionColumn, arlasTimestampColumn, arlasVisibleSequenceIdColumn, arlasVisibilityStateColumn)
 
     assertDataFrameEquality(transformedDf, expectedDf)
   }
+
+  //we use a quite big window (20), the longest partition is 29 points ; because with too few points the results are bad
+  //in a real environment, window size shoud be equal to some thousends
+  "WithArlasMovingState transformation" should " compute the moving state of a dataframe's timeseries using windowing" in {
+
+    val testDataModel =
+      new DataModel(timeFormat = "dd/MM/yyyy HH:mm:ssXXX", visibilityTimeout = 300, speedColumn = "speed", movingStateModel =
+        MLModelLocal(spark, "src/test/resources/hmm_stillmove_model.json"), hmmWindowSize = 20)
+
+    val transformedDf = visibleSequencesDF
+      //avoid natural ordering to ensure that hmm doesn't depend on initial order
+      .enrichWithArlas(
+        new WithArlasMovingState(testDataModel, spark, arlasVisibleSequenceIdColumn))
+      .drop(testDataModel.latColumn, testDataModel.lonColumn, arlasPartitionColumn, arlasTimestampColumn, arlasVisibleSequenceIdColumn, arlasVisibilityStateColumn)
+
+    transformedDf.sort(dataModel.idColumn, arlasTimestampColumn).show(500, false)
+    assertDataFrameEquality(transformedDf, expectedDf)
+  }
+
 }

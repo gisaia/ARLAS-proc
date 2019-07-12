@@ -32,6 +32,7 @@ case class DataModel(
                       timeSampling                   : Long = 15, //in seconds
                       movingStateModel               : MLModel = null,
                       courseTimeout                  : Int = 3600, //in seconds
+					  					hmmWindowSize    				 			 : Int = 5000,
                       //support point
                       supportPointDeltaTime          : Int = 120,
                       supportPointColsToPropagate    : Seq[String] = Seq(),
