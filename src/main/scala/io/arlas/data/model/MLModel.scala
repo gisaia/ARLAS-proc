@@ -43,8 +43,9 @@ case class MLModelHosted(spark: SparkSession, project: String, modelName: String
     val cloudsmithToken = Try(spark.conf.get(CLOUDSMITH_TOKEN_KEY)).toOption
 
     if (cloudsmithToken.isDefined) {
+      //TODO put URL in a config class
       Try(scala.io.Source.fromURL(
-        s"https://dl.cloudsmith.io/${cloudsmithToken.get}/gisaia/ml/raw/versions/${version}/io.arlas.ml.models.${project}.${modelName}")
+        s"https://dl.cloudsmith.io/${cloudsmithToken.get}/gisaia/arlas/raw/versions/${version}/io.arlas.ml.models.${project}.${modelName}")
             .mkString)
 
     } else {
