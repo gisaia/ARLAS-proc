@@ -20,9 +20,16 @@
 package io.arlas.data.transform
 
 import io.arlas.data.model.DataModel
-import io.arlas.data.transform.ArlasTransformerColumns._
-import org.apache.spark.sql.SparkSession
+import io.arlas.data.transform.ArlasTransformerColumns.{arlasCourseOrStopColumn, arlasCourseStateColumn, arlasMovingStateColumn}
 
-class WithArlasCourseIdFromCourseState(dataModel      : DataModel,
-                                       spark          : SparkSession)
-  extends WithStateIdOnStateChange(dataModel, arlasCourseStateColumn, arlasCourseIdColumn)
+class WithArlasCourseState(dataModel: DataModel)
+  extends MultipleColsValuesMapper(
+    dataModel, Map(
+      ArlasCourseStates.MOTION.toString ->
+      Map(arlasCourseOrStopColumn -> ArlasCourseOrStop.COURSE.toString, arlasMovingStateColumn -> ArlasMovingStates.MOVE.toString),
+      ArlasCourseStates.PAUSE.toString ->
+      Map(arlasCourseOrStopColumn -> ArlasCourseOrStop.COURSE.toString, arlasMovingStateColumn -> ArlasMovingStates.STILL.toString)),
+    arlasCourseStateColumn) {
+
+
+}

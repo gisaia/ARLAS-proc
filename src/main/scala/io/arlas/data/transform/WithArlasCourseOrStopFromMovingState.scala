@@ -25,23 +25,23 @@ import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types.{StringType, StructField, StructType}
 import org.apache.spark.sql.{DataFrame, Dataset}
 
-class WithArlasCourseStateFromMotion(dataModel: DataModel)
-  extends ArlasTransformer(dataModel, Vector(arlasMotionStateColumn, arlasMotionDurationColumn)) {
+class WithArlasCourseOrStopFromMovingState(dataModel: DataModel)
+  extends ArlasTransformer(dataModel, Vector(arlasMovingStateColumn, arlasMotionDurationColumn)) {
 
   override def transform(dataset: Dataset[_]): DataFrame = {
 
     val courseState = when(
-      col(arlasMotionStateColumn).equalTo(lit(ArlasMotionStates.PAUSE.toString)),
-      when(col(arlasMotionDurationColumn) < dataModel.courseTimeout, lit(ArlasCourseStates.COURSE.toString)).otherwise(lit(ArlasCourseStates.STOP.toString)))
-      .otherwise(lit(ArlasCourseStates.COURSE.toString))
+      col(arlasMovingStateColumn).equalTo(lit(ArlasMovingStates.STILL.toString)),
+      when(col(arlasMotionDurationColumn) < dataModel.courseTimeout, lit(ArlasCourseOrStop.COURSE.toString)).otherwise(lit(ArlasCourseOrStop.STOP.toString)))
+      .otherwise(lit(ArlasCourseOrStop.COURSE.toString))
 
     dataset.toDF()
-      .withColumn(arlasCourseStateColumn, courseState)
+      .withColumn(arlasCourseOrStopColumn, courseState)
 
   }
 
   override def transformSchema(schema: StructType): StructType = {
     checkSchema(schema)
-      .add(StructField(arlasCourseStateColumn, StringType, false))
+      .add(StructField(arlasCourseOrStopColumn, StringType, false))
   }
 }

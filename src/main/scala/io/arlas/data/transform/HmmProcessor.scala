@@ -126,8 +126,6 @@ class HmmProcessor(dataModel: DataModel,
       // e.g. "id1_1_1, PREDICTION1", "id1_1_2, PREDICTION2", "id1_2_1, PREDICTION3"
     })(RowEncoder(hmmSchema))
 
-    hmmDF.sort(UNIQUE_ID_COLUMN).show(500, false)
-
     //we also add the UNIQUE_ID_COLUMN to initial data and join on it
     initDF
       .withColumn(UNIQUE_ID_COLUMN, concat(col(WINDOW_ID_COLUMN), lit("_"), row_number().over(keyWindow)))
