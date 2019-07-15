@@ -26,7 +26,15 @@ import io.arlas.data.transform.ArlasTransformerColumns._
 import org.apache.spark.sql.catalyst.encoders.RowEncoder
 import org.apache.spark.sql.types.{BooleanType, DoubleType, StructField, StructType}
 
-class WithSupportGeoPoint(dataModel      : DataModel, spark: SparkSession)
+class WithSupportGeoPoint(
+                           dataModel      : DataModel,
+                           spark: SparkSession,
+                           supportPointDeltaTime: Int,
+                           supportPointMaxNumberInGap: Int,
+                           supportPointMeanSpeedMultiplier: Double,
+                           irregularTempo: String,
+                           supportPointColsToPropagate: Seq[String]
+                         )
   extends ArlasTransformer(dataModel, Vector(arlasTimestampColumn, arlasDeltaTimestampColumn, arlasVisibilityStateColumn, dataModel.distanceColumn)) {
 
   override def transform(dataset: Dataset[_]): DataFrame = {
@@ -42,8 +50,8 @@ class WithSupportGeoPoint(dataModel      : DataModel, spark: SparkSession)
         val gapDuration = row.getAs[Long](arlasDeltaTimestampColumn)
 
        if (gapDuration != null) {
-         val nbPeriods = gapDuration / dataModel.supportPointDeltaTime
-         val halfWindowSize = math.min(nbPeriods, dataModel.supportPointMaxNumberInGap) / 2
+         val nbPeriods = gapDuration / supportPointDeltaTime
+         val halfWindowSize = math.min(nbPeriods, supportPointMaxNumberInGap) / 2
          if (halfWindowSize > 0) {
 
            val currentTs = row.getAs[Long](arlasTimestampColumn)
@@ -51,8 +59,8 @@ class WithSupportGeoPoint(dataModel      : DataModel, spark: SparkSession)
            val shiftedCurrentTs = currentTs - 1
            val shiftedPreviousTs = previousTs + 1
 
-           val leftWindow = Vector.range(shiftedPreviousTs, shiftedPreviousTs + halfWindowSize * dataModel.supportPointDeltaTime, dataModel.supportPointDeltaTime)
-           val rightWindow = Vector.range(shiftedCurrentTs, shiftedCurrentTs - halfWindowSize * dataModel.supportPointDeltaTime, -dataModel.supportPointDeltaTime).reverse
+           val leftWindow = Vector.range(shiftedPreviousTs, shiftedPreviousTs + halfWindowSize * supportPointDeltaTime, supportPointDeltaTime)
+           val rightWindow = Vector.range(shiftedCurrentTs, shiftedCurrentTs - halfWindowSize * supportPointDeltaTime, -supportPointDeltaTime).reverse
            val window = leftWindow ++ rightWindow
 
            rows ++= window.zipWithIndex.map {
@@ -62,13 +70,13 @@ class WithSupportGeoPoint(dataModel      : DataModel, spark: SparkSession)
                                                   val speedColumn = dataModel.speedColumn
 
                                                   seq.updated(row.fieldIndex(col), col match {
-                                                    case `speedColumn` => row.getAs[Double](dataModel.distanceColumn) * dataModel.supportPointMeanSpeedMultiplier /
+                                                    case `speedColumn` => row.getAs[Double](dataModel.distanceColumn) * supportPointMeanSpeedMultiplier /
                                                                           gapDuration
                                                     case `arlasTimestampColumn` => ts
                                                     case "keep" => index == 0 || index == window.size - 1
                                                     case `arlasVisibilityStateColumn` => ArlasVisibilityStates.INVISIBLE.toString
-                                                    case `arlasTempoColumn` => dataModel.irregularTempo
-                                                    case c if (!dataModel.supportPointColsToPropagate.contains(c)) => null
+                                                    case `arlasTempoColumn` => irregularTempo
+                                                    case c if (!supportPointColsToPropagate.contains(c)) => null
                                                     case _ => row.get(row.fieldIndex(col))
                                                   })
                                                 })

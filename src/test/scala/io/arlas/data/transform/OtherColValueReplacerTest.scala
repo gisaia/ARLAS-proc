@@ -32,6 +32,7 @@ class OtherColValueReplacerTest extends ArlasTest {
       StructField("timestamp", StringType, true),
       StructField("lat", DoubleType, true),
       StructField("lon", DoubleType, true),
+      StructField("speed", DoubleType, true),
       StructField("colstring", StringType, true),
       StructField("coldouble", DoubleType, true),
       StructField("colint", IntegerType, true),
@@ -40,18 +41,18 @@ class OtherColValueReplacerTest extends ArlasTest {
     )
 
   val testData = Seq(
-    ("ObjectA", "01/06/2018 00:00:00+02:00", 55.921028, 17.320418, "value1", 1d, 1, Some(1.0)),
-    ("ObjectA", "01/06/2018 00:00:10+02:00", 55.920875, 17.319322, "value2", 2d, 2, None),
-    ("ObjectA", "01/06/2018 00:00:31+02:00", 55.920583, 17.31733, "value3", 3d, 3, None))
+    ("ObjectA", "01/06/2018 00:00:00+02:00", 55.921028, 17.320418, 0.280577132616533, "value1", 1d, 1, Some(1.0)),
+    ("ObjectA", "01/06/2018 00:00:10+02:00", 55.920875, 17.319322, 0.032068662532024, "value2", 2d, 2, None),
+    ("ObjectA", "01/06/2018 00:00:31+02:00", 55.920583, 17.31733, 0.178408676103601, "value3", 3d, 3, None))
 
   val testDF     = spark.createDataFrame(testData.toDF().rdd, testSchema)
 
   "ValueReplacer " should "replace values of different types in another column of another type" in {
 
     val expectedData = Seq(
-      ("ObjectA", "01/06/2018 00:00:00+02:00", 55.921028, 17.320418, "value1", 999d, 1, Some(1.0)),
-      ("ObjectA", "01/06/2018 00:00:10+02:00", 55.920875, 17.319322, "value2", 2d, 999, None),
-      ("ObjectA", "01/06/2018 00:00:31+02:00", 55.920583, 17.31733, "new-value", 3d, 3, None))
+      ("ObjectA", "01/06/2018 00:00:00+02:00", 55.921028, 17.320418, 0.280577132616533, "value1", 999d, 1, Some(1.0)),
+      ("ObjectA", "01/06/2018 00:00:10+02:00", 55.920875, 17.319322, 0.032068662532024, "value2", 2d, 999, None),
+      ("ObjectA", "01/06/2018 00:00:31+02:00", 55.920583, 17.31733, 0.178408676103601, "new-value", 3d, 3, None))
     val expectedDF = spark.createDataFrame(expectedData.toDF().rdd, testSchema)
 
     val transformedDF = testDF.enrichWithArlas(
@@ -65,9 +66,9 @@ class OtherColValueReplacerTest extends ArlasTest {
   "ValueReplacer " should "replace also null values, with null value" in {
 
     val expectedData = Seq(
-      ("ObjectA", "01/06/2018 00:00:00+02:00", 55.921028, 17.320418, "value1", 1d, 1, Some(1.0)),
-      ("ObjectA", "01/06/2018 00:00:10+02:00", 55.920875, 17.319322, null, 2d, 2, None),
-      ("ObjectA", "01/06/2018 00:00:31+02:00", 55.920583, 17.31733, null, 3d, 3, None))
+      ("ObjectA", "01/06/2018 00:00:00+02:00", 55.921028, 17.320418, 0.280577132616533, "value1", 1d, 1, Some(1.0)),
+      ("ObjectA", "01/06/2018 00:00:10+02:00", 55.920875, 17.319322, 0.032068662532024, null, 2d, 2, None),
+      ("ObjectA", "01/06/2018 00:00:31+02:00", 55.920583, 17.31733, 0.178408676103601, null, 3d, 3, None))
     val expectedDF = spark.createDataFrame(expectedData.toDF().rdd, testSchema)
 
     val transformedDF = testDF.enrichWithArlas(

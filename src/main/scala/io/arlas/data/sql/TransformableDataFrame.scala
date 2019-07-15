@@ -19,7 +19,7 @@
 
 package io.arlas.data.sql
 
-import io.arlas.data.model.DataModel
+import io.arlas.data.model.{CourseConfiguration, DataModel, MotionConfiguration, ProcessingConfiguration, SupportPointsConfiguration, TempoConfiguration}
 import io.arlas.data.transform._
 import io.arlas.data.transform.ArlasTransformerColumns._
 import org.apache.spark.ml.Pipeline
@@ -36,10 +36,10 @@ class TransformableDataFrame(df: DataFrame) {
                         new WithArlasPartition(dataModel))
   }
 
-  def asArlasVisibleSequencesFromTimestamp(dataModel: DataModel): DataFrame = {
+  def asArlasVisibleSequencesFromTimestamp(dataModel: DataModel, processingConfig: ProcessingConfiguration): DataFrame = {
     doPipelineTransform(
       df,
-      new WithArlasVisibilityStateFromTimestamp(dataModel),
+      new WithArlasVisibilityStateFromTimestamp(dataModel, processingConfig.visibilityTimeout),
       new WithStateIdFromState(dataModel, arlasVisibilityStateColumn, ArlasVisibilityStates.APPEAR.toString, arlasVisibleSequenceIdColumn))
   }
 
@@ -50,31 +50,39 @@ class TransformableDataFrame(df: DataFrame) {
       new WithArlasGeopoint(dataModel, spark))
   }
 
-  def asArlasVisibleSequencesThroughTempo(dataModel: DataModel, spark: SparkSession): DataFrame = {
+  def asArlasVisibleSequencesThroughTempo(dataModel: DataModel, tempoConfig: TempoConfiguration, spark: SparkSession): DataFrame = {
     val tempoDF = doPipelineTransform(
       df,
-      new WithArlasTempo(dataModel, spark, dataModel.idColumn),
-      new OtherColValueReplacer(dataModel, arlasDeltaTimestampColumn, arlasTempoColumn, null, dataModel.irregularTempo))
+      new WithArlasTempo(dataModel, spark, tempoConfig),
+      new OtherColValueReplacer(dataModel, arlasDeltaTimestampColumn, arlasTempoColumn, null, tempoConfig.irregularTempo))
 
-    val salvoDF = dataModel.salvoTempoValues.foldLeft(tempoDF) {
+    val salvoDF = tempoConfig.salvoTempoValues.foldLeft(tempoDF) {
                                                 (df: DataFrame, salvo: String) => doPipelineTransform(
                                                   df,
-                                                  new SameColValueReplacer(dataModel, arlasTempoColumn, salvo, dataModel.salvoTempo)
+                                                  new SameColValueReplacer(dataModel, arlasTempoColumn, salvo, tempoConfig.salvoTempo)
                                                 )
                                               }
 
     doPipelineTransform(
       salvoDF,
-      new WithArlasVisibilityStateFromTempo(dataModel, spark, dataModel.irregularTempo))
+      new WithArlasVisibilityStateFromTempo(dataModel, spark, tempoConfig.irregularTempo))
   }
 
   def asArlasMovingState(dataModel: DataModel,
-                         spark: SparkSession): DataFrame = {
+                         spark: SparkSession,
+                         motionConfig: MotionConfiguration): DataFrame = {
 
     doPipelineTransform(
       df,
-      new WithSupportGeoPoint(dataModel, spark),
-      new WithArlasMovingState(dataModel, spark, dataModel.idColumn),
+      new WithSupportGeoPoint(
+        dataModel,
+        spark,
+        motionConfig.supportPointsConfiguration.supportPointDeltaTime,
+        motionConfig.supportPointsConfiguration.supportPointMaxNumberInGap,
+        motionConfig.supportPointsConfiguration.supportPointMeanSpeedMultiplier,
+        motionConfig.tempoConfiguration.irregularTempo,
+        motionConfig.supportPointsConfiguration.supportPointColsToPropagate),
+      new WithArlasMovingState(dataModel, spark, motionConfig),
       new RowRemover(dataModel, "keep", false))
   }
 
@@ -92,17 +100,18 @@ class TransformableDataFrame(df: DataFrame) {
   }
 
   def asArlasCourses(dataModel: DataModel,
-                     spark: SparkSession): DataFrame = {
+                     spark: SparkSession,
+                     courseConfig: CourseConfiguration): DataFrame = {
     doPipelineTransform(
       df,
-      new WithArlasCourseStateFromMotion(dataModel),
+      new WithArlasCourseStateFromMotion(dataModel, courseConfig.courseTimeout),
       new WithArlasCourseIdFromCourseState(dataModel, spark),
       new WithArlasCourseDurationFromId(dataModel)
       )
   }
 
-  def asArlasResampledMotions(dataModel: DataModel, spark: SparkSession): DataFrame = {
-    doPipelineTransform(df, new ArlasResampler(dataModel, arlasMotionIdColumn, spark))
+  def asArlasResampledMotions(dataModel: DataModel, spark: SparkSession, processingConfig: ProcessingConfiguration): DataFrame = {
+    doPipelineTransform(df, new ArlasResampler(dataModel, arlasMotionIdColumn, spark, processingConfig.timeSampling))
   }
 
   def enrichWithArlas(transformers: ArlasTransformer*): DataFrame = {

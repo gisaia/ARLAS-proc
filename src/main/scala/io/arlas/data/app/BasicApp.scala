@@ -22,7 +22,7 @@ package io.arlas.data.app
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
-import io.arlas.data.model.{DataModel, Period, RunOptions}
+import io.arlas.data.model.{DataModel, Period, ProcessingConfiguration, RunOptions}
 import org.apache.spark.sql.SparkSession
 import org.slf4j.LoggerFactory
 
@@ -46,7 +46,7 @@ trait BasicApp {
               --target string
   """
 
-  def run(spark: SparkSession, dataModel: DataModel, runOptions: RunOptions): Unit
+  def run(spark: SparkSession, dataModel: DataModel, runOptions: RunOptions, processingConf: ProcessingConfiguration): Unit
 
   def initSparkSession(): SparkSession = {
     SparkSession
@@ -71,7 +71,7 @@ trait BasicApp {
 
     val spark: SparkSession = initSparkSession
 
-    run(spark, dataModel, runOptions)
+    run(spark, dataModel, runOptions, getProcessingConfiguration())
   }
 
   type ArgumentMap = Map[String, String]
@@ -122,8 +122,7 @@ trait BasicApp {
       latColumn = arguments.getOrElse("lat", "lat"),
       lonColumn = arguments.getOrElse("lon", "lon"),
       speedColumn = arguments.getOrElse("speed", "speed"),
-      dynamicFields = arguments.getOrElse("dynamic", "lat,lon,speed").split(","),
-      visibilityTimeout = arguments.getOrElse("timeout", "3600").toInt
+      dynamicFields = arguments.getOrElse("dynamic", "lat,lon,speed").split(",")
     )
   }
 
@@ -158,5 +157,9 @@ trait BasicApp {
         case None               => None
       }
     )
+  }
+
+  def getProcessingConfiguration(): ProcessingConfiguration = {
+    new ProcessingConfiguration()
   }
 }

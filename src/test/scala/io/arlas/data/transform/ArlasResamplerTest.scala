@@ -21,7 +21,6 @@ package io.arlas.data.transform
 
 import java.time._
 import java.time.format.DateTimeFormatter
-import io.arlas.data.model.DataModel
 import io.arlas.data.sql._
 import io.arlas.data.transform.ArlasTransformerColumns._
 import org.apache.commons.math3.analysis.interpolation.SplineInterpolator
@@ -96,16 +95,13 @@ class ArlasResamplerTest extends ArlasTest {
 
   "ArlasResampler transformation" should " resample data against dataframe's timeseries" in {
 
-    val dataModel =
-      new DataModel(timeFormat = "dd/MM/yyyy HH:mm:ssXXX", visibilityTimeout = 300, dynamicFields = Array("lat", "lon", "speed"))
-
     val sourceDF = source.toDF("id", "timestamp", "lat", "lon", "speed")
 
     val transformedDf = sourceDF
       .asArlasCleanedData(dataModel)
-      .asArlasVisibleSequencesFromTimestamp(dataModel)
+      .asArlasVisibleSequencesFromTimestamp(dataModel, processingConfig)
       .enrichWithArlas(
-        new ArlasResampler(dataModel, arlasVisibleSequenceIdColumn, spark))
+        new ArlasResampler(dataModel, arlasVisibleSequenceIdColumn, spark, 15))
       .drop(arlasTimestampColumn, arlasPartitionColumn, arlasVisibilityStateColumn)
 
     val expectedDF = expected

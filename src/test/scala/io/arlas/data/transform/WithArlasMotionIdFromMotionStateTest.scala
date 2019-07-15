@@ -19,7 +19,7 @@
 
 package io.arlas.data.transform
 
-import io.arlas.data.model.{DataModel, MLModelLocal}
+import io.arlas.data.model.{MLModelLocal, MotionConfiguration}
 import io.arlas.data.sql._
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.types.{LongType, StringType, StructField, StructType}
@@ -29,10 +29,9 @@ class WithArlasMotionIdFromMotionStateTest extends ArlasTest {
 
   import spark.implicits._
 
-  val testDataModel = DataModel(timeFormat = "dd/MM/yyyy HH:mm:ssXXX",
-                                visibilityTimeout = 300,
-                                speedColumn = "speed",
-                                movingStateModel = MLModelLocal(spark, "src/test/resources/hmm_stillmove_model.json"))
+  val testProcessingConfig = processingConfig.copy(motionConfiguration = new MotionConfiguration(
+    movingStateModel = MLModelLocal(spark, "src/test/resources/hmm_stillmove_model.json")
+    ))
 
   val expectedData = Seq(
     ("ObjectA", 1527804000l, ArlasMotionStates.PAUSE.toString, "ObjectA#1527804000"),
@@ -120,11 +119,11 @@ class WithArlasMotionIdFromMotionStateTest extends ArlasTest {
 
     val transformedDF: DataFrame = sourceDF
       .enrichWithArlas(
-        new WithArlasMovingState(testDataModel, spark, testDataModel.idColumn),
+        new WithArlasMovingState(dataModel, spark, testProcessingConfig.motionConfiguration),
         new OtherColValuesMapper(dataModel, arlasMovingStateColumn, arlasMotionStateColumn,
                                  Map(ArlasMovingStates.MOVE.toString -> ArlasMotionStates.MOTION.toString,
                                      ArlasMovingStates.STILL.toString -> ArlasMotionStates.PAUSE.toString)),
-        new WithArlasMotionIdFromMotionState(testDataModel, spark))
+        new WithArlasMotionIdFromMotionState(dataModel, spark))
 
     assertDataFrameEquality(transformedDF.drop(dataModel.timestampColumn, dataModel.latColumn, dataModel.lonColumn, dataModel.speedColumn,
                                                arlasPartitionColumn, arlasMovingStateColumn), expectedDF)

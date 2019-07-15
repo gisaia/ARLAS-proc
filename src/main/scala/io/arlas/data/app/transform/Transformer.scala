@@ -21,7 +21,7 @@ package io.arlas.data.app.transform
 
 import java.time.{Instant, ZoneOffset, ZonedDateTime}
 import io.arlas.data.app.BasicApp
-import io.arlas.data.model.{DataModel, Period, RunOptions}
+import io.arlas.data.model.{DataModel, Period, ProcessingConfiguration, RunOptions}
 import io.arlas.data.sql._
 import io.arlas.data.transform.ArlasTransformerColumns._
 import io.arlas.data.utils.CassandraTool
@@ -32,19 +32,19 @@ object Transformer extends BasicApp with CassandraTool {
 
   override def getName: String = "Transformer"
 
-  override def run(spark: SparkSession, dataModel: DataModel, runOptions: RunOptions): Unit = {
+  override def run(spark: SparkSession, dataModel: DataModel, runOptions: RunOptions, processingConfig: ProcessingConfiguration): Unit = {
 
     // read raw data with warming period of transformed data if available
-    val df = readData(spark, runOptions, dataModel)
+    val df = readData(spark, runOptions, dataModel, processingConfig)
 
     // transform raw data
     val transformedDf: DataFrame = df
-      .asArlasVisibleSequencesFromTimestamp(dataModel)
+      .asArlasVisibleSequencesFromTimestamp(dataModel, processingConfig)
 
     transformedDf.writeToScyllaDB(spark, dataModel, runOptions.target)
   }
 
-  def readData(spark: SparkSession, runOptions: RunOptions, dataModel: DataModel): DataFrame = {
+  def readData(spark: SparkSession, runOptions: RunOptions, dataModel: DataModel, processingConfig: ProcessingConfiguration): DataFrame = {
 
     val df: DataFrame = {
       if (runOptions.source.contains("/")) {
@@ -56,7 +56,7 @@ object Transformer extends BasicApp with CassandraTool {
       .withEmptyCol(arlasVisibleSequenceIdColumn)
       .withEmptyCol(arlasVisibilityStateColumn)
 
-    df.transform(addWarmUpPeriodData(spark, runOptions, dataModel))
+    df.transform(addWarmUpPeriodData(spark, runOptions, dataModel, processingConfig))
   }
 
   /*
@@ -64,7 +64,7 @@ object Transformer extends BasicApp with CassandraTool {
    * that lasts 2 times dataModel.visibilityTimeout just before transformation.
    * It enables to have history on some fields like arlas_visible_sequence_id.
    */
-  def addWarmUpPeriodData(spark: SparkSession, runOptions: RunOptions, dataModel: DataModel)(
+  def addWarmUpPeriodData(spark: SparkSession, runOptions: RunOptions, dataModel: DataModel, processingConfig: ProcessingConfiguration)(
       sourceDF: DataFrame): DataFrame = {
 
     val targetKeyspace = runOptions.target.split('.')(0)
@@ -83,7 +83,7 @@ object Transformer extends BasicApp with CassandraTool {
         }
       }
 
-      val warmUpStart = warmUpEnd.minusSeconds(2 * dataModel.visibilityTimeout)
+      val warmUpStart = warmUpEnd.minusSeconds(2 * processingConfig.visibilityTimeout)
       val warmUpPeriod = Period(Some(warmUpStart), Some(warmUpEnd))
 
       readFromScyllaDB(spark, runOptions.target)

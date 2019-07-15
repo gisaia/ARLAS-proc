@@ -20,7 +20,7 @@
 package io.arlas.data.app.load
 
 import io.arlas.data.app.BasicApp
-import io.arlas.data.model.{DataModel, RunOptions}
+import io.arlas.data.model.{DataModel, ProcessingConfiguration, RunOptions}
 import io.arlas.data.sql._
 import org.apache.spark.sql.functions.col
 import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
@@ -30,7 +30,7 @@ object Loader extends BasicApp {
 
   override def getName: String = "Loader Application"
 
-  override def run(spark: SparkSession, dataModel: DataModel, runOptions: RunOptions): Unit = {
+  override def run(spark: SparkSession, dataModel: DataModel, runOptions: RunOptions, processingConfig: ProcessingConfiguration): Unit = {
     spark.sparkContext.setLogLevel("Error")
 
     val source = runOptions.source.split(",")(0)

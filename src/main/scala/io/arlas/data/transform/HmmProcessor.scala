@@ -39,7 +39,8 @@ class HmmProcessor(dataModel: DataModel,
                    sourceColumn          : String,
                    hmmModel              : MLModel,
                    partitionColumn       : String,
-                   resultColumn          : String)
+                   resultColumn          : String,
+                   hmmWindowSize        : Int)
 
   extends ArlasTransformer(dataModel, Vector(partitionColumn)) {
 
@@ -100,7 +101,7 @@ class HmmProcessor(dataModel: DataModel,
     //row3: ROW_NUMBER_ON_PARTITION_COLUMN = 3, KEY_COLUMN = id1_2
     val initDF = dataset
       .withColumn(ROW_NUMBER_ON_PARTITION_COLUMN, row_number().over(partitionWindow))
-      .withColumn(WINDOW_ID_COLUMN, concat(col(partitionColumn), lit("_"), floor(col(ROW_NUMBER_ON_PARTITION_COLUMN) / dataModel.hmmWindowSize)))
+      .withColumn(WINDOW_ID_COLUMN, concat(col(partitionColumn), lit("_"), floor(col(ROW_NUMBER_ON_PARTITION_COLUMN) / hmmWindowSize)))
 
     //temporary DF with 2 fields: a unique id (= <partitionColumn>_<index>) and the prediction
     val hmmDF = initDF
@@ -125,8 +126,6 @@ class HmmProcessor(dataModel: DataModel,
       //like UNIQUE_ID_COLUMN = <window_id>_<row number for its dinow>
       // e.g. "id1_1_1, PREDICTION1", "id1_1_2, PREDICTION2", "id1_2_1, PREDICTION3"
     })(RowEncoder(hmmSchema))
-
-    hmmDF.sort(UNIQUE_ID_COLUMN).show(500, false)
 
     //we also add the UNIQUE_ID_COLUMN to initial data and join on it
     initDF

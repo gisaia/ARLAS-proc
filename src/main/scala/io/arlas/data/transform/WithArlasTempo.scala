@@ -19,16 +19,18 @@
 
 package io.arlas.data.transform
 
-import io.arlas.data.model.DataModel
+import io.arlas.data.model.{DataModel, TempoConfiguration}
 import io.arlas.data.transform.ArlasTransformerColumns._
 import org.apache.spark.sql.SparkSession
 
+//TODO move in customer specific project
 class WithArlasTempo(dataModel      : DataModel,
                      spark          : SparkSession,
-                     partitionColumn: String)
+                     tempoConfig: TempoConfiguration)
   extends HmmProcessor(dataModel,
                        spark,
                        arlasDeltaTimestampColumn,
-                       dataModel.tempoModel,
-                       partitionColumn,
-                       arlasTempoColumn)
+                       tempoConfig.tempoModel,
+                       dataModel.idColumn,
+                       arlasTempoColumn,
+                       tempoConfig.tempoHmmWindowSize)

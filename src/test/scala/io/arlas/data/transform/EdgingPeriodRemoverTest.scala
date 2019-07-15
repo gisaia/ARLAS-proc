@@ -20,11 +20,10 @@
 package io.arlas.data.transform
 
 import java.time.format.DateTimeFormatter
-import io.arlas.data.model.DataModel
 import io.arlas.data.sql._
 import io.arlas.data.transform.ArlasTransformerColumns._
 import org.apache.spark.sql.DataFrame
-import org.apache.spark.sql.types.{ StringType, StructField, StructType}
+import org.apache.spark.sql.types.{StringType, StructField, StructType}
 
 class EdgingPeriodRemoverTest extends ArlasTest {
 
@@ -144,14 +143,11 @@ class EdgingPeriodRemoverTest extends ArlasTest {
 
   def performTestByPeriod(warmingPeriod: Int, endingPeriod: Int, expectedDF: DataFrame) = {
 
-    val dataModel =
-      new DataModel(timeFormat = "dd/MM/yyyy HH:mm:ssXXX", visibilityTimeout = 300)
-
     val oldTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ssXXX")
 
     val transformedDf: DataFrame = rawDF
       .asArlasCleanedData(dataModel)
-      .asArlasVisibleSequencesFromTimestamp(dataModel)
+      .asArlasVisibleSequencesFromTimestamp(dataModel, processingConfig)
       .enrichWithArlas(
         new EdgingPeriodRemover(dataModel, Some(warmingPeriod), Some(endingPeriod), spark))
       .select("id", "timestamp", arlasVisibleSequenceIdColumn)

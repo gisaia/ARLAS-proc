@@ -20,7 +20,7 @@
 package io.arlas.data.app.extract
 
 import io.arlas.data.app.BasicApp
-import io.arlas.data.model.{DataModel, RunOptions}
+import io.arlas.data.model.{DataModel, ProcessingConfiguration, RunOptions}
 import io.arlas.data.sql._
 import org.apache.spark.sql._
 
@@ -28,7 +28,7 @@ object CSVExtractor extends BasicApp {
 
   override def getName: String = "CSV Extractor"
 
-  override def run(spark: SparkSession, dataModel: DataModel, runOptions: RunOptions): Unit = {
+  override def run(spark: SparkSession, dataModel: DataModel, runOptions: RunOptions, processingConfig: ProcessingConfiguration): Unit = {
 
     readFromCsv(spark, runOptions.source)
       .asArlasCleanedData(dataModel)

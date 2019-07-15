@@ -20,14 +20,14 @@
 package io.arlas.data.app.load
 
 import io.arlas.data.app.BasicApp
-import io.arlas.data.model.{DataModel, RunOptions}
+import io.arlas.data.model.{DataModel, ProcessingConfiguration, RunOptions}
 import io.arlas.data.sql.{readFromParquet, readFromScyllaDB, _}
 import org.apache.spark.sql.{DataFrame, SparkSession}
 
 object ESLoader extends BasicApp {
   override def getName: String = "Elasticsearch loader application"
 
-  override def run(spark: SparkSession, dataModel: DataModel, runOptions: RunOptions): Unit = {
+  override def run(spark: SparkSession, dataModel: DataModel, runOptions: RunOptions, processingConfig: ProcessingConfiguration): Unit = {
 
     val df: DataFrame = {
       if (runOptions.source.contains("/")) {

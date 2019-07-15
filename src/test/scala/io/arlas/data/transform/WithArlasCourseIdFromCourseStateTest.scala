@@ -19,7 +19,7 @@
 
 package io.arlas.data.transform
 
-import io.arlas.data.model.{DataModel, MLModelLocal}
+import io.arlas.data.model.{MLModelLocal, MotionConfiguration}
 import io.arlas.data.sql._
 import io.arlas.data.transform.ArlasTransformerColumns._
 import org.apache.spark.sql.DataFrame
@@ -29,11 +29,9 @@ class WithArlasCourseIdFromCourseStateTest extends ArlasTest {
 
   import spark.implicits._
 
-  val testDataModel = DataModel(timeFormat = "dd/MM/yyyy HH:mm:ssXXX",
-                                visibilityTimeout = 300,
-                                speedColumn = "speed",
-                                movingStateModel = MLModelLocal(spark, "src/test/resources/hmm_stillmove_model.json"),
-                                courseTimeout = 500)
+  val testProcessingConfig = processingConfig.copy(motionConfiguration = new MotionConfiguration(
+    movingStateModel = MLModelLocal(spark, "src/test/resources/hmm_stillmove_model.json")
+    ))
 
   val expectedData = Seq(
     ("ObjectA", 1527804000l, ArlasMotionStates.PAUSE.toString, 59l, ArlasCourseStates.COURSE.toString, "ObjectA#1527804000"),
@@ -117,18 +115,18 @@ class WithArlasCourseIdFromCourseStateTest extends ArlasTest {
       ))
   val expectedDF = spark.createDataFrame(expectedData.toDF.rdd, expectedSchema)
 
-  "WithCourseFromCourseState" should "compute arlas_course_id and arlas_course_duration from arlas_course_state" in {
+  "WithCourseFromCourseState" should "compute arlas_course_id from arlas_course_state" in {
 
     val sourceDF = cleanedDF
 
     val transformedDF: DataFrame = sourceDF
       .enrichWithArlas(
-        new WithArlasMovingState(testDataModel, spark, testDataModel.idColumn),
+        new WithArlasMovingState(dataModel, spark, testProcessingConfig.motionConfiguration),
         new OtherColValuesMapper(dataModel, arlasMovingStateColumn, arlasMotionStateColumn, Map("MOVE" -> "MOTION", "STILL" -> "PAUSE")),
-        new WithArlasMotionIdFromMotionState(testDataModel, spark),
+        new WithArlasMotionIdFromMotionState(dataModel, spark),
         new WithDurationFromId(dataModel, arlasMotionIdColumn, arlasMotionDurationColumn),
-        new WithArlasCourseStateFromMotion(testDataModel),
-        new WithArlasCourseIdFromCourseState(testDataModel, spark))
+        new WithArlasCourseStateFromMotion(dataModel, 500),
+        new WithArlasCourseIdFromCourseState(dataModel, spark))
       .drop(dataModel.timestampColumn, dataModel.latColumn, dataModel.lonColumn, dataModel.speedColumn, arlasPartitionColumn,
             arlasMovingStateColumn, arlasMotionIdColumn)
 

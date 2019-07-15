@@ -19,16 +19,18 @@
 
 package io.arlas.data.transform
 
-import io.arlas.data.model.{DataModel}
+import io.arlas.data.model.{DataModel, MotionConfiguration}
 import io.arlas.data.transform.ArlasTransformerColumns.arlasMovingStateColumn
 import org.apache.spark.sql.SparkSession
 
+//TODO move in customer specific project
 class WithArlasMovingState(dataModel: DataModel,
                            spark    : SparkSession,
-                           partitionColumn: String)
+                           motionConfig: MotionConfiguration)
   extends HmmProcessor(dataModel,
                        spark,
                        dataModel.speedColumn,
-                       dataModel.movingStateModel,
-                       partitionColumn,
-                       arlasMovingStateColumn)
+                       motionConfig.movingStateModel,
+                       dataModel.idColumn,
+                       arlasMovingStateColumn,
+                       motionConfig.movingStateHmmWindowSize)
