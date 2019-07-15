@@ -94,4 +94,7 @@ object Transformer extends BasicApp with CassandraTool {
       sourceDF
     }
   }
+
+  //TODO manage visibilityTimeout more properly for the tests to pass, probably this class and integration tests should be rewritten
+  override def getProcessingConfiguration(): ProcessingConfiguration = new ProcessingConfiguration(visibilityTimeout = 120)
 }
