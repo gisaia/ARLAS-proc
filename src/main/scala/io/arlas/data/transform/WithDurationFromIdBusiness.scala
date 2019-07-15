@@ -20,7 +20,10 @@
 package io.arlas.data.transform
 
 import io.arlas.data.model.DataModel
-import io.arlas.data.transform.ArlasTransformerColumns._
+import io.arlas.data.transform.ArlasTransformerColumns.{arlasCourseDurationColumn, arlasCourseIdColumn, arlasMotionDurationColumn, arlasMotionIdColumn}
+
+class WithArlasCourseDurationFromId(dataModel: DataModel)
+  extends WithDurationFromId(dataModel, arlasCourseIdColumn, arlasCourseDurationColumn)
 
 class WithArlasMotionDurationFromId(dataModel: DataModel)
   extends WithDurationFromId(dataModel, arlasMotionIdColumn, arlasMotionDurationColumn)

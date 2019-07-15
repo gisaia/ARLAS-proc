@@ -37,11 +37,13 @@ trait BasicApp {
               [--timestamp string]
               [--lat string]
               [--lon string]
+              [--speed string]
+              [--distance string]
               [--dynamic coma,separated,string]
-              [--timeout int]
               [--start YYYY-MM-DDThh:mm:ss+00:00]
               [--stop YYYY-MM-DDThh:mm:ss+00:00]
-              [--hmmModelPath string]
+              [--warmingPeriod long]
+              [--endingPeriod long]
               --source string
               --target string
   """
@@ -90,10 +92,10 @@ trait BasicApp {
         getArgs(map ++ Map("lon" -> value), tail)
       case "--speed" :: value :: tail =>
         getArgs(map ++ Map("speed" -> value), tail)
+      case "--distance" :: value :: tail =>
+        getArgs(map ++ Map("distance" -> value), tail)
       case "--dynamic" :: value :: tail =>
         getArgs(map ++ Map("dynamic" -> value), tail)
-      case "--timeout" :: value :: tail =>
-        getArgs(map ++ Map("timeout" -> value), tail)
       case "--warmingPeriod" :: value :: tail =>
         getArgs(map ++ Map("warmingPeriod" -> value), tail)
       case "--endingPeriod" :: value :: tail =>
@@ -106,8 +108,6 @@ trait BasicApp {
         getArgs(map ++ Map("source" -> value), tail)
       case "--target" :: value :: tail =>
         getArgs(map ++ Map("target" -> value), tail)
-      case "--movingStateModelPath" :: value :: tail =>
-        getArgs(map ++ Map("movingStateModelPath" -> value), tail)
       case argument :: tail =>
         println("Unknown argument " + argument)
         getArgs(map, list.tail)
@@ -121,9 +121,9 @@ trait BasicApp {
       timeFormat = arguments.getOrElse("timeformat", "yyyy-MM-dd'T'HH:mm:ssXXX"),
       latColumn = arguments.getOrElse("lat", "lat"),
       lonColumn = arguments.getOrElse("lon", "lon"),
-      speedColumn = arguments.getOrElse("speed", "speed"),
-      dynamicFields = arguments.getOrElse("dynamic", "lat,lon,speed").split(","),
-      visibilityTimeout = arguments.getOrElse("timeout", "3600").toInt
+      speedColumn = arguments.getOrElse("speed", ""),
+      distanceColumn = arguments.getOrElse("distance", ""),
+      dynamicFields = arguments.getOrElse("dynamic", "lat,lon").split(",")
     )
   }
 
@@ -159,4 +159,5 @@ trait BasicApp {
       }
     )
   }
+
 }

@@ -19,7 +19,6 @@
 
 package io.arlas.data.transform
 
-import io.arlas.data.model.DataModel
 import io.arlas.data.sql._
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.functions._
@@ -28,8 +27,6 @@ import org.apache.spark.sql.types._
 class DataFrameValidatorTest extends ArlasTest {
 
   "DataFrameValidator " should " fix invalid column names" in {
-
-    val dataModel = DataModel(timeFormat = "dd/MM/yyyy HH:mm:ssXXX", visibilityTimeout = 120)
 
     val sourceDF = rawDF
       .withColumn("white space", lit(0).cast(IntegerType))
@@ -48,8 +45,6 @@ class DataFrameValidatorTest extends ArlasTest {
   }
 
   "DataFrameValidator " should " cast dynamic column to DoubleType if necessary" in {
-
-    val dataModel = DataModel(timeFormat = "dd/MM/yyyy HH:mm:ssXXX", visibilityTimeout = 120)
 
     val sourceDF = rawDF
       .withColumnRenamed("lat", "oldlat")
@@ -71,8 +66,6 @@ class DataFrameValidatorTest extends ArlasTest {
   }
 
   "DataFrameValidator " should " cast dynamic column with european format to DoubleType if necessary" in {
-
-    val dataModel = DataModel(timeFormat = "dd/MM/yyyy HH:mm:ssXXX", visibilityTimeout = 120)
 
     val sourceDF = rawDF
       .withColumnRenamed("lat", "oldlat")

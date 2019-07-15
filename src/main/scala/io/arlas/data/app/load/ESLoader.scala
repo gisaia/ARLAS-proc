@@ -39,4 +39,5 @@ object ESLoader extends BasicApp {
 
     df.writeToElasticsearch(spark, dataModel, runOptions.target)
   }
+
 }

@@ -24,7 +24,11 @@ import io.arlas.data.model.DataModel
 import io.arlas.data.transform.ArlasTransformerColumns._
 import org.apache.spark.sql.{DataFrame, Dataset, Row, SparkSession}
 
-class ArlasResampler(dataModel: DataModel, aggregationColumnName: String, spark: SparkSession)
+class ArlasResampler(
+                      dataModel: DataModel,
+                      aggregationColumnName: String,
+                      spark: SparkSession,
+                      timeSampling: Long)
     extends ArlasTransformer(
       dataModel,
       Vector(arlasTimestampColumn, arlasPartitionColumn, aggregationColumnName)) {
@@ -44,7 +48,7 @@ class ArlasResampler(dataModel: DataModel, aggregationColumnName: String, spark:
       .reduceByKey(_ ++ _)
       .flatMap {
         case (_, timeserie) => {
-          splineInterpolateAndResample(dataModel, timeserie, columns)
+          splineInterpolateAndResample(dataModel, timeSampling, timeserie, columns)
         }
       }
       .map(entry => Row.fromSeq(columns.map(entry.getOrElse(_, null)).toSeq))

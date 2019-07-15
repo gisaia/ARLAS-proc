@@ -29,6 +29,7 @@ import org.apache.commons.math3.analysis.interpolation.SplineInterpolator
 object interpolations {
 
   def splineInterpolateAndResample(dataModel: DataModel,
+                                   timeSampling: Long,
                                    rawTimeSerie: List[Map[String, Any]],
                                    columns: Array[String]): List[Map[String, Any]] = {
 
@@ -42,11 +43,11 @@ object interpolations {
       .map(row => row.getOrElse(arlasTimestampColumn, 0l).asInstanceOf[Long].toDouble)
       .toArray
     val minTs =
-      (tsTimeSerie.min - tsTimeSerie.min % dataModel.timeSampling + dataModel.timeSampling).toLong
+      (tsTimeSerie.min - tsTimeSerie.min % timeSampling + timeSampling).toLong
     val maxTs =
-      (tsTimeSerie.max - tsTimeSerie.max % dataModel.timeSampling).toLong
+      (tsTimeSerie.max - tsTimeSerie.max % timeSampling).toLong
 
-    val resampledTimeSerie = List.range(minTs, maxTs, dataModel.timeSampling)
+    val resampledTimeSerie = List.range(minTs, maxTs, timeSampling)
 
     // get interpolation functions for each column (dynamics and static)
     val interpolator = new SplineInterpolator()

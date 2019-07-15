@@ -29,7 +29,11 @@ import org.scalatest.{FlatSpec, Matchers}
 
 trait ArlasTest extends FlatSpec with Matchers with TestSparkSession with DataFrameTester {
 
-  val dataModel = DataModel(timeFormat = "dd/MM/yyyy HH:mm:ssXXX", visibilityTimeout = 300, speedColumn = "speed")
+  val dataModel        = DataModel(
+    timeFormat = "dd/MM/yyyy HH:mm:ssXXX",
+    speedColumn = "speed",
+    dynamicFields = Array("lat", "lon", "speed"))
+  val visibilityTimeout = 300
 
   val rawData = Seq(
     ("ObjectA", "01/06/2018 00:00:00+02:00", 55.921028, 17.320418, 0.280577132616533),

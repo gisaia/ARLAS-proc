@@ -32,7 +32,7 @@ class WithStateIdFromStateTest extends ArlasTest {
 
     val transformedDF: DataFrame = sourceDF
       .enrichWithArlas(
-        new WithArlasVisibilityStateFromTimestamp(dataModel),
+        new WithArlasVisibilityStateFromTimestamp(dataModel, visibilityTimeout),
         new WithStateIdFromState(dataModel, arlasVisibilityStateColumn, ArlasVisibilityStates.APPEAR.toString, arlasVisibleSequenceIdColumn))
 
     val expectedDF = visibleSequencesDF
@@ -47,7 +47,7 @@ class WithStateIdFromStateTest extends ArlasTest {
     val warmupDF: DataFrame = sourceDF
       .filter(col(arlasTimestampColumn) < 1527804100)
       .enrichWithArlas(
-        new WithArlasVisibilityStateFromTimestamp(dataModel),
+        new WithArlasVisibilityStateFromTimestamp(dataModel, visibilityTimeout),
         new WithStateIdFromState(dataModel, arlasVisibilityStateColumn, ArlasVisibilityStates.APPEAR.toString, arlasVisibleSequenceIdColumn))
 
     val transformedDF: DataFrame = sourceDF
@@ -56,7 +56,7 @@ class WithStateIdFromStateTest extends ArlasTest {
       .filter(col(arlasTimestampColumn) >= 1527804100)
       .unionByName(warmupDF)
       .enrichWithArlas(
-        new WithArlasVisibilityStateFromTimestamp(dataModel),
+        new WithArlasVisibilityStateFromTimestamp(dataModel, visibilityTimeout),
         new WithStateIdFromState(dataModel, arlasVisibilityStateColumn, ArlasVisibilityStates.APPEAR.toString, arlasVisibleSequenceIdColumn))
 
     val expectedDF = visibleSequencesDF
