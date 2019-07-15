@@ -27,7 +27,7 @@ val geotools = Seq(gtReferencing, gtGeometry)
 val arlasMl = "io.arlas" %% "arlas-ml" % "0.1.0"
 val arlas = Seq(arlasMl)
 
-lazy val arlasData = (project in file("."))
+lazy val arlasProc = (project in file("."))
   .settings(
     name := "arlas-proc",
     libraryDependencies ++= spark,
@@ -36,14 +36,25 @@ lazy val arlasData = (project in file("."))
     libraryDependencies ++= geotools,
     libraryDependencies ++= arlas,
     libraryDependencies += scalaTest % Test
-  )
 
-// publish artifact to GCP
-enablePlugins(GcsPlugin)
-gcsProjectId := sys.props.getOrElse("gcsProject", default = "arlas-lsfp")
-gcsBucket := sys.props.getOrElse("gcsBucket", default = "arlas-proc")+sys.props.getOrElse("gcsBucketPath", default = "/artifacts")
+    )
 
-gcsLocalArtifactPath := (assemblyOutputPath in assembly).value
-publish := publish.dependsOn(assembly).value
+//publish to external repo
+ThisBuild / publishTo := { Some("Cloudsmith API" at "https://maven.cloudsmith.io/gisaia/private/") }
+ThisBuild / pomIncludeRepository := { x => false }
+ThisBuild / credentials += Credentials("Cloudsmith API", "maven.cloudsmith.io", sys.env.getOrElse("CLOUDSMITH_USER", ""), sys.env.getOrElse("CLOUDSMITH_API_KEY", ""))
+
+//publish also assembly jar
 test in assembly := {}
-assemblyJarName in assembly := s"${name.value}_${version.value}-assembly.jar"
+lazy val arlasProcAssembly = project
+  .dependsOn(arlasProc)
+  .settings(
+      publishArtifact in (Compile, packageBin) := false,
+      publishArtifact in (Compile, packageDoc) := false,
+      publishArtifact in (Compile, packageSrc) := false,
+      name := "arlas-proc-assembly",
+      artifact in (Compile, assembly) ~= { art =>
+          art.withClassifier(Some("assembly"))
+      },
+      addArtifact(artifact in (Compile, assembly), assembly)
+      )
