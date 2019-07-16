@@ -23,7 +23,7 @@ import io.arlas.data.model.DataModel
 import org.apache.spark.ml.param.ParamMap
 import org.apache.spark.ml.util.Identifiable
 import org.apache.spark.ml.{Transformer => SparkTransformer}
-import org.apache.spark.sql.types.StructType
+import org.apache.spark.sql.types.{BinaryType, BooleanType, ByteType, DataType, DateType, DoubleType, FloatType, IntegerType, LongType, ShortType, StringType, StructType, TimestampType}
 
 abstract class ArlasTransformer(val dataModel: DataModel,
                                 val requiredCols: Vector[String] = Vector.empty)
@@ -55,6 +55,28 @@ abstract class ArlasTransformer(val dataModel: DataModel,
   override val uid: String = {
     Identifiable.randomUID(this.getClass.getSimpleName)
   }
+
+  /**
+    * List of datatype with matching scala types on https://stackoverflow.com/a/32899979/1943432
+    * ArrayType, MapType not supported because they need typing;
+    * DecimalType and StructType not supported because it is a DataType but AbstractDataType with different hierarch
+    */
+  protected def findDataTypeForValue(value: Any): DataType =
+    value match {
+      case b: Byte => ByteType
+      case s: Short => ShortType
+      case i: Int => IntegerType
+      case l: Long => LongType
+      case f: Float => FloatType
+      case d: Double => DoubleType
+      case s: String => StringType
+      case b: Array[Byte] => BinaryType
+      case b: Boolean => BooleanType
+      case t: java.sql.Timestamp => TimestampType
+      case d: java.sql.Date => DateType
+      case _ => throw new DataFrameException(s"Unsupported type ${value.getClass.getName}")
+    }
+
 }
 
 case class DataFrameException(message: String) extends Exception(message)
