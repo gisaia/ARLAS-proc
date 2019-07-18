@@ -54,14 +54,14 @@ class MultipleColsValuesMapperTest extends ArlasTest {
       ("ObjectA", "01/06/2018 00:00:31+02:00", 55.920583, 17.31733, "value1", 1.0, "null"),
       ("ObjectB", "01/06/2018 00:00:10+02:00", 55.920437, 17.316335, "value2", 1.0, "also_found"))
     val expectedDF = spark.createDataFrame(expectedData.toDF().rdd, expectedSchema)
-      //cannot create df with int null values: see https://issues.apache.org/jira/browse/SPARK-20299 => using -1.0 as temporary value
+    //cannot create df with int null values: see https://issues.apache.org/jira/browse/SPARK-20299 => using -1.0 as temporary value
       .withColumn("result", when(col("result").equalTo("null"), lit(null)).otherwise(col("result")))
 
     val transformedDF = testDF.enrichWithArlas(
       new MultipleColsValuesMapper(dataModel, Map(
         "found" -> Map("sourcestring" -> "value1", "sourcedouble" -> 0.0),
         "also_found" -> Map("sourcestring" -> "value2", "sourcedouble" -> 1.0)
-        ), "result"))
+      ), "result"))
 
     assertDataFrameEquality(transformedDF, expectedDF)
   }

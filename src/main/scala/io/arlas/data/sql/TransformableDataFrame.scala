@@ -83,10 +83,7 @@ class TransformableDataFrame(df: DataFrame) {
 
       doPipelineTransform(
         df,
-        new OtherColValuesMapper(dataModel, arlasMovingStateColumn, arlasMotionStateColumn,
-                               Map(ArlasMovingStates.MOVE.toString -> ArlasMotionStates.MOTION.toString,
-                                   ArlasMovingStates.STILL.toString -> ArlasMotionStates.PAUSE.toString)),
-        new WithArlasMotionIdFromMotionState(dataModel, spark),
+        new WithArlasMotionIdFromMovingState(dataModel, spark),
         new WithArlasMotionDurationFromId(dataModel))
       .drop("keep")
   }
@@ -95,8 +92,9 @@ class TransformableDataFrame(df: DataFrame) {
                      spark: SparkSession): DataFrame = {
     doPipelineTransform(
       df,
-      new WithArlasCourseStateFromMotion(dataModel),
-      new WithArlasCourseIdFromCourseState(dataModel, spark),
+      new WithArlasCourseOrStopFromMovingState(dataModel),
+      new WithArlasCourseState(dataModel),
+      new WithArlasCourseIdFromCourseOrStop(dataModel, spark),
       new WithArlasCourseDurationFromId(dataModel)
       )
   }
