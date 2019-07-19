@@ -24,10 +24,14 @@ import org.apache.spark.sql.{DataFrame, SparkSession}
 class DataFrameReader {
 
   def readFromCsv(spark: SparkSession, source: String, delimiter: String = ","): DataFrame = {
+    readFromMulipleCsvs(spark, delimiter, source)
+  }
+
+  def readFromMulipleCsvs(spark: SparkSession, delimiter: String, sources: String*): DataFrame = {
     spark.read
       .option("header", "true")
       .option("delimiter", delimiter)
-      .csv(source)
+      .csv(sources :_*)
   }
 
   def readFromParquet(spark: SparkSession, source: String) = {
