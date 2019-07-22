@@ -152,14 +152,12 @@ Paste (using `:paste`) the following code snippet :
 
     // extract and format raw data
     val data = readFromCsv(spark, "/opt/proc/scripts/tests/resources/ais-sample-data-1.csv")
-      .asArlasCleanedData(dataModel)
+      .asArlasFormattedData(dataModel)
       
 
     // transform and resample data
     val transformedData = data
       .asArlasVisibleSequencesFromTimestamp(dataModel)
-      .asArlasMotions(dataModel, spark)
-//      .asArlasResampledMotions(dataModel, spark)
     
     // save result in ScyllaDB
     transformedData.writeToScyllaDB(spark, dataModel, "data.geo_points")

@@ -98,7 +98,7 @@ class ArlasResamplerTest extends ArlasTest {
     val sourceDF = source.toDF("id", "timestamp", "lat", "lon", "speed")
 
     val transformedDf = sourceDF
-      .asArlasCleanedData(dataModel)
+      .asArlasFormattedData(dataModel)
       .asArlasVisibleSequencesFromTimestamp(dataModel, visibilityTimeout)
       .enrichWithArlas(
         new ArlasResampler(dataModel, arlasVisibleSequenceIdColumn, spark, 15))
