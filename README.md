@@ -31,17 +31,34 @@ It's very important to check the version of spark being used, here we are using 
 
 [Check Spark/ScyllaDB YAML](scripts/tests/docker-compose-standalone.yml)
 
-# Build and deploy application jar
+# Build and deploy application JAR
 
+## Build locally
 ```bash
 # Build jar
 sbt clean assembly
-
-# Deploy jar
-# Ensure to provide your Google Cloud Storage credentials
-# @see : https://github.com/Tapad/sbt-gcs#credentials
-sbt [-DgcsProject=arlas-lsfp] [-DgcsBucket=arlas-proc] [-DgcsBucketPath=/artifacts] gcs:publish
 ```
+
+## Deploy JAR to Cloudsmith
+
+You need to set up the following environment variables first:
+- CLOUDSMITH_USER
+- CLOUDSMITH_API_KEY (see [https://cloudsmith.io/user/settings/api/])
+
+### Deploy thin JAR
+
+```bash
+sbt clean publish
+```
+
+### Deploy fat JAR
+ 
+This deploys a fat jar, ready to be used from GCP Dataproc to start processing.
+
+```bash
+sbt clean "project arlasProcAssembly" publish
+```
+
 
 # Integration tests
 
@@ -51,7 +68,7 @@ sbt [-DgcsProject=arlas-lsfp] [-DgcsBucket=arlas-proc] [-DgcsBucketPath=/artifac
 
 # User guide
 
-### spark-shell example
+## Start spark-shell locally
 
 Start ScyllaDB and Elasticsearch clusters. For example : 
 ```bash
@@ -82,6 +99,32 @@ docker run -ti \
 ```
 
 $CLOUDSMITH_TOKEN is required when using ML models from cloudsmith. Its value should be asked to a developer.
+
+## Start spark-shell on GCP
+
+Once the cluster is started, open an SSH session to the master node.
+
+First, [Set the CLOUDSMITH_TOKEN](#ARLAS-ML-dependency)
+
+Then copy-paste the following:
+
+```bash
+spark-shell \
+        --packages datastax:spark-cassandra-connector:2.3.1-s_2.11,org.elasticsearch:elasticsearch-spark-20_2.11:6.4.0,org.geotools:gt-referencing:20.1,org.geotools:gt-geometry:20.1,org.geotools:gt-epsg-hsql:20.1 \
+        --exclude-packages javax.media:jai_core \
+        --repositories http://repo.boundlessgeo.com/main,http://download.osgeo.org/webdav/geotools/ \
+        --jars https://dl.cloudsmith.io/$CLOUDSMITH_TOKEN/gisaia/arlas/maven/io/arlas/arlas-proc-assembly_2.11/0.3.0-SNAPSHOT/arlas-proc-assembly_2.11-0.3.0-SNAPSHOT.jar \
+        --conf spark.es.nodes="gisaia-elasticsearch" \
+        --conf spark.es.index.auto.create="true" \
+        --conf spark.cassandra.connection.host="gisaia-scylla-db" \
+        --conf spark.driver.allowMultipleContexts="true" \
+        --conf spark.rpc.netty.dispatcher.numThreads="2" \
+        --conf spark.driver.CLOUDSMITH_TOKEN="$CLOUDSMITH_TOKEN"
+```
+
+You may also use a specific hosted JAR, eg. `arlas-proc-assembly_2.11-0.3.0-20190717.101238-7.jar`
+
+## Spark-shell example
 
 Paste (using `:paste`) the following code snippet :
 ```scala
