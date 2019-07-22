@@ -21,10 +21,12 @@ package io.arlas.data.sql
 
 import io.arlas.data.model.DataModel
 import io.arlas.data.transform.ArlasTransformerColumns._
+import io.arlas.data.transform.{WithArlasGeopoint, WithArlasId}
 import io.arlas.data.utils.CassandraTool
-import org.apache.spark.sql.functions.{col, concat, lit}
-import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
+import org.apache.spark.sql.functions.{col, concat, lit, struct}
+import org.apache.spark.sql.{Column, DataFrame, SaveMode, SparkSession}
 import org.elasticsearch.spark.sql._
+
 
 class WritableDataFrame(df: DataFrame) extends TransformableDataFrame(df) with CassandraTool {
 
@@ -40,10 +42,53 @@ class WritableDataFrame(df: DataFrame) extends TransformableDataFrame(df) with C
       .parquet(target)
   }
 
+  /**
+    * Move multiple columns in a struct.
+    * @param structureName final name of the structure
+    * @param cols Map whose * key is the source column name * value is the column name within the structure
+    * @return
+    */
+  def groupColumnsInStructure(structureName: String, cols: Map[String, String]): DataFrame = {
+    df.withColumn(structureName,
+                  struct(cols.map(c => col(c._1).as(c._2)).toSeq :_*))
+      .drop(cols.map(_._1).toSeq :_*)
+  }
+
+  def asArlasEsData(dataModel: DataModel): DataFrame = {
+    doPipelineTransform(df,
+                        new WithArlasGeopoint(dataModel),
+                        new WithArlasId(dataModel))
+  }
+
   def writeToElasticsearch(spark: SparkSession, dataModel: DataModel, target: String): Unit = {
     df.withColumn(arlasElasticsearchIdColumn,
                   concat(col(dataModel.idColumn), lit("#"), col(arlasTimestampColumn)))
       .saveToEs(target, Map("es.mapping.id" -> arlasElasticsearchIdColumn))
+  }
+
+  /**
+  * Write to multiple elasticsearch indices.
+    * Eg. with target="my_index_{}/doc" and dynamicIndexColumn="month_col"
+    * This will save the dataframe to indices like "my_index_201901", "my_index_201902" aso.
+    * @param spark
+    * @param esIdColName name of the ES ID column. It may be in a struct, eg. "in_struct.id"
+    * @param target it should be like "mapping—{}/type", with "{}" to be replaced by the dynamicIndexColumn, eg. "my_mapping_{}/doc"
+    * @param dynamicIndexColumn the column to use into the index_pattern, eg. with
+    * @param mappingExcluded columns that should not be indexed
+    */
+  def writeToElasticsearch(
+                            spark: SparkSession,
+                            esIdColName      : String,
+                            target           : String,
+                            dynamicIndexColumn: Column,
+                            mappingExcluded: Seq[String] = Seq()): Unit
+  = {
+
+    df
+      .withColumn("dynamicIndex", dynamicIndexColumn)
+      .saveToEs(target.replace("{}", "{dynamicIndex}"), Map(
+        "es.mapping.id" -> esIdColName,
+        "es.mapping.exclude" -> (mappingExcluded :+ "dynamicIndex").mkString(",")))
   }
 
   def writeToScyllaDB(spark: SparkSession, dataModel: DataModel, target: String): Unit = {

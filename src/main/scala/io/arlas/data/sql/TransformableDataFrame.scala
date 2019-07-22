@@ -23,7 +23,7 @@ import io.arlas.data.model.DataModel
 import io.arlas.data.transform._
 import io.arlas.data.transform.ArlasTransformerColumns._
 import org.apache.spark.ml.Pipeline
-import org.apache.spark.sql.functions.lit
+import org.apache.spark.sql.functions.{col, lit, struct}
 import org.apache.spark.sql.types.{DataType, StringType}
 import org.apache.spark.sql.{DataFrame}
 
