@@ -36,4 +36,5 @@ object CSVExtractor extends BasicApp {
       .writeToParquet(spark, runOptions.target)
 
   }
+
 }

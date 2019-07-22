@@ -19,7 +19,7 @@
 
 package io.arlas.data.transform
 
-import io.arlas.data.model.{DataModel, MLModelLocal}
+import io.arlas.data.model.{MLModelLocal}
 import io.arlas.data.transform.ArlasTransformerColumns._
 import io.arlas.data.sql._
 import org.apache.spark.sql.functions._
@@ -28,18 +28,16 @@ class HmmProcessorTest extends ArlasTest {
 
   "HmmProcessor " should " have unknown result with not existing source column" in {
 
-    val testDataModel =
-      new DataModel(timeFormat = "dd/MM/yyyy HH:mm:ssXXX", visibilityTimeout = 300)
-
     val transformedDf = visibleSequencesDF
       .enrichWithArlas(
         new HmmProcessor(
-          testDataModel,
+          dataModel,
           spark,
           "notExisting",
           MLModelLocal(spark, "src/test/resources/hmm_stillmove_model.json"),
           arlasVisibleSequenceIdColumn,
-          "result")
+          "result",
+          5000)
         )
 
     val expectedDf = visibleSequencesDF.withColumn("result", lit("Unknown"))
@@ -49,18 +47,16 @@ class HmmProcessorTest extends ArlasTest {
 
   "HmmProcessor " should " have unknown result with not existing model" in {
 
-    val testDataModel =
-      new DataModel(timeFormat = "dd/MM/yyyy HH:mm:ssXXX", visibilityTimeout = 300)
-
     val transformedDf = visibleSequencesDF
       .enrichWithArlas(
         new HmmProcessor(
-          testDataModel,
+          dataModel,
           spark,
           "speed",
           MLModelLocal(spark, "src/test/resources/not_existing.json"),
           arlasVisibleSequenceIdColumn,
-          "result")
+          "result",
+          5000)
         )
 
     val expectedDf = visibleSequencesDF.withColumn("result", lit("Unknown"))
@@ -70,14 +66,15 @@ class HmmProcessorTest extends ArlasTest {
 
   "HmmProcessor transformation" should " not break using a window" in {
 
-    val testDataModel =
-      new DataModel(timeFormat = "dd/MM/yyyy HH:mm:ssXXX", visibilityTimeout = 300, speedColumn = "speed", movingStateModel =
-        MLModelLocal(spark, "src/test/resources/hmm_stillmove_model.json"), hmmWindowSize = 10)
-
     val transformedDf = visibleSequencesDF
-      //avoid natural ordering to ensure that hmm doesn't depend on initial order
       .enrichWithArlas(
-      new HmmProcessor(testDataModel, spark, testDataModel.speedColumn, testDataModel.movingStateModel, arlasVisibleSequenceIdColumn, arlasMovingStateColumn))
+      new HmmProcessor(dataModel,
+                       spark,
+                       "speed",
+                       MLModelLocal(spark, "src/test/resources/hmm_stillmove_model.json"),
+                       arlasVisibleSequenceIdColumn,
+                       arlasMovingStateColumn,
+                       10))
       .count()
   }
 

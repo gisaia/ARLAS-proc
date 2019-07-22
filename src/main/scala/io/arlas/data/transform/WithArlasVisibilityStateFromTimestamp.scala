@@ -31,7 +31,7 @@ import org.apache.spark.sql.{DataFrame, Dataset}
  * Split groups into sequences separated by gaps larger than visibilityTimeout.
  * Add arlas_visibility_state column (available values in ArlasVisibilityStates)
  */
-class WithArlasVisibilityStateFromTimestamp(dataModel: DataModel)
+class WithArlasVisibilityStateFromTimestamp(dataModel: DataModel, visibilityTimeout: Int)
     extends ArlasTransformer(dataModel, Vector(arlasTimestampColumn, arlasPartitionColumn)) {
 
   override def transform(dataset: Dataset[_]): DataFrame = {
@@ -48,11 +48,11 @@ class WithArlasVisibilityStateFromTimestamp(dataModel: DataModel)
 
     // sequence information computation
     val sequenceId = when(
-      col("previousGap").isNull || col("previousGap") > dataModel.visibilityTimeout,
+      col("previousGap").isNull || col("previousGap") > visibilityTimeout,
       concat(col(dataModel.idColumn), lit("#"), col(arlasTimestampColumn)))
     val visibilityState =
-      when(col("previousGap").isNull || col("previousGap") > dataModel.visibilityTimeout, ArlasVisibilityStates.APPEAR.toString)
-        .when(col("nextGap").isNull || col("nextGap") > dataModel.visibilityTimeout, ArlasVisibilityStates.DISAPPEAR.toString)
+      when(col("previousGap").isNull || col("previousGap") > visibilityTimeout, ArlasVisibilityStates.APPEAR.toString)
+        .when(col("nextGap").isNull || col("nextGap") > visibilityTimeout, ArlasVisibilityStates.DISAPPEAR.toString)
         .otherwise(ArlasVisibilityStates.VISIBLE.toString)
 
     // dataframe enrichment

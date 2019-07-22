@@ -31,7 +31,7 @@ class WithDurationFromIdTest extends ArlasTest {
   val durationObjB = when(col(arlasTimestampColumn).lt(lit(1527804451)), lit(60l))
     .otherwise(lit(149l))
 
-  val baseDF = cleanedDF.asArlasVisibleSequencesFromTimestamp(dataModel)
+  val baseDF = cleanedDF.asArlasVisibleSequencesFromTimestamp(dataModel, visibilityTimeout)
   val expectedDF = baseDF
     .withColumn("duration",
                 when(col(dataModel.idColumn).equalTo("ObjectA"), durationObjA).otherwise(durationObjB))

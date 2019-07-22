@@ -35,7 +35,7 @@ class WithArlasVisibil0ityStateFromTimestampTest extends ArlasTest {
 
     val transformedDF: DataFrame = sourceDF
       .enrichWithArlas(
-        new WithArlasVisibilityStateFromTimestamp(dataModel))
+        new WithArlasVisibilityStateFromTimestamp(dataModel, visibilityTimeout))
 
     val expectedDF = visibleSequencesDF.drop(arlasVisibleSequenceIdColumn)
 
@@ -44,14 +44,13 @@ class WithArlasVisibil0ityStateFromTimestampTest extends ArlasTest {
 
   "WithArlasStateIdFromStates transformation" should "be able to work with custom data model columns" in {
 
-    val dataModel = DataModel(
+    val testDataModel = DataModel(
       idColumn = "identifier",
       timestampColumn = "t",
       latColumn = "latitude",
       lonColumn = "longitude",
       dynamicFields = Array("latitude", "longitude"),
-      timeFormat = "dd/MM/yyyy HH:mm:ssXXX",
-      visibilityTimeout = 300
+      timeFormat = "dd/MM/yyyy HH:mm:ssXXX"
       )
 
     val sourceDF = cleanedDF
@@ -61,7 +60,7 @@ class WithArlasVisibil0ityStateFromTimestampTest extends ArlasTest {
       .withColumnRenamed("lon", "longitude")
 
     val transformedDF: DataFrame = sourceDF
-      .enrichWithArlas(new WithArlasVisibilityStateFromTimestamp(dataModel))
+      .enrichWithArlas(new WithArlasVisibilityStateFromTimestamp(testDataModel, visibilityTimeout))
 
     val expectedDF = visibleSequencesDF
       .withColumnRenamed("id", "identifier")
@@ -75,7 +74,6 @@ class WithArlasVisibil0ityStateFromTimestampTest extends ArlasTest {
 
   "WithArlasVisibleSequence? transformation " should "consider timestamp without timezone as UTC" in {
 
-    val dataModel = DataModel(timeFormat = "dd/MM/yyyy HH:mm:ss", visibilityTimeout = 300)
     val getNewTimestamp = udf((t: String) => {
       val oldTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ssXXX")
       val newTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")
@@ -88,7 +86,7 @@ class WithArlasVisibil0ityStateFromTimestampTest extends ArlasTest {
     val sourceDF = cleanedDF.withColumn("timestamp", getNewTimestamp(col("timestamp")))
 
     val transformedDF: DataFrame = sourceDF
-      .enrichWithArlas(new WithArlasVisibilityStateFromTimestamp(dataModel))
+      .enrichWithArlas(new WithArlasVisibilityStateFromTimestamp(dataModel, visibilityTimeout))
 
     val expectedDF = visibleSequencesDF
       .withColumn("timestamp", getNewTimestamp(col("timestamp")))

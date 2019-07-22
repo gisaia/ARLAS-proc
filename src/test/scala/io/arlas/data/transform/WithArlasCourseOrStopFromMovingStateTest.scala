@@ -20,7 +20,7 @@
 package io.arlas.data.transform
 
 import io.arlas.data.sql._
-import io.arlas.data.model.{DataModel, MLModelLocal}
+import io.arlas.data.model.{CourseConfiguration, MLModelLocal, MotionConfiguration}
 import io.arlas.data.transform.ArlasTransformerColumns._
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.types.{LongType, StringType, StructField, StructType}
@@ -29,11 +29,8 @@ class WithArlasCourseOrStopFromMovingStateTest extends ArlasTest {
 
   import spark.implicits._
 
-  val testDataModel = DataModel(timeFormat = "dd/MM/yyyy HH:mm:ssXXX",
-                                visibilityTimeout = 300,
-                                speedColumn = "speed",
-                                movingStateModel = MLModelLocal(spark, "src/test/resources/hmm_stillmove_model.json"),
-                                courseTimeout = 500)
+  val motionConfig = new MotionConfiguration(movingStateModel = MLModelLocal(spark, "src/test/resources/hmm_stillmove_model.json"))
+  val courseConfig = new CourseConfiguration(courseTimeout = 500)
 
   val expectedData = Seq(
     ("ObjectA", 1527804000l, ArlasMovingStates.STILL.toString, 59l, ArlasCourseOrStop.COURSE.toString),
@@ -122,10 +119,10 @@ class WithArlasCourseOrStopFromMovingStateTest extends ArlasTest {
 
     val transformedDF: DataFrame = sourceDF
       .enrichWithArlas(
-        new WithArlasMovingState(testDataModel, spark, testDataModel.idColumn),
-        new WithArlasMotionIdFromMovingState(testDataModel, spark),
+        new WithArlasMovingState(dataModel, spark, motionConfig),
+        new WithArlasMotionIdFromMovingState(dataModel, spark),
         new WithDurationFromId(dataModel, arlasMotionIdColumn, arlasMotionDurationColumn),
-        new WithArlasCourseOrStopFromMovingState(testDataModel))
+        new WithArlasCourseOrStopFromMovingState(dataModel, courseConfig.courseTimeout))
       .drop(dataModel.timestampColumn, dataModel.latColumn, dataModel.lonColumn, dataModel.speedColumn, arlasPartitionColumn,
             arlasMotionIdColumn)
 

@@ -27,21 +27,4 @@ case class DataModel(
                       lonColumn                      : String = "lon",
                       speedColumn                    : String = "",
                       distanceColumn                 : String = "",
-                      dynamicFields                  : Array[String] = Array("lat", "lon"),
-                      visibilityTimeout              : Int = 3600, //in seconds
-                      timeSampling                   : Long = 15, //in seconds
-                      movingStateModel               : MLModel = null,
-                      courseTimeout                  : Int = 3600, //in seconds
-					  					hmmWindowSize    				 			 : Int = 5000,
-                      //support point
-                      supportPointDeltaTime          : Int = 120,
-                      supportPointColsToPropagate    : Seq[String] = Seq(),
-                      supportPointMaxNumberInGap     : Int = 10,
-                      supportPointMeanSpeedMultiplier: Double = 1.0,
-                      //tempo
-                      tempoModel                     : MLModel = null,
-                      irregularTempo                 : String = "",
-                      irregularTempoThreshold        : Double = 0.0,
-                      salvoTempo                     : String = "tempo_salvo",
-                      salvoTempoValues               : Seq[String] = Seq()
-)
+                      dynamicFields                  : Array[String] = Array("lat", "lon"))

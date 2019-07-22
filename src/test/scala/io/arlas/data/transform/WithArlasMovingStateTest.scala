@@ -19,7 +19,7 @@
 
 package io.arlas.data.transform
 
-import io.arlas.data.model.{DataModel, MLModelLocal}
+import io.arlas.data.model.{MLModelLocal, MotionConfiguration}
 import io.arlas.data.sql._
 import io.arlas.data.transform.ArlasTransformerColumns._
 import org.apache.spark.sql.types.{DoubleType, StringType, StructField, StructType}
@@ -112,37 +112,31 @@ class WithArlasMovingStateTest extends ArlasTest {
 
   val expectedDf = spark.createDataFrame(expectedData.toDF("id", "timestamp", "speed", arlasMovingStateColumn).rdd, expectedSchema)
 
-  "WithArlasMovingState transformation" should " compute the moving state of a dataframe's timeseries" in {
+  val motionConfig = new MotionConfiguration(
+    movingStateModel = MLModelLocal(spark, "src/test/resources/hmm_stillmove_model.json")
+    )
 
-    val testDataModel =
-      new DataModel(timeFormat = "dd/MM/yyyy HH:mm:ssXXX", visibilityTimeout = 300, speedColumn = "speed", movingStateModel =
-        MLModelLocal(spark, "src/test/resources/hmm_stillmove_model.json"))
+  "WithArlasMovingState transformation" should " compute the moving state of a dataframe's timeseries" in {
 
     val transformedDf = visibleSequencesDF
       //avoid natural ordering to ensure that hmm doesn't depend on initial order
-      .sort(testDataModel.latColumn, testDataModel.lonColumn)
+      .sort(dataModel.latColumn, dataModel.lonColumn)
       .enrichWithArlas(
-        new WithArlasMovingState(testDataModel, spark, arlasVisibleSequenceIdColumn))
-      .drop(testDataModel.latColumn, testDataModel.lonColumn, arlasPartitionColumn, arlasTimestampColumn, arlasVisibleSequenceIdColumn, arlasVisibilityStateColumn)
+        new WithArlasMovingState(dataModel, spark, motionConfig))
+      .drop(dataModel.latColumn, dataModel.lonColumn, arlasPartitionColumn, arlasTimestampColumn, arlasVisibleSequenceIdColumn, arlasVisibilityStateColumn)
 
     assertDataFrameEquality(transformedDf, expectedDf)
   }
 
-  //we use a quite big window (20), the longest partition is 29 points ; because with too few points the results are bad
+  //we use a quite big window, the longest partition is 29 points ; because with too few points the results are bad
   //in a real environment, window size shoud be equal to some thousends
   "WithArlasMovingState transformation" should " compute the moving state of a dataframe's timeseries using windowing" in {
 
-    val testDataModel =
-      new DataModel(timeFormat = "dd/MM/yyyy HH:mm:ssXXX", visibilityTimeout = 300, speedColumn = "speed", movingStateModel =
-        MLModelLocal(spark, "src/test/resources/hmm_stillmove_model.json"), hmmWindowSize = 20)
-
     val transformedDf = visibleSequencesDF
-      //avoid natural ordering to ensure that hmm doesn't depend on initial order
       .enrichWithArlas(
-        new WithArlasMovingState(testDataModel, spark, arlasVisibleSequenceIdColumn))
-      .drop(testDataModel.latColumn, testDataModel.lonColumn, arlasPartitionColumn, arlasTimestampColumn, arlasVisibleSequenceIdColumn, arlasVisibilityStateColumn)
+        new WithArlasMovingState(dataModel, spark, motionConfig.copy(movingStateHmmWindowSize = 30)))
+      .drop(dataModel.latColumn, dataModel.lonColumn, arlasPartitionColumn, arlasTimestampColumn, arlasVisibleSequenceIdColumn, arlasVisibilityStateColumn)
 
-    transformedDf.sort(dataModel.idColumn, arlasTimestampColumn).show(500, false)
     assertDataFrameEquality(transformedDf, expectedDf)
   }
 

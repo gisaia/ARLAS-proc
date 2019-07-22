@@ -120,7 +120,8 @@ class WithArlasVisibilityStateFromTempoTest extends ArlasTest {
                        arlasDeltaTimestampColumn,
                        new MLModelLocal(spark, "src/test/resources/hmm_tempo_model.json"),
                        dataModel.idColumn,
-                       arlasTempoColumn)).enrichWithArlas(
+                       arlasTempoColumn,
+                       5000)).enrichWithArlas(
       new WithArlasVisibilityStateFromTempo(dataModel, spark, "tempo_other"))
 
     assertDataFrameEquality(

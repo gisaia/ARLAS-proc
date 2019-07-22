@@ -19,7 +19,6 @@
 
 package io.arlas.data.transform
 
-import io.arlas.data.model.DataModel
 import org.apache.spark.sql.functions._
 import io.arlas.data.sql._
 import org.apache.spark.sql.types.{DoubleType, LongType, StringType, StructField}
@@ -29,13 +28,7 @@ class WithSupportGeoPointTest extends ArlasTest {
 
   import spark.implicits._
 
-  val testDataModel = DataModel(
-    timeFormat = "dd/MM/yyyy HH:mm:ssXXX",
-    visibilityTimeout = 300,
-    speedColumn = "speed",
-    distanceColumn = "distance",
-    supportPointDeltaTime = 5,
-    supportPointColsToPropagate = Seq("id", "lat", "lon", arlasTimestampColumn))
+  val testDataModel = dataModel.copy(distanceColumn = "distance")
 
   val testData = Seq(
     ("ObjectA", "01/06/2018 00:00:00+02:00", 55.921028, 17.320418, 0.280577132616533, 0.42065662232025, ArlasVisibilityStates.APPEAR.toString),
@@ -78,7 +71,14 @@ class WithSupportGeoPointTest extends ArlasTest {
       new WithArlasPartition(testDataModel),
       new WithArlasTimestamp(testDataModel),
       new WithArlasDeltaTimestamp(testDataModel, spark, testDataModel.idColumn),
-      new WithSupportGeoPoint(testDataModel, spark))
+      new WithSupportGeoPoint(
+        testDataModel,
+        spark,
+        5,
+        10,
+        1.0,
+        "tempo_irregular",
+        Seq("id", "lat", "lon", arlasTimestampColumn)))
         .drop(arlasPartitionColumn, arlasDeltaTimestampColumn, arlasPreviousDeltaTimestampColumn, arlasDeltaTimestampVariationColumn, "keep")
 
     assertDataFrameEquality(transformedDF, expectedDF)

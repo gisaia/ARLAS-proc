@@ -19,16 +19,15 @@
 
 package io.arlas.data.transform
 
-import io.arlas.data.model.{DataModel}
-import io.arlas.data.transform.ArlasTransformerColumns.arlasMovingStateColumn
+import io.arlas.data.model.DataModel
+import io.arlas.data.transform.ArlasTransformerColumns.{arlasCourseIdColumn, arlasCourseOrStopColumn, arlasMotionIdColumn, arlasMovingStateColumn}
 import org.apache.spark.sql.SparkSession
 
-class WithArlasMovingState(dataModel: DataModel,
-                           spark    : SparkSession,
-                           partitionColumn: String)
-  extends HmmProcessor(dataModel,
-                       spark,
-                       dataModel.speedColumn,
-                       dataModel.movingStateModel,
-                       partitionColumn,
-                       arlasMovingStateColumn)
+class WithArlasCourseIdFromCourseOrStop(dataModel: DataModel,
+                                        spark         : SparkSession)
+  extends WithStateIdOnStateChange(dataModel, arlasCourseOrStopColumn, arlasCourseIdColumn)
+
+class WithArlasMotionIdFromMovingState(dataModel: DataModel,
+                                       spark    : SparkSession)
+  extends WithStateIdOnStateChange(dataModel, arlasMovingStateColumn, arlasMotionIdColumn)
+
