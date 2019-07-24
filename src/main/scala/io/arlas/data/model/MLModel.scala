@@ -36,21 +36,25 @@ case class MLModelLocal(spark: SparkSession, path: String) extends MLModel {
 
 case class MLModelHosted(spark: SparkSession, project: String, modelName: String, version: String = "latest") extends MLModel {
 
-  val CLOUDSMITH_TOKEN_KEY = "spark.driver.CLOUDSMITH_TOKEN"
+  val CLOUDSMITH_TOKEN_KEY = "spark.driver.CLOUDSMITH_ML_MODELS_TOKEN"
+  val CLOUDSMITH_REPO_KEY  = "spark.driver.CLOUDSMITH_ML_MODELS_REPO"
 
   override def getModelString(): Try[String] = {
 
     val cloudsmithToken = Try(spark.conf.get(CLOUDSMITH_TOKEN_KEY)).toOption
+    val cloudsmithRepo = Try(spark.conf.get(CLOUDSMITH_REPO_KEY)).toOption
 
-    if (cloudsmithToken.isDefined) {
+    if (!cloudsmithToken.isDefined) {
+      new Failure(new InvalidParameterException(s"${CLOUDSMITH_TOKEN_KEY} conf not set, cannot download ML Model ${modelName}:${version}/${project}"))
+    } else if (!cloudsmithRepo.isDefined) {
+      new Failure(new InvalidParameterException(s"${CLOUDSMITH_REPO_KEY} conf not set, cannot download ML Model ${modelName}:${version}/${project}"))
+    } else {
       //TODO put URL in a config class
       Try(scala.io.Source.fromURL(
-        s"https://dl.cloudsmith.io/${cloudsmithToken.get}/gisaia/arlas/raw/versions/${version}/io.arlas.ml.models.${project}.${modelName}")
+        s"https://dl.cloudsmith.io/${cloudsmithToken.get}/${cloudsmithRepo.get}/raw/versions/${version}/io.arlas.ml.models.${project}.${modelName}")
             .mkString)
-
-    } else {
-      new Failure(new InvalidParameterException(s"${CLOUDSMITH_TOKEN_KEY} conf not set, cannot download ML Model ${modelName}:${version}/${project}"))
     }
+
   }
 
 }

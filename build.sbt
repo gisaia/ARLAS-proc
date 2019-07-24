@@ -3,7 +3,7 @@ ThisBuild / scalaVersion := "2.11.8"
 ThisBuild / organization := "io.arlas"
 
 resolvers += "osgeo" at "http://download.osgeo.org/webdav/geotools/"
-resolvers += "gisaia-ml" at s"https://dl.cloudsmith.io/${sys.env.getOrElse("CLOUDSMITH_TOKEN", "basic")}/gisaia/arlas/maven"
+resolvers += "gisaia-ml" at s"https://dl.cloudsmith.io/${sys.env.getOrElse("CLOUDSMITH_PRIVATE_TOKEN", "basic")}/gisaia/private/maven"
 resolvers += "boundless" at "http://repo.boundlessgeo.com/main"
 resolvers += "jboss" at "https://repository.jboss.org/maven2/"
 

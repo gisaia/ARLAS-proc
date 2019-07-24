@@ -68,7 +68,7 @@ class HmmProcessor(dataModel: DataModel,
       dataset.withColumn(resultColumn, lit(UNKNOWN_RESULT))
 
     } else if (hmmModelContent.isFailure) {
-      logger.error(s"HMM model not found")
+      logger.error(s"HMM model not found: " + hmmModelContent.failed.get.getMessage)
       dataset.withColumn(resultColumn, lit(UNKNOWN_RESULT))
 
     } else {

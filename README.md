@@ -95,10 +95,13 @@ docker run -ti \
         --conf spark.cassandra.connection.host="gisaia-scylla-db" \
         --conf spark.driver.allowMultipleContexts="true" \
         --conf spark.rpc.netty.dispatcher.numThreads="2" \
-        --conf spark.driver.CLOUDSMITH_TOKEN="$CLOUDSMITH_TOKEN"
+        --conf spark.driver.CLOUDSMITH_ML_MODELS_TOKEN="$CLOUDSMITH_PRIVATE_TOKEN" \
+        --conf spark.driver.CLOUDSMITH_ML_MODELS_REPO="gisaia/private"
 ```
 
-$CLOUDSMITH_TOKEN is required when using ML models from cloudsmith. Its value should be asked to a developer.
+spark.driver.CLOUDSMITH_ML_MODELS_REPO and spark.driver.CLOUDSMITH_ML_MODELS_TOKEN are required when using ML models from cloudsmith. 
+
+CLOUDSMITH_ML_MODELS_REPO is the repo hosting the models (e.g. `gisaia/private`), and CLOUDSMITH_ML_MODELS_TOKEN is the token to use to download from this repository.
 
 ## Start spark-shell on GCP
 
@@ -167,15 +170,15 @@ Paste (using `:paste`) the following code snippet :
 ```
 
 ### ARLAS-ML dependency
-The Cloudsmith token is a required environment variable for arlas-ml dependency to be downloaded.
+The Cloudsmith private repository token is a required environment variable for arlas-ml dependency to be downloaded from gisaia/private.
 
-`export CLOUDSMITH_TOKEN="the-token"`
+`export CLOUDSMITH_PRIVATE_TOKEN="the-token"`
 
 You may add it in your `.bash_profile` file.
 
 **Note for Intellij users:** 
 
-Starting intellij from a terminal where CLOUDSMITH_TOKEN is set, the dependency will be downloaded with no issue.
+Starting intellij from a terminal where CLOUDSMITH_PRIVATE_TOKEN is set, the dependency will be downloaded with no issue.
 
 For this, go in `Tools => Create command line launcher` and validate. 
 
