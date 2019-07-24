@@ -26,6 +26,7 @@ object ArlasTransformerColumns {
   val arlasVisibilityStateColumn = "arlas_visibility_state"
   val arlasVisibleSequenceIdColumn = "arlas_visible_sequence_id"
   val arlasGeoPointColumn = "arlas_geopoint"
+  val arlasIdColumn = "arlas_id"
   val arlasDeltaTimestampColumn          = "arlas_delta_timestamp"
   val arlasPreviousDeltaTimestampColumn  = "arlas_previous_delta_timestamp"
   val arlasDeltaTimestampVariationColumn = "arlas_delta_timestamp_variation"

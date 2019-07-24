@@ -19,22 +19,22 @@
 
 package io.arlas.data.transform
 
-import io.arlas.data.model.DataModel
+import io.arlas.data.sql._
 import io.arlas.data.transform.ArlasTransformerColumns._
-import org.apache.spark.sql.functions._
-import org.apache.spark.sql.types._
-import org.apache.spark.sql.{DataFrame, Dataset}
+import org.apache.spark.sql.DataFrame
 
-class WithArlasGeopoint(dataModel            : DataModel)
-  extends ArlasTransformer(dataModel) {
+class WithArlasIdTest extends ArlasTest {
 
-  override def transform(dataset: Dataset[_]): DataFrame = {
-    dataset.withColumn(arlasGeoPointColumn, concat(col(dataModel.latColumn), lit(","), col(dataModel.lonColumn)))
-  }
+  "WithArlasId" should "compute the id" in {
 
-  override def transformSchema(schema: StructType): StructType = {
-    checkSchema(schema)
-      .add(StructField(arlasGeoPointColumn, StringType, true))
+    val sourceDF = cleanedDF
+
+    val transformedDF: DataFrame = sourceDF
+      .enrichWithArlas(new WithArlasId(dataModel))
+
+    transformedDF.collect().foreach(row => {
+      assert(row.getAs[String](arlasIdColumn) == row.getAs[String](dataModel.idColumn) + "#" + row.getAs[Long](arlasTimestampColumn))
+    })
   }
 
 }
