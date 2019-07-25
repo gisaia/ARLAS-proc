@@ -47,7 +47,7 @@ class TransformableDataFrame(df: DataFrame) {
     doPipelineTransform(
       df,
       new WithArlasDeltaTimestamp(dataModel, spark, dataModel.idColumn),
-      new WithArlasGeopoint(dataModel, spark))
+      new WithArlasGeopoint(dataModel))
   }
 
   def asArlasVisibleSequencesThroughTempo(dataModel: DataModel, tempoConfig: TempoConfiguration, spark: SparkSession): DataFrame = {
