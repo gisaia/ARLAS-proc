@@ -17,12 +17,10 @@
  * under the License.
  */
 
-package io.arlas.data.model
+package io.arlas.data
 
-case class RunOptions(
-    source: String,
-    target: String,
-    period: Period,
-    warmingPeriod: Option[Long],
-    endingPeriod: Option[Long]
-)
+package object model {
+
+  type ArgumentMap = Map[String, String]
+
+}

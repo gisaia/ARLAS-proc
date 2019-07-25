@@ -20,19 +20,21 @@
 package io.arlas.data.app.transform
 
 import java.time.{Instant, ZoneOffset, ZonedDateTime}
+
 import io.arlas.data.app.BasicApp
-import io.arlas.data.model.{DataModel, Period, RunOptions}
+import io.arlas.data.model.{ArgumentMap, DataModel, Period}
 import io.arlas.data.sql._
 import io.arlas.data.transform.ArlasTransformerColumns._
 import io.arlas.data.utils.CassandraTool
 import org.apache.spark.sql.functions.min
 import org.apache.spark.sql.{DataFrame, SparkSession}
+import io.arlas.data.model.runoptions.{RunOptionsBasic, RunOptionsBasicFactory}
 
-object Transformer extends BasicApp with CassandraTool {
+object Transformer extends BasicApp[RunOptionsBasic] with CassandraTool {
 
   override def getName: String = "Transformer"
 
-  override def run(spark: SparkSession, dataModel: DataModel, runOptions: RunOptions): Unit = {
+  override def run(spark: SparkSession, dataModel: DataModel, runOptions: RunOptionsBasic): Unit = {
 
     //value set for the integration tests to pass,
     //TODO tests should be rewritten and visibilityTimeout managed in another way
@@ -48,7 +50,7 @@ object Transformer extends BasicApp with CassandraTool {
     transformedDf.writeToScyllaDB(spark, dataModel, runOptions.target)
   }
 
-  def readData(spark: SparkSession, runOptions: RunOptions, dataModel: DataModel, visibilityTimeout: Int): DataFrame = {
+  def readData(spark: SparkSession, runOptions: RunOptionsBasic, dataModel: DataModel, visibilityTimeout: Int): DataFrame = {
 
     val df: DataFrame = {
       if (runOptions.source.contains("/")) {
@@ -68,7 +70,7 @@ object Transformer extends BasicApp with CassandraTool {
    * that lasts 2 times dataModel.visibilityTimeout just before transformation.
    * It enables to have history on some fields like arlas_visible_sequence_id.
    */
-  def addWarmUpPeriodData(spark: SparkSession, runOptions: RunOptions, dataModel: DataModel, visibilityTimeout: Int)(
+  def addWarmUpPeriodData(spark: SparkSession, runOptions: RunOptionsBasic, dataModel: DataModel, visibilityTimeout: Int)(
       sourceDF: DataFrame): DataFrame = {
 
     val targetKeyspace = runOptions.target.split('.')(0)
@@ -99,4 +101,5 @@ object Transformer extends BasicApp with CassandraTool {
     }
   }
 
+  override def getRunOptions(arguments: ArgumentMap): RunOptionsBasic = RunOptionsBasicFactory(arguments)
 }

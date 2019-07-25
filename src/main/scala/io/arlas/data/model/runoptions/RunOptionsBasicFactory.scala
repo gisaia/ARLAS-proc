@@ -17,27 +17,17 @@
  * under the License.
  */
 
-package io.arlas.data.app.extract
+package io.arlas.data.model.runoptions
 
-import io.arlas.data.app.BasicApp
-import io.arlas.data.model.runoptions.{RunOptionsBasic, RunOptionsBasicFactory}
-import io.arlas.data.model.{ArgumentMap, DataModel}
-import io.arlas.data.sql._
-import org.apache.spark.sql._
+import io.arlas.data.model.ArgumentMap
 
-object CSVExtractor extends BasicApp[RunOptionsBasic] {
+class RunOptionsBasicFactory(arguments: ArgumentMap) extends RunOptionsAbstractFactory[RunOptionsBasic](arguments) {
 
-  override def getName: String = "CSV Extractor"
-
-  override def run(spark: SparkSession, dataModel: DataModel, runOptions: RunOptionsBasic): Unit = {
-
-    readFromCsv(spark, runOptions.source)
-      .asArlasFormattedData(dataModel)
-      .filterOnPeriod(runOptions.period)
-      .writeToParquet(spark, runOptions.target)
-
+  override def create(): RunOptionsBasic = {
+    RunOptionsBasic(source, target, period)
   }
+}
 
-  override def getRunOptions(arguments: ArgumentMap): RunOptionsBasic = RunOptionsBasicFactory(arguments)
-
+object RunOptionsBasicFactory {
+  def apply(arguments: ArgumentMap) = new RunOptionsBasicFactory(arguments).create()
 }
