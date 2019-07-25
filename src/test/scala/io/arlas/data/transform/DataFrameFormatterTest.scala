@@ -24,7 +24,7 @@ import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types._
 
-class DataFrameValidatorTest extends ArlasTest {
+class DataFrameFormatterTest extends ArlasTest {
 
   "DataFrameValidator " should " fix invalid column names" in {
 
@@ -39,7 +39,7 @@ class DataFrameValidatorTest extends ArlasTest {
       .withColumn("start_with_underscore", lit(2).cast(IntegerType))
 
     val transformedDF: DataFrame = sourceDF
-      .enrichWithArlas(new DataFrameValidator(dataModel))
+      .enrichWithArlas(new DataFrameFormatter(dataModel))
 
     assertDataFrameEquality(transformedDF, expectedDF)
   }
@@ -60,7 +60,7 @@ class DataFrameValidatorTest extends ArlasTest {
       .drop("oldlon", "newlon")
 
     val transformedDF: DataFrame = sourceDF
-      .enrichWithArlas(new DataFrameValidator(dataModel))
+      .enrichWithArlas(new DataFrameFormatter(dataModel))
 
     assertDataFrameEquality(transformedDF, expectedDF)
   }
@@ -77,7 +77,7 @@ class DataFrameValidatorTest extends ArlasTest {
     val expectedDF = rawDF
 
     val transformedDF: DataFrame = sourceDF
-      .enrichWithArlas(new DataFrameValidator(dataModel))
+      .enrichWithArlas(new DataFrameFormatter(dataModel))
 
     assertDataFrameEquality(transformedDF, expectedDF)
   }

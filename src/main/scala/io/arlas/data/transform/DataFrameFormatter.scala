@@ -24,7 +24,7 @@ import org.apache.spark.sql.types.{DataType, DoubleType, StringType, StructField
 import org.apache.spark.sql.{DataFrame, Dataset}
 import org.apache.spark.sql.functions.{col, regexp_replace, to_timestamp}
 
-class DataFrameValidator(dataModel: DataModel) extends ArlasTransformer(dataModel) {
+class DataFrameFormatter(dataModel: DataModel) extends ArlasTransformer(dataModel) {
 
   override def transform(dataset: Dataset[_]): DataFrame = {
     dataset.toDF

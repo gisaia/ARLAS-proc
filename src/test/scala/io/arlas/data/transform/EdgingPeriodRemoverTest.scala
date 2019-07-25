@@ -146,7 +146,7 @@ class EdgingPeriodRemoverTest extends ArlasTest {
     val oldTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ssXXX")
 
     val transformedDf: DataFrame = rawDF
-      .asArlasCleanedData(dataModel)
+      .asArlasFormattedData(dataModel)
       .asArlasVisibleSequencesFromTimestamp(dataModel, visibilityTimeout)
       .enrichWithArlas(
         new EdgingPeriodRemover(dataModel, Some(warmingPeriod), Some(endingPeriod), spark))
