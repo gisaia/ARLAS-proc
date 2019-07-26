@@ -19,15 +19,17 @@
 
 package io.arlas.data.app
 
-import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
-
-import io.arlas.data.model.{DataModel, Period, RunOptions}
+import io.arlas.data.model.runoptions.RunOptions
+import io.arlas.data.model.{ArgumentMap, DataModel}
 import org.apache.spark.sql.SparkSession
 import org.slf4j.LoggerFactory
 
-trait BasicApp {
+trait BasicApp[R<:RunOptions] {
+
   @transient lazy val logger = LoggerFactory.getLogger(this.getClass)
+
+  def appArguments = Seq("id", "timestamp", "timeformat", "lat", "lon", "speed", "distance", "dynamic", "warmingPeriod", "endingPeriod", "start", "stop", "source",
+                         "target")
 
   def getName: String
 
@@ -48,7 +50,7 @@ trait BasicApp {
               --target string
   """
 
-  def run(spark: SparkSession, dataModel: DataModel, runOptions: RunOptions): Unit
+  def run(spark: SparkSession, dataModel: DataModel, runOptions: R): Unit
 
   def initSparkSession(): SparkSession = {
     SparkSession
@@ -76,38 +78,11 @@ trait BasicApp {
     run(spark, dataModel, runOptions)
   }
 
-  type ArgumentMap = Map[String, String]
   def getArgs(map: ArgumentMap, list: List[String]): ArgumentMap = {
     list match {
       case Nil => map
-      case "--id" :: value :: tail =>
-        getArgs(map ++ Map("id" -> value), tail)
-      case "--timestamp" :: value :: tail =>
-        getArgs(map ++ Map("timestamp" -> value), tail)
-      case "--timeformat" :: value :: tail =>
-        getArgs(map ++ Map("timeformat" -> value), tail)
-      case "--lat" :: value :: tail =>
-        getArgs(map ++ Map("lat" -> value), tail)
-      case "--lon" :: value :: tail =>
-        getArgs(map ++ Map("lon" -> value), tail)
-      case "--speed" :: value :: tail =>
-        getArgs(map ++ Map("speed" -> value), tail)
-      case "--distance" :: value :: tail =>
-        getArgs(map ++ Map("distance" -> value), tail)
-      case "--dynamic" :: value :: tail =>
-        getArgs(map ++ Map("dynamic" -> value), tail)
-      case "--warmingPeriod" :: value :: tail =>
-        getArgs(map ++ Map("warmingPeriod" -> value), tail)
-      case "--endingPeriod" :: value :: tail =>
-        getArgs(map ++ Map("endingPeriod" -> value), tail)
-      case "--start" :: value :: tail =>
-        getArgs(map ++ Map("start" -> value), tail)
-      case "--stop" :: value :: tail =>
-        getArgs(map ++ Map("stop" -> value), tail)
-      case "--source" :: value :: tail =>
-        getArgs(map ++ Map("source" -> value), tail)
-      case "--target" :: value :: tail =>
-        getArgs(map ++ Map("target" -> value), tail)
+      case head :: value :: tail if appArguments.map(arg => s"--${arg}").contains(head) =>
+        getArgs(map ++ Map(head.replaceFirst("^\\-\\-", "") -> value), tail)
       case argument :: tail =>
         println("Unknown argument " + argument)
         getArgs(map, list.tail)
@@ -127,37 +102,6 @@ trait BasicApp {
     )
   }
 
-  def getRunOptions(arguments: ArgumentMap): RunOptions = {
-    val start = arguments.get("start") match {
-      case Some(startStr) =>
-        Some(ZonedDateTime.parse(startStr, DateTimeFormatter.ISO_OFFSET_DATE_TIME))
-      case None => None
-    }
-    val stop = arguments.get("stop") match {
-      case Some(stopStr) =>
-        Some(ZonedDateTime.parse(stopStr, DateTimeFormatter.ISO_OFFSET_DATE_TIME))
-      case None => None
-    }
-
-    RunOptions(
-      arguments.get("source") match {
-        case Some(source) => source
-        case None         => throw new RuntimeException("Missing source argument")
-      },
-      arguments.get("target") match {
-        case Some(target) => target
-        case None         => throw new RuntimeException("Missing source argument")
-      },
-      Period(start, stop),
-      arguments.get("warmingPeriod") match {
-        case Some(warmingPeriod) => Some(warmingPeriod.toLong)
-        case None                => None
-      },
-      arguments.get("endingPeriod") match {
-        case Some(endingPeriod) => Some(endingPeriod.toLong)
-        case None               => None
-      }
-    )
-  }
+  def getRunOptions(arguments: ArgumentMap): R
 
 }

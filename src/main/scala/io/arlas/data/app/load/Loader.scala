@@ -20,17 +20,18 @@
 package io.arlas.data.app.load
 
 import io.arlas.data.app.BasicApp
-import io.arlas.data.model.{DataModel, RunOptions}
+import io.arlas.data.model.runoptions.{RunOptionsBasic, RunOptionsBasicFactory}
+import io.arlas.data.model.{ArgumentMap, DataModel}
 import io.arlas.data.sql._
 import org.apache.spark.sql.functions.col
 import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
 
-object Loader extends BasicApp {
+object Loader extends BasicApp[RunOptionsBasic] {
   var id = ""
 
   override def getName: String = "Loader Application"
 
-  override def run(spark: SparkSession, dataModel: DataModel, runOptions: RunOptions): Unit = {
+  override def run(spark: SparkSession, dataModel: DataModel, runOptions: RunOptionsBasic): Unit = {
     spark.sparkContext.setLogLevel("Error")
 
     val source = runOptions.source.split(",")(0)
@@ -60,7 +61,7 @@ object Loader extends BasicApp {
       .csv(csvName)
   }
 
-  override def getArgs(map: Loader.ArgumentMap, list: List[String]): Loader.ArgumentMap = {
+  override def getArgs(map: ArgumentMap, list: List[String]): ArgumentMap = {
     list match {
       case Nil                           => map
       case "--id-value" :: value :: tail => id = value
@@ -68,4 +69,7 @@ object Loader extends BasicApp {
     }
     super.getArgs(map, list)
   }
+
+  override def getRunOptions(arguments: ArgumentMap): RunOptionsBasic = RunOptionsBasicFactory(arguments)
+
 }

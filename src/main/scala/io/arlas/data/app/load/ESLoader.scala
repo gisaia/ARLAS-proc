@@ -20,14 +20,16 @@
 package io.arlas.data.app.load
 
 import io.arlas.data.app.BasicApp
-import io.arlas.data.model.{DataModel, RunOptions}
+import io.arlas.data.app.transform.Transformer
+import io.arlas.data.model.runoptions.{RunOptionsBasic, RunOptionsBasicFactory}
+import io.arlas.data.model.{ArgumentMap, DataModel}
 import io.arlas.data.sql.{readFromParquet, readFromScyllaDB, _}
 import org.apache.spark.sql.{DataFrame, SparkSession}
 
-object ESLoader extends BasicApp {
+object ESLoader extends BasicApp[RunOptionsBasic] {
   override def getName: String = "Elasticsearch loader application"
 
-  override def run(spark: SparkSession, dataModel: DataModel, runOptions: RunOptions): Unit = {
+  override def run(spark: SparkSession, dataModel: DataModel, runOptions: RunOptionsBasic): Unit = {
 
     val df: DataFrame = {
       if (runOptions.source.contains("/")) {
@@ -39,5 +41,7 @@ object ESLoader extends BasicApp {
 
     df.writeToElasticsearch(spark, dataModel, runOptions.target)
   }
+
+  override def getRunOptions(arguments: ArgumentMap): RunOptionsBasic = RunOptionsBasicFactory(arguments)
 
 }
