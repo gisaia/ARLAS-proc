@@ -1,9 +1,21 @@
 # Spark Application for Ingestion & Processing data  
 
+- [Spark Application for Ingestion & Processing data](#spark-application-for-ingestion---processing-data)
 - [Overview](#overview)
   * [Versions used in this project](#versions-used-in-this-project)
-- [Build and deploy application jar](#build-and-deploy-application-jar)
+- [Prerequisites](#prerequisites)
+  * [Cloudsmith configuration](#cloudsmith-configuration)
+    + [For Intellij to download from Cloudsmith](#for-intellij-to-download-from-cloudsmith)
+- [Build and deploy application JAR](#build-and-deploy-application-jar)
+  * [Build locally](#build-locally)
+  * [Deploy JAR to Cloudsmith](#deploy-jar-to-cloudsmith)
+    + [Deploy thin JAR](#deploy-thin-jar)
+    + [Deploy fat JAR](#deploy-fat-jar)
 - [Integration tests](#integration-tests)
+- [User guide](#user-guide)
+  * [Start spark-shell locally](#start-spark-shell-locally)
+  * [Start spark-shell on GCP](#start-spark-shell-on-gcp)
+  * [Spark-shell example](#spark-shell-example)
 - [Contributing](#contributing)
 - [Authors](#authors)
 - [License](#license)
@@ -31,19 +43,40 @@ It's very important to check the version of spark being used, here we are using 
 
 [Check Spark/ScyllaDB YAML](scripts/tests/docker-compose-standalone.yml)
 
+# Prerequisites
+
+## Cloudsmith configuration
+
+You need to set up the following environment variables first:
+- `CLOUDSMITH_USER`
+- `CLOUDSMITH_API_KEY` (see [https://cloudsmith.io/user/settings/api/])
+- `CLOUDSMITH_PRIVATE_TOKEN` (see [https://cloudsmith.io/~gisaia/repos/private/entitlements/])
+
+```bash
+export CLOUDSMITH_USER="your-user"
+export CLOUDSMITH_API_KEY="your-api-key"
+export CLOUDSMITH_PRIVATE_TOKEN="your-private-token"
+``` 
+
+As these value are personal, you may add them to your `.bash_profile` file. This way you won't need to define them again.
+
+### For Intellij to download from Cloudsmith
+
+For Intellij to be able to use these environment variables (in order to download `arlas-ml`), in a terminal you should:
+
+- have the environment variables defined
+- start Intellij from this terminal: `idea`
+
 # Build and deploy application JAR
 
 ## Build locally
+
 ```bash
 # Build jar
 sbt clean assembly
 ```
 
 ## Deploy JAR to Cloudsmith
-
-You need to set up the following environment variables first:
-- CLOUDSMITH_USER
-- CLOUDSMITH_API_KEY (see [https://cloudsmith.io/user/settings/api/])
 
 ### Deploy thin JAR
 
@@ -59,7 +92,6 @@ This deploys a fat jar, ready to be used from GCP Dataproc to start processing.
 sbt clean "project arlasProcAssembly" publish
 ```
 
-
 # Integration tests
 
 ```bash
@@ -72,7 +104,7 @@ sbt clean "project arlasProcAssembly" publish
 
 Start ScyllaDB and Elasticsearch clusters. For example : 
 ```bash
-docker-compose -f scripts/tests/docker-compose-standalone.yml up -d gisaia-scylla-db gisaia-elasticsearch
+docker-compose -f scripts/tests/docker-compose-standalone.yml up -d --force-recreate gisaia-scylla-db gisaia-elasticsearch
 ```
 
 Start an interactive spark-shell session. For example :
@@ -89,7 +121,7 @@ docker run -ti \
         --packages datastax:spark-cassandra-connector:2.3.1-s_2.11,org.elasticsearch:elasticsearch-spark-20_2.11:6.4.0,org.geotools:gt-referencing:20.1,org.geotools:gt-geometry:20.1,org.geotools:gt-epsg-hsql:20.1 \
         --exclude-packages javax.media:jai_core \
         --repositories http://repo.boundlessgeo.com/main,http://download.osgeo.org/webdav/geotools/ \
-        --jars /opt/proc/target/scala-2.11/arlas-proc_0.3.0-SNAPSHOT-assembly.jar \
+        --jars /opt/proc/target/scala-2.11/arlas-proc-assembly-0.3.0-SNAPSHOT.jar \
         --conf spark.es.nodes="gisaia-elasticsearch" \
         --conf spark.es.index.auto.create="true" \
         --conf spark.cassandra.connection.host="gisaia-scylla-db" \
@@ -99,7 +131,7 @@ docker run -ti \
         --conf spark.driver.CLOUDSMITH_ML_MODELS_REPO="gisaia/private"
 ```
 
-spark.driver.CLOUDSMITH_ML_MODELS_REPO and spark.driver.CLOUDSMITH_ML_MODELS_TOKEN are required when using ML models from cloudsmith. 
+`spark.driver.CLOUDSMITH_ML_MODELS_REPO` and `spark.driver.CLOUDSMITH_ML_MODELS_TOKEN` are required when using ML models from Cloudsmith. 
 
 CLOUDSMITH_ML_MODELS_REPO is the repo hosting the models (e.g. `gisaia/private`), and CLOUDSMITH_ML_MODELS_TOKEN is the token to use to download from this repository.
 
@@ -107,7 +139,7 @@ CLOUDSMITH_ML_MODELS_REPO is the repo hosting the models (e.g. `gisaia/private`)
 
 Once the cluster is started, open an SSH session to the master node.
 
-First, [Set the CLOUDSMITH_TOKEN](#ARLAS-ML-dependency)
+First, [you should set `CLOUDSMITH_PRIVATE_TOKEN`](#prerequisites) in the master node.
 
 Then copy-paste the following:
 
@@ -116,13 +148,14 @@ spark-shell \
         --packages datastax:spark-cassandra-connector:2.3.1-s_2.11,org.elasticsearch:elasticsearch-spark-20_2.11:6.4.0,org.geotools:gt-referencing:20.1,org.geotools:gt-geometry:20.1,org.geotools:gt-epsg-hsql:20.1 \
         --exclude-packages javax.media:jai_core \
         --repositories http://repo.boundlessgeo.com/main,http://download.osgeo.org/webdav/geotools/ \
-        --jars https://dl.cloudsmith.io/$CLOUDSMITH_TOKEN/gisaia/arlas/maven/io/arlas/arlas-proc-assembly_2.11/0.3.0-SNAPSHOT/arlas-proc-assembly_2.11-0.3.0-SNAPSHOT.jar \
+        --jars https://dl.cloudsmith.io/CLOUDSMITH_PRIVATE_TOKEN/gisaia/arlas/maven/io/arlas/arlas-proc-assembly_2.11/0.3.0-SNAPSHOT/arlas-proc-assembly_2.11-0.3.0-SNAPSHOT.jar \
         --conf spark.es.nodes="gisaia-elasticsearch" \
         --conf spark.es.index.auto.create="true" \
         --conf spark.cassandra.connection.host="gisaia-scylla-db" \
         --conf spark.driver.allowMultipleContexts="true" \
         --conf spark.rpc.netty.dispatcher.numThreads="2" \
-        --conf spark.driver.CLOUDSMITH_TOKEN="$CLOUDSMITH_TOKEN"
+        --conf spark.driver.CLOUDSMITH_ML_MODELS_TOKEN="$CLOUDSMITH_PRIVATE_TOKEN" \
+        --conf spark.driver.CLOUDSMITH_ML_MODELS_REPO="gisaia/private"
 ```
 
 You may also use a specific hosted JAR, eg. `arlas-proc-assembly_2.11-0.3.0-20190717.101238-7.jar`
@@ -141,9 +174,7 @@ Paste (using `:paste`) the following code snippet :
       lonColumn = "longitude",
       speedColumn = "sog",
       dynamicFields = Array("latitude", "longitude", "sog", "cog", "heading", "rot", "draught"),
-      timeFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSX",
-      visibilityTimeout = 120,
-      movingStateModel = new MLModelLocal(spark, "/opt/proc/src/test/resources/hmm_stillmove_model.json")
+      timeFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSX"
     )
     val period = getPeriod(
       start = "2018-01-01T00:00:00+00:00",
@@ -157,7 +188,7 @@ Paste (using `:paste`) the following code snippet :
 
     // transform and resample data
     val transformedData = data
-      .asArlasVisibleSequencesFromTimestamp(dataModel)
+      .asArlasVisibleSequencesFromTimestamp(dataModel, 120)
     
     // save result in ScyllaDB
     transformedData.writeToScyllaDB(spark, dataModel, "data.geo_points")
@@ -166,23 +197,6 @@ Paste (using `:paste`) the following code snippet :
     val storedData = readFromScyllaDB(spark, "data.geo_points")
     storedData.writeToElasticsearch(spark, dataModel, "data/geo_points")
 ```
-
-### ARLAS-ML dependency
-The Cloudsmith private repository token is a required environment variable for arlas-ml dependency to be downloaded from gisaia/private.
-
-`export CLOUDSMITH_PRIVATE_TOKEN="the-token"`
-
-You may add it in your `.bash_profile` file.
-
-**Note for Intellij users:** 
-
-Starting intellij from a terminal where CLOUDSMITH_PRIVATE_TOKEN is set, the dependency will be downloaded with no issue.
-
-For this, go in `Tools => Create command line launcher` and validate. 
-
-Then from the terminal, type `idea`.
-
-**You must start intellij from the terminal, for example if you keep it in the dock and start it from the dock, it will fail.**
 
 # Contributing
 
