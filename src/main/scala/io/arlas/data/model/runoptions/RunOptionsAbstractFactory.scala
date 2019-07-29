@@ -46,7 +46,7 @@ abstract class RunOptionsAbstractFactory[R<:RunOptions](arguments: ArgumentMap) 
   val target =
     arguments.get("target") match {
       case Some(target) => target
-      case None         => throw new RuntimeException("Missing source argument")
+      case None         => throw new RuntimeException("Missing target argument")
     }
 
   val period =
