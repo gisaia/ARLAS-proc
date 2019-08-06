@@ -31,13 +31,14 @@ object CSVExtractor extends BasicApp[RunOptionsBasic] {
 
   override def run(spark: SparkSession, dataModel: DataModel, runOptions: RunOptionsBasic): Unit = {
 
-    readFromCsv(spark, runOptions.source)
+    readFromCsv(spark, ",", runOptions.source)
       .asArlasFormattedData(dataModel)
       .filterOnPeriod(runOptions.period)
       .writeToParquet(spark, runOptions.target)
 
   }
 
-  override def getRunOptions(arguments: ArgumentMap): RunOptionsBasic = RunOptionsBasicFactory(arguments)
+  override def getRunOptions(arguments: ArgumentMap): RunOptionsBasic =
+    RunOptionsBasicFactory(arguments)
 
 }
