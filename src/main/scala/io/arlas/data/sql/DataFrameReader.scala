@@ -23,19 +23,15 @@ import org.apache.spark.sql.{DataFrame, SparkSession}
 
 class DataFrameReader {
 
-  def readFromCsv(spark: SparkSession, source: String, delimiter: String = ","): DataFrame = {
-    readFromMulipleCsvs(spark, delimiter, source)
-  }
-
-  def readFromMulipleCsvs(spark: SparkSession, delimiter: String, sources: String*): DataFrame = {
+  def readFromCsv(spark: SparkSession, delimiter: String, sources: String*): DataFrame = {
     spark.read
       .option("header", "true")
       .option("delimiter", delimiter)
-      .csv(sources :_*)
+      .csv(sources: _*)
   }
 
-  def readFromParquet(spark: SparkSession, source: String) = {
-    spark.read.parquet(source)
+  def readFromParquet(spark: SparkSession, source: String*) = {
+    spark.read.parquet(source: _*)
   }
 
   def readFromScyllaDB(spark: SparkSession, source: String): DataFrame = {
