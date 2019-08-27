@@ -19,18 +19,32 @@
 
 package io.arlas.data.sql
 
+import org.apache.spark.sql.types.StructType
 import org.apache.spark.sql.{DataFrame, SparkSession}
 
 class DataFrameReader {
 
   def readFromCsv(spark: SparkSession, delimiter: String, sources: String*): DataFrame = {
-    spark.read
-      .option("header", "true")
-      .option("delimiter", delimiter)
-      .csv(sources: _*)
+    readFromCsv(spark, delimiter, None, sources: _*)
   }
 
-  def readFromParquet(spark: SparkSession, source: String*) = {
+  def readFromCsv(spark: SparkSession,
+                  delimiter: String,
+                  schema: Option[StructType],
+                  sources: String*): DataFrame = {
+    val dfReader = spark.read
+      .option("header", "true")
+      .option("delimiter", delimiter)
+
+    (
+      schema match {
+        case Some(s) => dfReader.schema(s)
+        case _       => dfReader
+      }
+    ).csv(sources: _*)
+  }
+
+  def readFromParquet(spark: SparkSession, source: String*): DataFrame = {
     spark.read.parquet(source: _*)
   }
 
