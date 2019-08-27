@@ -25,15 +25,16 @@ import org.apache.spark.sql.{DataFrame, SparkSession}
 class DataFrameReader {
 
   def readFromCsv(spark: SparkSession, delimiter: String, sources: String*): DataFrame = {
-    readFromCsv(spark, delimiter, None, sources: _*)
+    readFromCsv(spark, delimiter, true, None, sources: _*)
   }
 
   def readFromCsv(spark: SparkSession,
                   delimiter: String,
+                  header: Boolean,
                   schema: Option[StructType],
                   sources: String*): DataFrame = {
     val dfReader = spark.read
-      .option("header", "true")
+      .option("header", header.toString)
       .option("delimiter", delimiter)
 
     (
