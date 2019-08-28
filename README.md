@@ -121,7 +121,7 @@ docker run -ti \
         --packages datastax:spark-cassandra-connector:2.3.1-s_2.11,org.elasticsearch:elasticsearch-spark-20_2.11:6.4.0,org.geotools:gt-referencing:20.1,org.geotools:gt-geometry:20.1,org.geotools:gt-epsg-hsql:20.1 \
         --exclude-packages javax.media:jai_core \
         --repositories http://repo.boundlessgeo.com/main,http://download.osgeo.org/webdav/geotools/ \
-        --jars /opt/proc/target/scala-2.11/arlas-proc-assembly-0.3.0-SNAPSHOT.jar \
+        --jars /opt/proc/target/scala-2.11/arlas-proc-assembly-0.3.0.jar \
         --conf spark.es.nodes="gisaia-elasticsearch" \
         --conf spark.es.index.auto.create="true" \
         --conf spark.cassandra.connection.host="gisaia-scylla-db" \
@@ -148,7 +148,7 @@ spark-shell \
         --packages datastax:spark-cassandra-connector:2.3.1-s_2.11,org.elasticsearch:elasticsearch-spark-20_2.11:6.4.0,org.geotools:gt-referencing:20.1,org.geotools:gt-geometry:20.1,org.geotools:gt-epsg-hsql:20.1 \
         --exclude-packages javax.media:jai_core \
         --repositories http://repo.boundlessgeo.com/main,http://download.osgeo.org/webdav/geotools/ \
-        --jars https://dl.cloudsmith.io/CLOUDSMITH_PRIVATE_TOKEN/gisaia/arlas/maven/io/arlas/arlas-proc-assembly_2.11/0.3.0-SNAPSHOT/arlas-proc-assembly_2.11-0.3.0-SNAPSHOT.jar \
+        --jars https://dl.cloudsmith.io/CLOUDSMITH_PRIVATE_TOKEN/gisaia/arlas/maven/io/arlas/arlas-proc-assembly_2.11/0.3.0/arlas-proc-assembly_2.11-0.3.0.jar \
         --conf spark.es.nodes="gisaia-elasticsearch" \
         --conf spark.es.index.auto.create="true" \
         --conf spark.cassandra.connection.host="gisaia-scylla-db" \
