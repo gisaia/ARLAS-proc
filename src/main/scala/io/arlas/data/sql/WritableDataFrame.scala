@@ -27,14 +27,14 @@ import org.apache.spark.sql.functions.{col, concat, lit, struct}
 import org.apache.spark.sql.{Column, DataFrame, SaveMode, SparkSession}
 import org.elasticsearch.spark.sql._
 
-
 class WritableDataFrame(df: DataFrame) extends TransformableDataFrame(df) with CassandraTool {
 
-  val PARQUET_BLOCK_SIZE: Int = 32 * 1024 * 1024
+  val PARQUET_BLOCK_SIZE: Int = 256 * 1024 * 1024
   val arlasElasticsearchIdColumn = "arlas_es_id"
 
   def writeToParquet(spark: SparkSession, target: String): Unit = {
-    df.write
+    df.repartition(col(arlasPartitionColumn))
+      .write
       .option("compression", "snappy")
       .option("parquet.block.size", PARQUET_BLOCK_SIZE.toString)
       .mode(SaveMode.Append)
@@ -49,15 +49,12 @@ class WritableDataFrame(df: DataFrame) extends TransformableDataFrame(df) with C
     * @return
     */
   def groupColumnsInStructure(structureName: String, cols: Map[String, String]): DataFrame = {
-    df.withColumn(structureName,
-                  struct(cols.map(c => col(c._1).as(c._2)).toSeq :_*))
-      .drop(cols.map(_._1).toSeq :_*)
+    df.withColumn(structureName, struct(cols.map(c => col(c._1).as(c._2)).toSeq: _*))
+      .drop(cols.map(_._1).toSeq: _*)
   }
 
   def asArlasEsData(dataModel: DataModel): DataFrame = {
-    doPipelineTransform(df,
-                        new WithArlasGeopoint(dataModel),
-                        new WithArlasId(dataModel))
+    doPipelineTransform(df, new WithArlasGeopoint(dataModel), new WithArlasId(dataModel))
   }
 
   def writeToElasticsearch(spark: SparkSession, dataModel: DataModel, target: String): Unit = {
@@ -67,7 +64,7 @@ class WritableDataFrame(df: DataFrame) extends TransformableDataFrame(df) with C
   }
 
   /**
-  * Write to multiple elasticsearch indices.
+    * Write to multiple elasticsearch indices.
     * Eg. with target="my_index_{}/doc" and dynamicIndexColumn="month_col"
     * This will save the dataframe to indices like "my_index_201901", "my_index_201902" aso.
     * @param spark
@@ -76,19 +73,16 @@ class WritableDataFrame(df: DataFrame) extends TransformableDataFrame(df) with C
     * @param dynamicIndexColumn the column to use into the index_pattern, eg. with
     * @param mappingExcluded columns that should not be indexed
     */
-  def writeToElasticsearch(
-                            spark: SparkSession,
-                            esIdColName      : String,
-                            target           : String,
-                            dynamicIndexColumn: Column,
-                            mappingExcluded: Seq[String] = Seq()): Unit
-  = {
+  def writeToElasticsearch(spark: SparkSession,
+                           esIdColName: String,
+                           target: String,
+                           dynamicIndexColumn: Column,
+                           mappingExcluded: Seq[String] = Seq()): Unit = {
 
-    df
-      .withColumn("dynamicIndex", dynamicIndexColumn)
-      .saveToEs(target.replace("{}", "{dynamicIndex}"), Map(
-        "es.mapping.id" -> esIdColName,
-        "es.mapping.exclude" -> (mappingExcluded :+ "dynamicIndex").mkString(",")))
+    df.withColumn("dynamicIndex", dynamicIndexColumn)
+      .saveToEs(target.replace("{}", "{dynamicIndex}"),
+                Map("es.mapping.id" -> esIdColName,
+                    "es.mapping.exclude" -> (mappingExcluded :+ "dynamicIndex").mkString(",")))
   }
 
   def writeToScyllaDB(spark: SparkSession, dataModel: DataModel, target: String): Unit = {
