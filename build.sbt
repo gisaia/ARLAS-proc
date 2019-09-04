@@ -24,7 +24,7 @@ val gtReferencing = "org.geotools" % "gt-referencing" % "20.1" % "provided"
 val gtGeometry = "org.geotools" % "gt-geometry" % "20.1" % "provided"
 val geotools = Seq(gtReferencing, gtGeometry)
 
-val arlasMl = "io.arlas" %% "arlas-ml" % "0.1.0"
+val arlasMl = "io.arlas" %% "arlas-ml" % "0.1.1"
 val arlas = Seq(arlasMl)
 
 lazy val arlasProc = (project in file("."))
