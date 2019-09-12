@@ -27,8 +27,8 @@ object ArlasTransformerColumns {
   val arlasVisibleSequenceIdColumn = "arlas_visible_sequence_id"
   val arlasGeoPointColumn = "arlas_geopoint"
   val arlasIdColumn = "arlas_id"
-  val arlasDeltaTimestampColumn          = "arlas_delta_timestamp"
-  val arlasPreviousDeltaTimestampColumn  = "arlas_previous_delta_timestamp"
+  val arlasDeltaTimestampColumn = "arlas_delta_timestamp"
+  val arlasPreviousDeltaTimestampColumn = "arlas_previous_delta_timestamp"
   val arlasDeltaTimestampVariationColumn = "arlas_delta_timestamp_variation"
   val arlasMovingStateColumn = "arlas_moving_state"
   val arlasTempoColumn = "arlas_tempo"
@@ -38,15 +38,27 @@ object ArlasTransformerColumns {
   val arlasCourseStateColumn = "arlas_course_state"
   val arlasCourseIdColumn = "arlas_course_id"
   val arlasCourseDurationColumn = "arlas_course_duration"
+
+  // TRACK COLUMNS
+  val arlasTrackPrefix = "arlas_track_"
+  val arlasTrackId = arlasTrackPrefix + "id"
+  val arlasTrackNbGeopoints = arlasTrackPrefix + "nb_geopoints"
+  val arlasTrackTrail = arlasTrackPrefix + "trail"
+  val arlasTrackDuration = arlasTrackPrefix + "duration_s"
+  val arlasTrackTimestampStart = arlasTrackPrefix + "timestamp_start"
+  val arlasTrackTimestampEnd = arlasTrackPrefix + "timestamp_end"
+  val arlasTrackTimestampCenter = arlasTrackPrefix + "timestamp_center"
+  val arlasTrackLocationLat = arlasTrackPrefix + "location_lat"
+  val arlasTrackLocationLon = arlasTrackPrefix + "location_lon"
 }
 
 /**
- * APPEAR = first point of a visible sequence
- * DISAPPEAR = last point of a visible sequence
- * VISIBLE = other points of the sequence
- * INVISIBLE = points that are not visible
- */
-object ArlasVisibilityStates  {
+  * APPEAR = first point of a visible sequence
+  * DISAPPEAR = last point of a visible sequence
+  * VISIBLE = other points of the sequence
+  * INVISIBLE = points that are not visible
+  */
+object ArlasVisibilityStates {
   sealed abstract class ArlasVisibilityStatesVal(visibilityState: String) {
     override def toString: String = visibilityState
   }
@@ -56,7 +68,7 @@ object ArlasVisibilityStates  {
   case object INVISIBLE extends ArlasVisibilityStatesVal("INVISIBLE")
 }
 
-object ArlasMovingStates  {
+object ArlasMovingStates {
   sealed abstract class ArlasMovingStates(movingState: String) {
     override def toString: String = movingState
   }
@@ -64,7 +76,7 @@ object ArlasMovingStates  {
   case object MOVE extends ArlasMovingStates("MOVE")
 }
 
-object ArlasCourseOrStop  {
+object ArlasCourseOrStop {
   sealed abstract class ArlasCourseStates(courseState: String) {
     override def toString: String = courseState
   }
@@ -72,7 +84,7 @@ object ArlasCourseOrStop  {
   case object COURSE extends ArlasCourseStates("COURSE")
 }
 
-object ArlasCourseStates  {
+object ArlasCourseStates {
   sealed abstract class ArlasCourseStates(courseState: String) {
     override def toString: String = courseState
   }
