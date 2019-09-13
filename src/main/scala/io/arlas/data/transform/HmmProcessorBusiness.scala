@@ -20,28 +20,25 @@
 package io.arlas.data.transform
 
 import io.arlas.data.model.{DataModel, MotionConfiguration, TempoConfiguration}
-import io.arlas.data.transform.ArlasTransformerColumns.{arlasDeltaTimestampColumn, arlasMovingStateColumn, arlasTempoColumn}
+import io.arlas.data.transform.ArlasTransformerColumns._
 import org.apache.spark.sql.SparkSession
 
 class WithArlasMovingState(dataModel: DataModel,
-                           spark    : SparkSession,
+                           spark: SparkSession,
                            motionConfig: MotionConfiguration)
-  extends HmmProcessor(dataModel,
-                       spark,
-                       dataModel.speedColumn,
-                       motionConfig.movingStateModel,
-                       dataModel.idColumn,
-                       arlasMovingStateColumn,
-                       motionConfig.movingStateHmmWindowSize)
+    extends HmmProcessor(dataModel,
+                         spark,
+                         dataModel.speedColumn,
+                         motionConfig.movingStateModel,
+                         dataModel.idColumn,
+                         arlasMovingStateColumn,
+                         motionConfig.movingStateHmmWindowSize)
 
-class WithArlasTempo(dataModel      : DataModel,
-                     spark          : SparkSession,
-                     tempoConfig: TempoConfiguration)
-  extends HmmProcessor(dataModel,
-                       spark,
-                       arlasDeltaTimestampColumn,
-                       tempoConfig.tempoModel,
-                       dataModel.idColumn,
-                       arlasTempoColumn,
-                       tempoConfig.tempoHmmWindowSize)
-
+class WithArlasTempo(dataModel: DataModel, spark: SparkSession, tempoConfig: TempoConfiguration)
+    extends HmmProcessor(dataModel,
+                         spark,
+                         arlasTrackDuration,
+                         tempoConfig.tempoModel,
+                         dataModel.idColumn,
+                         arlasTempoColumn,
+                         tempoConfig.tempoHmmWindowSize)
