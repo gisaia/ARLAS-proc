@@ -29,10 +29,9 @@ import org.scalatest.{FlatSpec, Matchers}
 
 trait ArlasTest extends FlatSpec with Matchers with TestSparkSession with DataFrameTester {
 
-  val dataModel        = DataModel(
-    timeFormat = "dd/MM/yyyy HH:mm:ssXXX",
-    speedColumn = "speed",
-    dynamicFields = Array("lat", "lon", "speed"))
+  val dataModel = DataModel(timeFormat = "dd/MM/yyyy HH:mm:ssXXX",
+                            speedColumn = "speed",
+                            dynamicFields = Array("lat", "lon", "speed"))
   val visibilityTimeout = 300
 
   val rawData = Seq(
@@ -144,6 +143,32 @@ trait ArlasTest extends FlatSpec with Matchers with TestSparkSession with DataFr
   val cleanedDF = spark.createDataFrame(
     cleanedData.toDF.rdd,
     cleanedSchema
+  )
+
+  val tempoSchema = cleanedSchema
+    .add(StructField(arlasTempoColumn, StringType, true))
+
+  val appearTempo = "tempo_other"
+  val tempoData = cleanedData.map {
+    case (id, date, lat, lon, speed, partition, timestamp) => {
+      val tempo =
+        if (id.equals("ObjectA") && (date.equals("01/06/2018 00:04:51+02:00") || date.equals(
+              "01/06/2018 00:12:51+02:00"))) "tempo_10s"
+        else if (id.equals("ObjectA") && (date.equals("01/06/2018 00:10:01+02:00") || date.equals(
+                   "01/06/2018 00:00:00+02:00"))) "tempo_other"
+        else if (id.equals("ObjectB") && date.equals("01/06/2018 00:01:00+02:00") || date.equals(
+                   "01/06/2018 00:10:00+02:00")) "tempo_20s"
+        else if (id.equals("ObjectB") && (date.equals("01/06/2018 00:07:31+02:00") || date.equals(
+                   "01/06/2018 00:00:00+02:00"))) "tempo_other"
+        else "tempo_30s"
+
+      (id, date, lat, lon, speed, partition, timestamp, tempo)
+    }
+  }
+
+  val tempoDF = spark.createDataFrame(
+    tempoData.toDF.rdd,
+    tempoSchema
   )
 
   val visibleSequencesSchema = cleanedSchema
