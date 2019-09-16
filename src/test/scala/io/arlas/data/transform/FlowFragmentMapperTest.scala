@@ -50,12 +50,13 @@ class FlowFragmentMapperTest extends ArlasTest {
         rows
           .sliding(2)
           .map(window => {
-            val trail = (new GeometryFactory().createLineString(Array(
-              new Coordinate(window(0).getAs[Double](dataModel.lonColumn),
-                             window(0).getAs[Double](dataModel.latColumn)),
-              new Coordinate(window(1).getAs[Double](dataModel.lonColumn),
-                             window(1).getAs[Double](dataModel.latColumn))
-            )))
+            val start = new Coordinate(window(0).getAs[Double](dataModel.lonColumn),
+                                       window(0).getAs[Double](dataModel.latColumn))
+            val end = new Coordinate(window(1).getAs[Double](dataModel.lonColumn),
+                                     window(1).getAs[Double](dataModel.latColumn))
+            val trail =
+              if (start.equals2D(end)) new GeometryFactory().createPoint(start)
+              else new GeometryFactory().createLineString(Array(start, end))
 
             Row.fromSeq(window(1).toSeq ++ Array[Any](
               s"""${id}#${window(0).getAs[Long](arlasTimestampColumn)}_${window(1).getAs[Long](

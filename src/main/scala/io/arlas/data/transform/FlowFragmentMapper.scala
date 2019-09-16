@@ -25,7 +25,7 @@ import org.apache.spark.sql.expressions.Window
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types._
 import org.apache.spark.sql.{Column, DataFrame, Dataset, SparkSession}
-import org.locationtech.jts.geom.{Coordinate, GeometryFactory}
+import org.locationtech.jts.geom.{Coordinate, Geometry, GeometryFactory}
 import org.locationtech.jts.io.WKTWriter
 
 class FlowFragmentMapper(dataModel: DataModel,
@@ -38,10 +38,14 @@ class FlowFragmentMapper(dataModel: DataModel,
 
   override def transform(dataset: Dataset[_]): DataFrame = {
 
-    def getTrailGeometry(lat: Double, lon: Double, prevLat: Double, prevLon: Double) = {
+    def getTrailGeometry(lat: Double, lon: Double, prevLat: Double, prevLon: Double): Geometry = {
       val start = new Coordinate(lon, lat)
       val end = new Coordinate(prevLon, prevLat)
-      new GeometryFactory().createLineString(Array(start, end))
+      if (start.equals2D(end)) {
+        new GeometryFactory().createPoint(start)
+      } else {
+        new GeometryFactory().createLineString(Array(start, end))
+      }
     }
 
     // Track geometry WKT (LineString)
