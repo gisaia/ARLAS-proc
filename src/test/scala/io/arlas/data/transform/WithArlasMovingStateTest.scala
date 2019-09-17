@@ -19,10 +19,14 @@
 
 package io.arlas.data.transform
 
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
+
 import io.arlas.data.model.{MLModelLocal, MotionConfiguration}
 import io.arlas.data.sql._
 import io.arlas.data.transform.ArlasTransformerColumns._
-import org.apache.spark.sql.types.{DoubleType, StringType, StructField, StructType}
+import org.apache.spark.sql.functions._
+import org.apache.spark.sql.types._
 
 class WithArlasMovingStateTest extends ArlasTest {
 
@@ -100,7 +104,7 @@ class WithArlasMovingStateTest extends ArlasTest {
     ("ObjectB", "01/06/2018 00:09:41+02:00", 16.5994315098718, ArlasMovingStates.MOVE.toString),
     ("ObjectB", "01/06/2018 00:09:50+02:00", 5.11729658662259, ArlasMovingStates.MOVE.toString),
     ("ObjectB", "01/06/2018 00:10:00+02:00", 7.289531322081, ArlasMovingStates.MOVE.toString)
-    )
+  )
 
   val expectedSchema = StructType(
     List(
@@ -108,22 +112,28 @@ class WithArlasMovingStateTest extends ArlasTest {
       StructField("timestamp", StringType, true),
       StructField("speed", DoubleType, true),
       StructField(arlasMovingStateColumn, StringType, true)
-      ))
+    ))
 
-  val expectedDf = spark.createDataFrame(expectedData.toDF("id", "timestamp", "speed", arlasMovingStateColumn).rdd, expectedSchema)
+  val expectedDf = spark.createDataFrame(
+    expectedData.toDF("id", "timestamp", "speed", arlasMovingStateColumn).rdd,
+    expectedSchema)
 
   val motionConfig = new MotionConfiguration(
     movingStateModel = MLModelLocal(spark, "src/test/resources/hmm_stillmove_model.json")
-    )
+  )
 
   "WithArlasMovingState transformation" should " compute the moving state of a dataframe's timeseries" in {
 
     val transformedDf = visibleSequencesDF
-      //avoid natural ordering to ensure that hmm doesn't depend on initial order
+    //avoid natural ordering to ensure that hmm doesn't depend on initial order
       .sort(dataModel.latColumn, dataModel.lonColumn)
-      .enrichWithArlas(
-        new WithArlasMovingState(dataModel, spark, motionConfig))
-      .drop(dataModel.latColumn, dataModel.lonColumn, arlasPartitionColumn, arlasTimestampColumn, arlasVisibleSequenceIdColumn, arlasVisibilityStateColumn)
+      .enrichWithArlas(new WithArlasMovingState(dataModel, spark, motionConfig))
+      .drop(dataModel.latColumn,
+            dataModel.lonColumn,
+            arlasPartitionColumn,
+            arlasTimestampColumn,
+            arlasVisibleSequenceIdColumn,
+            arlasVisibilityStateColumn)
 
     assertDataFrameEquality(transformedDf, expectedDf)
   }
@@ -134,10 +144,98 @@ class WithArlasMovingStateTest extends ArlasTest {
 
     val transformedDf = visibleSequencesDF
       .enrichWithArlas(
-        new WithArlasMovingState(dataModel, spark, motionConfig.copy(movingStateHmmWindowSize = 30)))
-      .drop(dataModel.latColumn, dataModel.lonColumn, arlasPartitionColumn, arlasTimestampColumn, arlasVisibleSequenceIdColumn, arlasVisibilityStateColumn)
+        new WithArlasMovingState(dataModel,
+                                 spark,
+                                 motionConfig.copy(movingStateHmmWindowSize = 30)))
+      .drop(dataModel.latColumn,
+            dataModel.lonColumn,
+            arlasPartitionColumn,
+            arlasTimestampColumn,
+            arlasVisibleSequenceIdColumn,
+            arlasVisibilityStateColumn)
 
     assertDataFrameEquality(transformedDf, expectedDf)
+  }
+
+  "WithArlasMovingState transformation" should " compute the moving state from an ArrayTyped field" in {
+
+    val transformedDf = visibleSequencesDF
+      .withColumn("speed", array(col("speed")))
+      .enrichWithArlas(
+        new WithArlasMovingState(dataModel,
+                                 spark,
+                                 motionConfig.copy(movingStateHmmWindowSize = 30)))
+      .drop(dataModel.latColumn,
+            dataModel.lonColumn,
+            arlasPartitionColumn,
+            arlasTimestampColumn,
+            arlasVisibleSequenceIdColumn,
+            arlasVisibilityStateColumn)
+
+    assertDataFrameEquality(transformedDf, expectedDf.withColumn("speed", array(col("speed"))))
+  }
+
+  "WithArlasMovingState transformation" should " compute the moving state from an ArrayTyped field with several values" in {
+
+    //new visible sequences DF appending a new entry with multiple speed values
+    val timeFormatter = DateTimeFormatter.ofPattern(dataModel.timeFormat)
+    val timestamp = ZonedDateTime.parse("01/06/2018 00:10:00+02:00", timeFormatter).toEpochSecond
+    val sourceData =
+      visibleSequencesData.map(e => (e._1, e._2, e._3, e._4, Seq(e._5), e._6, e._7, e._8, e._9)) :+ ("ObjectB",
+      "01/06/2018 00:10:00+02:00",
+      56.58330,
+      11.830706,
+      Seq(5.1, 5.1),
+      20180601,
+      timestamp,
+      "ObjectB#1527804451",
+      "VISIBLE")
+    val sourceSchema = StructType(
+      List(
+        StructField("id", StringType, true),
+        StructField("timestamp", StringType, true),
+        StructField("lat", DoubleType, true),
+        StructField("lon", DoubleType, true),
+        StructField("speed", ArrayType(DoubleType, true), false)
+      )
+    ).add(StructField(arlasPartitionColumn, IntegerType, false))
+      .add(StructField(arlasTimestampColumn, LongType, false))
+      .add(StructField(arlasVisibleSequenceIdColumn, StringType, true))
+      .add(StructField(arlasVisibilityStateColumn, StringType, true))
+    val sourceDF = spark.createDataFrame(
+      sourceData.toDF.rdd,
+      sourceSchema
+    )
+
+    //get moving states
+    val transformedDf = sourceDF
+      .enrichWithArlas(
+        new WithArlasMovingState(dataModel,
+                                 spark,
+                                 motionConfig.copy(movingStateHmmWindowSize = 30)))
+      .drop(dataModel.latColumn,
+            dataModel.lonColumn,
+            arlasPartitionColumn,
+            arlasTimestampColumn,
+            arlasVisibleSequenceIdColumn,
+            arlasVisibilityStateColumn)
+
+    //build expected data by adding a new entry
+    val newExpectedData = expectedData.map(e => (e._1, e._2, Seq(e._3), e._4)) :+ ("ObjectB", "01/06/2018 00:10:00+02:00", Seq(
+      5.1,
+      5.1), "MOVE")
+    val newExpectedSchema = StructType(
+      List(
+        StructField("id", StringType, true),
+        StructField("timestamp", StringType, true),
+        StructField("speed", ArrayType(DoubleType, true), false),
+        StructField(arlasMovingStateColumn, StringType, true)
+      ))
+    val newExpectedDf = spark.createDataFrame(
+      newExpectedData.toDF("id", "timestamp", "speed", arlasMovingStateColumn).rdd,
+      newExpectedSchema)
+
+    assertDataFrameEquality(transformedDf, newExpectedDf)
   }
 
 }
