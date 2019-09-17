@@ -1,9 +1,10 @@
-language: bash
+language: scala
 
-sudo: required
+scala:
+  - 2.11.8
 
-services:
-- docker
+jdk:
+  - openjdk8
 
 cache:
   directories:
@@ -11,28 +12,11 @@ cache:
   - $HOME/.m2
   - $HOME/.sbt
 
-env:
-- MODE=cluster DOCKER_COMPOSE_VERSION=1.24.0
-- MODE=standalone DOCKER_COMPOSE_VERSION=1.24.0
-
 before_cache:
   # Cleanup the cached directories to avoid unnecessary cache updates, cf https://www.scala-sbt.org/1.x/docs/Travis-CI-with-sbt.html
   - rm -fv $HOME/.ivy2/.sbt.ivy.lock
   - find $HOME/.ivy2/cache -name "ivydata-*.properties" -print -delete
   - find $HOME/.sbt        -name "*.lock"               -print -delete
-
-before_install:
-- sudo apt-get update
-- sudo rm /usr/local/bin/docker-compose
-- curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
-- chmod +x docker-compose
-- sudo mv docker-compose /usr/local/bin
-  # Required to avoid the following error on elasticsearch container startup:
-  #   ERROR: [1] bootstrap checks failed
-  #   [1]: max virtual memory areas vm.max_map_count [65530] is too low, increase to at least [262144]
-- sudo sysctl -w vm.max_map_count=262144
-
-script: scripts/tests/test.sh ${MODE}
 
 branches:
   only:
