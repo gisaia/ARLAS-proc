@@ -33,7 +33,7 @@ class WithArlasVisibilityStateFromTempoTest extends ArlasTest {
   val expectedData = tempoData.map {
     case (id, date, lat, lon, speed, partition, timestamp, tempo) => {
       val visibility =
-        if (tempo.equals(appearTempo)) ArlasVisibilityStates.APPEAR.toString
+        if (tempo.equals(irregularTempo)) ArlasVisibilityStates.APPEAR.toString
         else if ((id.equals("ObjectA") && date.equals("01/06/2018 00:04:51+02:00")) ||
                  (id.equals("ObjectB") && date.equals("01/06/2018 00:01:00+02:00")))
           ArlasVisibilityStates.DISAPPEAR.toString
@@ -51,7 +51,7 @@ class WithArlasVisibilityStateFromTempoTest extends ArlasTest {
   "WithArlasVisibilityStateFromTempo " should "add visibility state related to the tempo" in {
 
     val transformedDF = tempoDF
-      .enrichWithArlas(new WithArlasVisibilityStateFromTempo(dataModel, spark, appearTempo))
+      .enrichWithArlas(new WithArlasVisibilityStateFromTempo(dataModel, spark, irregularTempo))
 
     assertDataFrameEquality(
       transformedDF,

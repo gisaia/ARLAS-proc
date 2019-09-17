@@ -21,10 +21,14 @@ package io.arlas.data.transform
 
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
+
 import io.arlas.data.model.DataModel
 import io.arlas.data.transform.ArlasTransformerColumns._
 import io.arlas.data.{DataFrameTester, TestSparkSession}
+import org.apache.spark.sql.Row
 import org.apache.spark.sql.types._
+import org.locationtech.jts.geom.{Coordinate, GeometryFactory}
+import org.locationtech.jts.io.WKTWriter
 import org.scalatest.{FlatSpec, Matchers}
 
 trait ArlasTest extends FlatSpec with Matchers with TestSparkSession with DataFrameTester {
@@ -148,7 +152,7 @@ trait ArlasTest extends FlatSpec with Matchers with TestSparkSession with DataFr
   val tempoSchema = cleanedSchema
     .add(StructField(arlasTempoColumn, StringType, true))
 
-  val appearTempo = "tempo_other"
+  val irregularTempo = "tempo_other"
   val tempoData = cleanedData.map {
     case (id, date, lat, lon, speed, partition, timestamp) => {
       val tempo =

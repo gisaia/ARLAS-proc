@@ -50,6 +50,19 @@ object ArlasTransformerColumns {
   val arlasTrackTimestampCenter = arlasTrackPrefix + "timestamp_center"
   val arlasTrackLocationLat = arlasTrackPrefix + "location_lat"
   val arlasTrackLocationLon = arlasTrackPrefix + "location_lon"
+  val arlasTrackVisibilityProportion = arlasTrackPrefix + "visibility_proportion"
+  val arlasTrackVisibilityChange = arlasTrackPrefix + "visibility_change"
+}
+
+/**
+  * APPEAR = first visible fragment after an invisible fragment
+  * DISAPPEAR = last visible fragment before an invisible fragment
+  * APPEAR_DISAPPEAR = visible fragment between 2 invisible fragments
+  */
+object VisibilityChange {
+  val DISAPPEAR = "disappear"
+  val APPEAR = "appear"
+  val APPEAR_DISAPPEAR = "appear_disappear"
 }
 
 /**
