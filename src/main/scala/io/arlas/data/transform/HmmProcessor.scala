@@ -20,37 +20,35 @@
 package io.arlas.data.transform
 
 import io.arlas.data.model.{DataModel, MLModel}
-import org.apache.spark.sql.functions._
-import io.arlas.ml.classification.Hmm
-import org.apache.spark.sql.types.{DoubleType, StringType, StructField, StructType}
-import org.apache.spark.sql.{DataFrame, Dataset, Row, SparkSession}
-import org.apache.spark.sql.functions.col
-import org.slf4j.LoggerFactory
 import io.arlas.data.transform.ArlasTransformerColumns.arlasTimestampColumn
-import scala.util.{Failure, Success}
+import io.arlas.ml.classification.Hmm
 import io.arlas.ml.parameter.State
 import org.apache.spark.sql.catalyst.encoders.RowEncoder
 import org.apache.spark.sql.expressions.Window
+import org.apache.spark.sql.functions.{col, _}
+import org.apache.spark.sql.types._
+import org.apache.spark.sql.{DataFrame, Dataset, Row, SparkSession}
+import org.slf4j.LoggerFactory
 
 import scala.collection.mutable.ArrayBuffer
+import scala.util.{Failure, Success}
 
 class HmmProcessor(dataModel: DataModel,
-                   spark                 : SparkSession,
-                   sourceColumn          : String,
-                   hmmModel              : MLModel,
-                   partitionColumn       : String,
-                   resultColumn          : String,
-                   hmmWindowSize        : Int)
-
-  extends ArlasTransformer(dataModel, Vector(partitionColumn)) {
+                   spark: SparkSession,
+                   sourceColumn: String,
+                   hmmModel: MLModel,
+                   partitionColumn: String,
+                   resultColumn: String,
+                   hmmWindowSize: Int)
+    extends ArlasTransformer(dataModel, Vector(partitionColumn)) {
 
   @transient lazy val logger = LoggerFactory.getLogger(this.getClass)
-  val UNKNOWN_RESULT                 = "Unknown"
-  val SOURCE_DOUBLE_COLUMN           = "_sourceDoubleColumn"
-  val COLLECT_COLUMN                 = "_collectColumn"
-  val HMM_PREDICT_COLUMN             = "_hmmPredictColumn"
-  val UNIQUE_ID_COLUMN               = "_uniqueIDColumn"
-  val WINDOW_ID_COLUMN               = "_windowIdColumn"
+  val UNKNOWN_RESULT = "Unknown"
+  val SOURCE_DOUBLE_COLUMN = "_sourceDoubleColumn"
+  val COLLECT_COLUMN = "_collectColumn"
+  val HMM_PREDICT_COLUMN = "_hmmPredictColumn"
+  val UNIQUE_ID_COLUMN = "_uniqueIDColumn"
+  val WINDOW_ID_COLUMN = "_windowIdColumn"
   val ROW_NUMBER_ON_PARTITION_COLUMN = "_rowNumberOnPartitionColumn"
 
   override def transformSchema(schema: StructType): StructType = {
@@ -87,9 +85,10 @@ class HmmProcessor(dataModel: DataModel,
 
   def interpolateRows(dataset: Dataset[_], hmmModelContent: String) = {
 
-    val hmmSchema = StructType(Seq(
-      StructField(UNIQUE_ID_COLUMN, StringType),
-      StructField(resultColumn, StringType)
+    val hmmSchema = StructType(
+      Seq(
+        StructField(UNIQUE_ID_COLUMN, StringType),
+        StructField(resultColumn, StringType)
       ))
 
     val keyWindow = Window.partitionBy(WINDOW_ID_COLUMN).orderBy(arlasTimestampColumn)
@@ -99,37 +98,66 @@ class HmmProcessor(dataModel: DataModel,
     //row1: ROW_NUMBER_ON_PARTITION_COLUMN = 1, KEY_COLUMN = id1_1
     //row2: ROW_NUMBER_ON_PARTITION_COLUMN = 2, KEY_COLUMN = id1_1
     //row3: ROW_NUMBER_ON_PARTITION_COLUMN = 3, KEY_COLUMN = id1_2
-    val initDF = dataset
+    val windowedPartitionedDF = dataset
       .withColumn(ROW_NUMBER_ON_PARTITION_COLUMN, row_number().over(partitionWindow))
-      .withColumn(WINDOW_ID_COLUMN, concat(col(partitionColumn), lit("_"), floor(col(ROW_NUMBER_ON_PARTITION_COLUMN) / hmmWindowSize)))
+      .withColumn(WINDOW_ID_COLUMN,
+                  concat(col(partitionColumn),
+                         lit("_"),
+                         floor(col(ROW_NUMBER_ON_PARTITION_COLUMN) / hmmWindowSize)))
+      .withColumn(UNIQUE_ID_COLUMN,
+                  concat(col(WINDOW_ID_COLUMN), lit("_"), row_number().over(keyWindow)))
+
+    //cast (and eventually explode) source column to DoubleType
+    val sourceDataType =
+      windowedPartitionedDF.schema.fields.filter(_.name.equals(sourceColumn)).head.dataType
+    val formatedSourceDF =
+      if (sourceDataType.equals(ArrayType(DoubleType, true))
+          || sourceDataType.equals(ArrayType(DoubleType, false)))
+        //create one row per values in sourceColumn
+        //these rows will have the same UNIQUE_ID_COLUMN
+        windowedPartitionedDF.withColumn(SOURCE_DOUBLE_COLUMN, explode(col(sourceColumn)))
+      else
+        windowedPartitionedDF.withColumn(SOURCE_DOUBLE_COLUMN,
+                                         when(col(sourceColumn).isNull, lit(0.0d))
+                                           .otherwise(col(sourceColumn).cast(DoubleType)))
 
     //temporary DF with 2 fields: a unique id (= <partitionColumn>_<index>) and the prediction
-    val hmmDF = initDF
-      .withColumn(SOURCE_DOUBLE_COLUMN, when(col(sourceColumn).isNull, lit(0.0)).otherwise(col(sourceColumn).cast(DoubleType)))
-      .withColumn(COLLECT_COLUMN, collect_list(SOURCE_DOUBLE_COLUMN).over(keyWindow))//use window to ensure timestamp sorting
+    val window = Window.partitionBy(UNIQUE_ID_COLUMN).orderBy(desc("count"))
+    val hmmDF = formatedSourceDF
+      .withColumn(COLLECT_COLUMN, collect_list(SOURCE_DOUBLE_COLUMN).over(keyWindow)) //use window to ensure timestamp sorting
+      .withColumn(UNIQUE_ID_COLUMN, collect_list(UNIQUE_ID_COLUMN).over(keyWindow)) //use window to ensure timestamp sorting
       .groupBy(WINDOW_ID_COLUMN)
-      .agg(last(COLLECT_COLUMN).as(COLLECT_COLUMN))
-      //at this point, rows are like "id1_1, Seq(0.1, 1.0)", "id1_2, Seq(2.0)"
-      //the second column is the ordered list of source values to use for prediction, for the window
+      .agg(last(COLLECT_COLUMN).as(COLLECT_COLUMN), last(UNIQUE_ID_COLUMN).as(UNIQUE_ID_COLUMN))
+      //at this point, rows are like "id1_1, Seq(0.1, 1.0), Seq(id1_1_1,id1_1_2)", "id1_2, Seq(2.0), Seq(id1_2_1)"
+      //the second and the third column is the ordered list of source values and corresponding unique IDs
+      //to use for prediction, for the window
       .withColumn(HMM_PREDICT_COLUMN, hmmPredictUDF(col(COLLECT_COLUMN), lit(hmmModelContent)))
-      //now rows are like "id1_1, Seq(PREDICTION1, PREDICTION2)", "id1_2, Seq(PREDICTION3)"
+      //now rows are like "id1_1, Seq(PREDICTION1, PREDICTION2), Seq(id1_1_1,id1_1_2)", "id1_2, Seq(PREDICTION3), Seq(id1_2_1)"
       .flatMap((r: Row) => {
-        r.getAs[ArrayBuffer[String]](HMM_PREDICT_COLUMN).zipWithIndex.map {
-                                                                            case (result: String, index: Int) => {
-                                                                              Row.fromSeq(Seq(
-                                                                                r.getAs[String](WINDOW_ID_COLUMN) + "_" + (index + 1),
-                                                                                result
-                                                                                ))
-                                                                            }
-                                                                          }
-      //finally we splitted the rows predictions into multiple rows, the first column being a kind of index
-      //like UNIQUE_ID_COLUMN = <window_id>_<row number for its dinow>
-      // e.g. "id1_1_1, PREDICTION1", "id1_1_2, PREDICTION2", "id1_2_1, PREDICTION3"
-    })(RowEncoder(hmmSchema))
+        r.getAs[ArrayBuffer[String]](HMM_PREDICT_COLUMN)
+          .zip(r.getAs[ArrayBuffer[String]](UNIQUE_ID_COLUMN))
+          .map {
+            case (result: String, uniqueId: String) => {
+              Row.fromSeq(
+                Seq(
+                  uniqueId,
+                  result
+                ))
+            }
+          }
+        //finally we gather UNIQUE_ID_COLUMN with predictions
+        // e.g. "id1_1_1, PREDICTION1", "id1_1_2, PREDICTION2", "id1_2_1, PREDICTION3"
+        //if sourceColumn is a Seq of values, there are several predictions for a given UNIQUE_ID_COLUMN
+      })(RowEncoder(hmmSchema))
+      //gather predictions by UNIQUE_ID_COLUMN and select the best prediction (with the most occurrences)
+      .groupBy(UNIQUE_ID_COLUMN, resultColumn)
+      .count()
+      .withColumn("order", row_number().over(window))
+      .where(col("order").equalTo(lit(1)))
+      .drop("order", "count")
 
     //we also add the UNIQUE_ID_COLUMN to initial data and join on it
-    initDF
-      .withColumn(UNIQUE_ID_COLUMN, concat(col(WINDOW_ID_COLUMN), lit("_"), row_number().over(keyWindow)))
+    windowedPartitionedDF
       .join(hmmDF, UNIQUE_ID_COLUMN)
       .drop(UNIQUE_ID_COLUMN, ROW_NUMBER_ON_PARTITION_COLUMN, WINDOW_ID_COLUMN)
   }
