@@ -25,17 +25,24 @@ import org.apache.spark.sql.expressions.Window
 import org.apache.spark.sql.functions._
 
 /**
-* Compute ID column, the same ID is set for all consecutive rows with the same state
+  * Compute ID column, the same ID is set for all consecutive rows with the same state
   * @param dataModel
   * @param stateColumn
   * @param targetIdColumn
   */
-class WithStateIdOnStateChange(dataModel: DataModel, stateColumn: String, targetIdColumn: String)
-  extends WithStateId(
-    dataModel,
-    stateColumn,
-    targetIdColumn, {
-      val window = Window.partitionBy(dataModel.idColumn).orderBy(arlasTimestampColumn)
-      lag(stateColumn, 1).over(window).notEqual(col(stateColumn))
-        .or(lag(stateColumn, 1).over(window).isNull)
-    })
+class WithStateIdOnStateChange(dataModel: DataModel,
+                               stateColumn: String,
+                               orderColumn: String,
+                               targetIdColumn: String)
+    extends WithStateId(
+      dataModel,
+      stateColumn,
+      orderColumn,
+      targetIdColumn, {
+        val window = Window.partitionBy(dataModel.idColumn).orderBy(orderColumn)
+        lag(stateColumn, 1)
+          .over(window)
+          .notEqual(col(stateColumn))
+          .or(lag(stateColumn, 1).over(window).isNull)
+      }
+    )
