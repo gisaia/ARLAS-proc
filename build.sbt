@@ -1,4 +1,4 @@
-ThisBuild / version      := "0.4.0-SNAPSHOT"
+ThisBuild / version      := (version in ThisBuild).value
 ThisBuild / scalaVersion := "2.11.8"
 ThisBuild / organization := "io.arlas"
 
@@ -58,3 +58,53 @@ lazy val arlasProcAssembly = project
       },
       addArtifact(artifact in (Compile, assembly), assembly)
       )
+
+//sbt-release
+import ReleaseTransformations._
+import ReleasePlugin.autoImport._
+import sbtrelease.{Git, Utilities}
+import Utilities._
+val deployBranch = "master"
+def merge: (State) => State = { st: State =>
+  val git = st.extract.get(releaseVcs).get.asInstanceOf[Git]
+  //TODO manage git redirecting with no reason to stderr
+  git.cmd("status") ! st.log
+  val curBranch = (git.cmd("rev-parse", "--abbrev-ref", "HEAD") !!).trim
+  st.log.info(s"####### current branch: $curBranch")
+  git.cmd("checkout", deployBranch) ! st.log
+  st.log.info(s"####### pull $deployBranch")
+  git.cmd("pull") ! st.log
+  st.log.info(s"####### merge")
+  git.cmd("merge", curBranch, "--no-ff", "--no-edit") ! st.log
+  st.log.info(s"####### push")
+  git.cmd("push", "origin", s"$deployBranch:$deployBranch") ! st.log
+  st.log.info(s"####### checkout $curBranch")
+  git.cmd("checkout", curBranch) ! st.log
+  st.log.info(s"####### pull $curBranch")
+  git.cmd("pull", "origin", curBranch) ! st.log
+  st.log.info(s"####### rebase origin/$deployBranch")
+  git.cmd("rebase", s"origin/${deployBranch}") ! st.log
+  st
+}
+
+lazy val mergeReleaseVersionAction = { st: State =>
+  val newState = merge(st)
+  newState
+}
+
+val mergeReleaseVersion = ReleaseStep(mergeReleaseVersionAction)
+
+releaseProcess := Seq[ReleaseStep](
+  checkSnapshotDependencies,
+  inquireVersions,
+  runClean,
+  runTest,
+  setReleaseVersion,
+  commitReleaseVersion,
+  pushChanges,                //to make sure develop branch is pulled
+  tagRelease,
+  mergeReleaseVersion,        //will merge into master and push
+  setNextVersion,
+  commitNextVersion,
+  pushChanges
+  )
