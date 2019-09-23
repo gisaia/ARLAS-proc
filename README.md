@@ -92,6 +92,14 @@ This deploys a fat jar, ready to be used from GCP Dataproc to start processing.
 sbt clean "project arlasProcAssembly" publish
 ```
 
+## Release
+
+Simply type:
+
+`sbt release`
+
+You will be asked for the versions to use for release & next version.
+
 # Integration tests
 
 ```bash
