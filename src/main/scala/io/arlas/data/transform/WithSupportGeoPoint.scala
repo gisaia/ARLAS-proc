@@ -27,15 +27,18 @@ import org.apache.spark.sql.catalyst.encoders.RowEncoder
 import org.apache.spark.sql.types.{BooleanType, DoubleType, StructField, StructType}
 
 class WithSupportGeoPoint(
-                           dataModel      : DataModel,
-                           spark: SparkSession,
-                           supportPointDeltaTime: Int,
-                           supportPointMaxNumberInGap: Int,
-                           supportPointMeanSpeedMultiplier: Double,
-                           irregularTempo: String,
-                           supportPointColsToPropagate: Seq[String]
-                         )
-  extends ArlasTransformer(dataModel, Vector(arlasTimestampColumn, arlasDeltaTimestampColumn, arlasVisibilityStateColumn, dataModel.distanceColumn)) {
+    dataModel: DataModel,
+    spark: SparkSession,
+    supportPointDeltaTime: Int,
+    supportPointMaxNumberInGap: Int,
+    supportPointMeanSpeedMultiplier: Double,
+    irregularTempo: String,
+    supportPointColsToPropagate: Seq[String]
+) extends ArlasTransformer(dataModel,
+                             Vector(arlasTimestampColumn,
+                                    arlasDeltaTimestampColumn,
+                                    arlasVisibilityStateColumn,
+                                    dataModel.distanceColumn)) {
 
   override def transform(dataset: Dataset[_]): DataFrame = {
 
@@ -43,48 +46,61 @@ class WithSupportGeoPoint(
     val datasetWithKeep = dataset.withColumn("keep", lit(true))
     val columns = datasetWithKeep.columns
     val encoder = RowEncoder(datasetWithKeep.schema)
-    datasetWithKeep.toDF()
+    datasetWithKeep
+      .toDF()
       .flatMap((row: Row) => {
         var rows = Seq(row)
 
         val gapDuration = row.getAs[Long](arlasDeltaTimestampColumn)
 
-       if (gapDuration != null) {
-         val nbPeriods = gapDuration / supportPointDeltaTime
-         val halfWindowSize = math.min(nbPeriods, supportPointMaxNumberInGap) / 2
-         if (halfWindowSize > 0) {
+        if (gapDuration != null) {
+          val nbPeriods = gapDuration / supportPointDeltaTime
+          val halfWindowSize = math.min(nbPeriods, supportPointMaxNumberInGap) / 2
+          if (halfWindowSize > 0) {
 
-           val currentTs = row.getAs[Long](arlasTimestampColumn)
-           val previousTs = currentTs - gapDuration
-           val shiftedCurrentTs = currentTs - 1
-           val shiftedPreviousTs = previousTs + 1
+            val currentTs = row.getAs[Long](arlasTimestampColumn)
+            val previousTs = currentTs - gapDuration
+            val shiftedCurrentTs = currentTs - 1
+            val shiftedPreviousTs = previousTs + 1
 
-           val leftWindow = Vector.range(shiftedPreviousTs, shiftedPreviousTs + halfWindowSize * supportPointDeltaTime, supportPointDeltaTime)
-           val rightWindow = Vector.range(shiftedCurrentTs, shiftedCurrentTs - halfWindowSize * supportPointDeltaTime, -supportPointDeltaTime).reverse
-           val window = leftWindow ++ rightWindow
+            val leftWindow =
+              Vector.range(shiftedPreviousTs,
+                           shiftedPreviousTs + halfWindowSize * supportPointDeltaTime,
+                           supportPointDeltaTime)
+            val rightWindow = Vector
+              .range(shiftedCurrentTs,
+                     shiftedCurrentTs - halfWindowSize * supportPointDeltaTime,
+                     -supportPointDeltaTime)
+              .reverse
+            val window = leftWindow ++ rightWindow
 
-           rows ++= window.zipWithIndex.map {
-                                              case (ts, index) => {
-                                                val values = columns.foldLeft(row.toSeq)((seq, col) => {
+            rows ++= window.zipWithIndex.map {
+              case (ts, index) => {
+                val values = columns.foldLeft(row.toSeq)((seq, col) => {
 
-                                                  val speedColumn = dataModel.speedColumn
+                  val speedColumn = dataModel.speedColumn
 
-                                                  seq.updated(row.fieldIndex(col), col match {
-                                                    case `speedColumn` => row.getAs[Double](dataModel.distanceColumn) * supportPointMeanSpeedMultiplier /
-                                                                          gapDuration
-                                                    case `arlasTimestampColumn` => ts
-                                                    case "keep" => index == 0 || index == window.size - 1
-                                                    case `arlasVisibilityStateColumn` => ArlasVisibilityStates.INVISIBLE.toString
-                                                    case `arlasTempoColumn` => irregularTempo
-                                                    case c if (!supportPointColsToPropagate.contains(c)) => null
-                                                    case _ => row.get(row.fieldIndex(col))
-                                                  })
-                                                })
-                                                Row.fromSeq(values)
-                                              }
-                                            }
-         }
-       }
+                  seq.updated(
+                    row.fieldIndex(col),
+                    col match {
+                      case `speedColumn` =>
+                        row
+                          .getAs[Double](dataModel.distanceColumn) * supportPointMeanSpeedMultiplier /
+                          gapDuration
+                      case `arlasTimestampColumn`                          => ts
+                      case "keep"                                          => index == 0 || index == window.size - 1
+                      case `arlasVisibilityStateColumn`                    => ArlasVisibilityStates.INVISIBLE.toString
+                      case `arlasTempoColumn`                              => irregularTempo
+                      case c if (!supportPointColsToPropagate.contains(c)) => null
+                      case _                                               => row.get(row.fieldIndex(col))
+                    }
+                  )
+                })
+                Row.fromSeq(values)
+              }
+            }
+          }
+        }
         rows
       })(encoder)
   }
