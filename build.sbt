@@ -7,8 +7,10 @@ resolvers += "gisaia-ml" at s"https://dl.cloudsmith.io/${sys.env.getOrElse("CLOU
 resolvers += "boundless" at "http://repo.boundlessgeo.com/main"
 resolvers += "jboss" at "https://repository.jboss.org/maven2/"
 
-val sparkSQL = "org.apache.spark" %% "spark-sql" % "2.3.1" % "provided"
-val sparkMLlib = "org.apache.spark" %% "spark-mllib" % "2.3.1" % "provided"
+val sparkVersion = "2.3.3"
+
+val sparkSQL = "org.apache.spark" %% "spark-sql" % sparkVersion % "provided"
+val sparkMLlib = "org.apache.spark" %% "spark-mllib" % sparkVersion % "provided"
 val spark = Seq(sparkSQL,sparkMLlib)
 
 val sparkCassandraConnector = "com.datastax.spark" %% "spark-cassandra-connector" % "2.3.2" % "provided"
