@@ -44,7 +44,7 @@ class IdUpdaterTest extends ArlasTest {
           .otherwise(lit(null))) //NB : last otherwise is useless but create a nullable column for schema compliance
     )
 
-  "WithDurationFromId transformation " should " compute duration of visibility sequences" in {
+  "IdUpdater transformation " should " update idColumn as objectid#start_end" in {
 
     val transformedDF: DataFrame = baseDF
       .enrichWithArlas(

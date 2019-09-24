@@ -31,13 +31,6 @@ class WithDurationFromIdTest extends ArlasTest {
   val durationObjB = when(col(arlasTimestampColumn).lt(lit(1527804451)), lit(60l))
     .otherwise(lit(540l))
 
-  /*val sequenceIdObjA =
-    when(col(arlasTimestampColumn).lt(lit(1527804601)), lit("ObjectA#1527804010"))
-      .otherwise(lit("ObjectA#1527804601"))
-  val sequenceIdObjB =
-    when(col(arlasTimestampColumn).lt(lit(1527804451)), lit("ObjectB#1527804010"))
-      .otherwise(lit("ObjectB#1527804451"))*/
-
   val baseDF = cleanedDF
     .enrichWithArlas(new FlowFragmentMapper(dataModel, spark, dataModel.idColumn, List("speed")))
     .asArlasVisibleSequencesFromTimestamp(dataModel, visibilityTimeout)
@@ -46,12 +39,6 @@ class WithDurationFromIdTest extends ArlasTest {
       "duration",
       when(col(dataModel.idColumn).equalTo("ObjectA"), durationObjA).otherwise(durationObjB))
     .withColumn("duration", when(col("duration").isNotNull, col("duration")).otherwise(lit(null)))
-  /*.withColumn(
-      arlasVisibleSequenceIdColumn,
-      when(col(dataModel.idColumn).equalTo("ObjectA"), sequenceIdObjA)
-        .otherwise(when(col(dataModel.idColumn).equalTo("ObjectB"), sequenceIdObjB)
-          .otherwise(lit(null))) //NB : last otherwise is useless but create a nullable column for schema compliance
-    )*/
 
   "WithDurationFromId transformation " should " compute duration of visibility sequences" in {
 

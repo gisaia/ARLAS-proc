@@ -30,7 +30,6 @@ import org.apache.spark.sql.{DataFrame, Dataset}
   * <dataModel.idColumn>#<earliest timestamp with this id>_<oldest timestamp with this id>
   * @param dataModel
   * @param idColumn
-  * @param durationColumn
   */
 class IdUpdater(dataModel: DataModel, idColumn: String)
     extends ArlasTransformer(dataModel,
