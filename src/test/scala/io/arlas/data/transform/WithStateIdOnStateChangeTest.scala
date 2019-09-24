@@ -26,7 +26,8 @@ import org.apache.spark.sql.DataFrame
 
 class WithStateIdOnStateChangeTest extends ArlasTest {
 
-  val stateCol  = when(col(arlasTimestampColumn).lt(lit(1527804601)), lit("state1")).otherwise(lit("state2"))
+  val stateCol =
+    when(col(arlasTimestampColumn).lt(lit(1527804601)), lit("state1")).otherwise(lit("state2"))
   val baseDF = cleanedDF
     .withColumn("state", stateCol)
 
@@ -36,17 +37,18 @@ class WithStateIdOnStateChangeTest extends ArlasTest {
     .otherwise(lit("1527804451"))
 
   val expectedDF = baseDF
-    .withColumn("state_id",
-                concat(col(dataModel.idColumn),
-                       lit("#"),
-                       when(col(dataModel.idColumn).equalTo("ObjectA"), idObjectA).otherwise(idObjectB)))
+    .withColumn(
+      "state_id",
+      concat(col(dataModel.idColumn),
+             lit("#"),
+             when(col(dataModel.idColumn).equalTo("ObjectA"), idObjectA).otherwise(idObjectB)))
 
   "WithStateIdOnStateChange transformation " should " fill/generate state id against dataframe's timeseries" in {
 
     val transformedDF: DataFrame = baseDF
       .withColumn("state", stateCol)
       .enrichWithArlas(
-        new WithStateIdOnStateChange(dataModel, "state", "state_id"))
+        new WithStateIdOnStateChange(dataModel, "state", arlasTimestampColumn, "state_id"))
 
     assertDataFrameEquality(transformedDF, expectedDF)
   }

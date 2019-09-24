@@ -33,7 +33,12 @@ class WithStateIdFromStateTest extends ArlasTest {
     val transformedDF: DataFrame = sourceDF
       .enrichWithArlas(
         new WithArlasVisibilityStateFromTimestamp(dataModel, visibilityTimeout),
-        new WithStateIdFromState(dataModel, arlasVisibilityStateColumn, ArlasVisibilityStates.APPEAR.toString, arlasVisibleSequenceIdColumn))
+        new WithStateIdFromState(dataModel,
+                                 arlasVisibilityStateColumn,
+                                 arlasTimestampColumn,
+                                 ArlasVisibilityStates.APPEAR.toString,
+                                 arlasVisibleSequenceIdColumn)
+      )
 
     val expectedDF = visibleSequencesDF
 
@@ -48,7 +53,12 @@ class WithStateIdFromStateTest extends ArlasTest {
       .filter(col(arlasTimestampColumn) < 1527804100)
       .enrichWithArlas(
         new WithArlasVisibilityStateFromTimestamp(dataModel, visibilityTimeout),
-        new WithStateIdFromState(dataModel, arlasVisibilityStateColumn, ArlasVisibilityStates.APPEAR.toString, arlasVisibleSequenceIdColumn))
+        new WithStateIdFromState(dataModel,
+                                 arlasVisibilityStateColumn,
+                                 arlasTimestampColumn,
+                                 ArlasVisibilityStates.APPEAR.toString,
+                                 arlasVisibleSequenceIdColumn)
+      )
 
     val transformedDF: DataFrame = sourceDF
       .withEmptyCol(arlasVisibleSequenceIdColumn)
@@ -57,7 +67,12 @@ class WithStateIdFromStateTest extends ArlasTest {
       .unionByName(warmupDF)
       .enrichWithArlas(
         new WithArlasVisibilityStateFromTimestamp(dataModel, visibilityTimeout),
-        new WithStateIdFromState(dataModel, arlasVisibilityStateColumn, ArlasVisibilityStates.APPEAR.toString, arlasVisibleSequenceIdColumn))
+        new WithStateIdFromState(dataModel,
+                                 arlasVisibilityStateColumn,
+                                 arlasTimestampColumn,
+                                 ArlasVisibilityStates.APPEAR.toString,
+                                 arlasVisibleSequenceIdColumn)
+      )
 
     val expectedDF = visibleSequencesDF
 

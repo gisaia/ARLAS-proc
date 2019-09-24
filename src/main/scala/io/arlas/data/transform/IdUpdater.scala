@@ -23,17 +23,15 @@ import io.arlas.data.model.DataModel
 import io.arlas.data.transform.ArlasTransformerColumns._
 import org.apache.spark.sql.expressions.Window
 import org.apache.spark.sql.functions._
-import org.apache.spark.sql.types.{LongType, StructField, StructType}
 import org.apache.spark.sql.{DataFrame, Dataset}
 
 /**
-  * For a ID that is hold by multiple rows, it computes the 'duration of this id'
-  * i.a. <oldest row with this id> - <earlier row with this id>
+  * For a ID that is hold by multiple rows, it updates the id value as follows
+  * <dataModel.idColumn>#<earliest timestamp with this id>_<oldest timestamp with this id>
   * @param dataModel
   * @param idColumn
-  * @param durationColumn
   */
-class WithDurationFromId(dataModel: DataModel, idColumn: String, durationColumn: String)
+class IdUpdater(dataModel: DataModel, idColumn: String)
     extends ArlasTransformer(dataModel,
                              Vector(idColumn, arlasTrackTimestampStart, arlasTrackTimestampEnd)) {
 
@@ -46,12 +44,11 @@ class WithDurationFromId(dataModel: DataModel, idColumn: String, durationColumn:
 
     dataset
       .toDF()
-      .withColumn(
-        durationColumn,
-        last(arlasTrackTimestampEnd).over(window) - first(arlasTrackTimestampStart).over(window))
-  }
-
-  override def transformSchema(schema: StructType): StructType = {
-    super.transformSchema(schema).add(StructField(durationColumn, LongType, true))
+      .withColumn(idColumn,
+                  concat(col(dataModel.idColumn),
+                         lit("#"),
+                         first(arlasTrackTimestampStart).over(window),
+                         lit("_"),
+                         last(arlasTrackTimestampEnd).over(window)))
   }
 }

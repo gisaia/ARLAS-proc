@@ -23,15 +23,19 @@ import io.arlas.data.model.DataModel
 import org.apache.spark.sql.functions._
 
 /**
-* Compute ID column, the same ID is set for all consecutive rows between 2 occurences of fromState, for a same object
+  * Compute ID column, the same ID is set for all consecutive rows between 2 occurences of fromState, for a same object
   * @param dataModel
   * @param stateColumn
   * @param fromState
   * @param targetIdColumn
   */
-class WithStateIdFromState(dataModel: DataModel, stateColumn: String, fromState: String, targetIdColumn: String)
-  extends WithStateId(
-    dataModel,
-    stateColumn,
-    targetIdColumn,
-    col(stateColumn).equalTo(fromState))
+class WithStateIdFromState(dataModel: DataModel,
+                           stateColumn: String,
+                           orderColumn: String,
+                           fromState: String,
+                           targetIdColumn: String)
+    extends WithStateId(dataModel,
+                        stateColumn,
+                        orderColumn,
+                        targetIdColumn,
+                        col(stateColumn).equalTo(fromState))
