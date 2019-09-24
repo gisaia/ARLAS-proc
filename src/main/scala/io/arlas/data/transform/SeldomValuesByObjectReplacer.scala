@@ -25,8 +25,11 @@ import org.apache.spark.sql.{DataFrame, Dataset}
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types.{StringType, StructType}
 
-class SeldomValuesByObjectReplacer(dataModel: DataModel, targetCol: String, minPercent: Double, defaultValue: String)
-  extends ArlasTransformer(dataModel, Vector(targetCol)) {
+class SeldomValuesByObjectReplacer(dataModel: DataModel,
+                                   targetCol: String,
+                                   minPercent: Double,
+                                   defaultValue: String)
+    extends ArlasTransformer(dataModel, Vector(targetCol)) {
 
   override def transform(dataset: Dataset[_]): DataFrame = {
 
@@ -36,13 +39,17 @@ class SeldomValuesByObjectReplacer(dataModel: DataModel, targetCol: String, minP
     val countByObjectAndTargetCol = "_countByObjectAndTarget"
     val countByObjectCol = "_countByObject"
 
-    dataset.toDF()
+    dataset
+      .toDF()
       .withColumn(countByObjectAndTargetCol, count(targetCol).over(windowObjectTarget))
       .withColumn(countByObjectCol, count(dataModel.idColumn).over(windowObject))
       .withColumn(
         targetCol,
-        when(count(targetCol).over(windowObjectTarget) * 100 / count(dataModel.idColumn).over(windowObject) < minPercent, defaultValue)
-          .otherwise(dataset(targetCol)))
+        when(count(targetCol).over(windowObjectTarget) * 100 / count(dataModel.idColumn).over(
+               windowObject) < minPercent,
+             defaultValue)
+          .otherwise(dataset(targetCol))
+      )
       .drop(countByObjectAndTargetCol)
       .drop(countByObjectCol)
   }
@@ -51,7 +58,8 @@ class SeldomValuesByObjectReplacer(dataModel: DataModel, targetCol: String, minP
 
     val transformedSchema = super.transformSchema(schema)
     if (transformedSchema.fields.filter(_.name == targetCol).head.dataType != StringType) {
-      throw new DataFrameException(s"The column ${targetCol} set for ${this.getClass.getName} should be String, other type is not yet supported")
+      throw new DataFrameException(
+        s"The column ${targetCol} set for ${this.getClass.getName} should be String, other type is not yet supported")
     }
     transformedSchema
   }

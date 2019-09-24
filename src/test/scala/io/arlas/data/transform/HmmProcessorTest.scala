@@ -30,15 +30,14 @@ class HmmProcessorTest extends ArlasTest {
 
     val transformedDf = visibleSequencesDF
       .enrichWithArlas(
-        new HmmProcessor(
-          dataModel,
-          spark,
-          "notExisting",
-          MLModelLocal(spark, "src/test/resources/hmm_stillmove_model.json"),
-          arlasVisibleSequenceIdColumn,
-          "result",
-          5000)
-        )
+        new HmmProcessor(dataModel,
+                         spark,
+                         "notExisting",
+                         MLModelLocal(spark, "src/test/resources/hmm_stillmove_model.json"),
+                         arlasVisibleSequenceIdColumn,
+                         "result",
+                         5000)
+      )
 
     val expectedDf = visibleSequencesDF.withColumn("result", lit("Unknown"))
 
@@ -49,15 +48,14 @@ class HmmProcessorTest extends ArlasTest {
 
     val transformedDf = visibleSequencesDF
       .enrichWithArlas(
-        new HmmProcessor(
-          dataModel,
-          spark,
-          "speed",
-          MLModelLocal(spark, "src/test/resources/not_existing.json"),
-          arlasVisibleSequenceIdColumn,
-          "result",
-          5000)
-        )
+        new HmmProcessor(dataModel,
+                         spark,
+                         "speed",
+                         MLModelLocal(spark, "src/test/resources/not_existing.json"),
+                         arlasVisibleSequenceIdColumn,
+                         "result",
+                         5000)
+      )
 
     val expectedDf = visibleSequencesDF.withColumn("result", lit("Unknown"))
 
@@ -68,13 +66,13 @@ class HmmProcessorTest extends ArlasTest {
 
     val transformedDf = visibleSequencesDF
       .enrichWithArlas(
-      new HmmProcessor(dataModel,
-                       spark,
-                       "speed",
-                       MLModelLocal(spark, "src/test/resources/hmm_stillmove_model.json"),
-                       arlasVisibleSequenceIdColumn,
-                       arlasMovingStateColumn,
-                       10))
+        new HmmProcessor(dataModel,
+                         spark,
+                         "speed",
+                         MLModelLocal(spark, "src/test/resources/hmm_stillmove_model.json"),
+                         arlasVisibleSequenceIdColumn,
+                         arlasMovingStateColumn,
+                         10))
       .count()
   }
 

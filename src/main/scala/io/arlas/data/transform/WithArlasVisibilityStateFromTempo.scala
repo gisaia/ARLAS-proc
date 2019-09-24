@@ -30,13 +30,14 @@ import io.arlas.data.sql._
 class WithArlasVisibilityStateFromTempo(dataModel: DataModel,
                                         spark: SparkSession,
                                         appearTempo: String)
-  extends ArlasTransformer(dataModel, Vector(arlasTimestampColumn)) {
+    extends ArlasTransformer(dataModel, Vector(arlasTimestampColumn)) {
 
   override def transform(dataset: Dataset[_]): DataFrame = {
 
-    val df = if (!dataset.columns.contains(arlasVisibilityStateColumn))
-      dataset.toDF().withEmptyCol(arlasVisibilityStateColumn)
-    else dataset.toDF()
+    val df =
+      if (!dataset.columns.contains(arlasVisibilityStateColumn))
+        dataset.toDF().withEmptyCol(arlasVisibilityStateColumn)
+      else dataset.toDF()
 
     val window = Window.partitionBy(dataModel.idColumn).orderBy(arlasTimestampColumn)
     val nextTempo = lead(arlasTempoColumn, 1).over(window)
@@ -44,17 +45,21 @@ class WithArlasVisibilityStateFromTempo(dataModel: DataModel,
       arlasVisibilityStateColumn,
       when(col(arlasTempoColumn).equalTo(appearTempo), lit(ArlasVisibilityStates.APPEAR.toString))
         .otherwise(
-          when(nextTempo.equalTo(appearTempo).and(col(arlasTempoColumn).notEqual(appearTempo)), ArlasVisibilityStates.DISAPPEAR.toString)
-            .otherwise(lit(ArlasVisibilityStates.VISIBLE.toString))))
+          when(nextTempo.equalTo(appearTempo).and(col(arlasTempoColumn).notEqual(appearTempo)),
+               ArlasVisibilityStates.DISAPPEAR.toString)
+            .otherwise(lit(ArlasVisibilityStates.VISIBLE.toString)))
+    )
   }
 
   override def transformSchema(schema: StructType): StructType = {
 
-    Some(checkSchema(schema)).map(sch => {
-      if (!sch.fieldNames.contains(arlasVisibilityStateColumn)) {
-        sch.add(StructField(arlasVisibilityStateColumn, StringType, true))
-      } else sch
-    }).get
+    Some(checkSchema(schema))
+      .map(sch => {
+        if (!sch.fieldNames.contains(arlasVisibilityStateColumn)) {
+          sch.add(StructField(arlasVisibilityStateColumn, StringType, true))
+        } else sch
+      })
+      .get
   }
 
 }

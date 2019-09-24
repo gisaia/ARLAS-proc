@@ -23,7 +23,8 @@ import org.apache.spark.sql.functions._
 import io.arlas.data.model.DataModel
 import org.apache.spark.sql.{DataFrame, Dataset}
 
-class RowRemover(dataModel: DataModel, column: String, value: Any) extends ArlasTransformer(dataModel, Vector(column)) {
+class RowRemover(dataModel: DataModel, column: String, value: Any)
+    extends ArlasTransformer(dataModel, Vector(column)) {
 
   override def transform(dataset: Dataset[_]): DataFrame = {
 

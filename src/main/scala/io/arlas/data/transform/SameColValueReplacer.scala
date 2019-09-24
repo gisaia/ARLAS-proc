@@ -21,5 +21,12 @@ package io.arlas.data.transform
 
 import io.arlas.data.model.DataModel
 
-class SameColValueReplacer[A](dataModel: DataModel, sourceColumn: String, sourceValue: A, newValue: A)
-  extends OtherColValueReplacer[A, A](dataModel, sourceColumn, sourceColumn, sourceValue, newValue)
+class SameColValueReplacer[A](dataModel: DataModel,
+                              sourceColumn: String,
+                              sourceValue: A,
+                              newValue: A)
+    extends OtherColValueReplacer[A, A](dataModel,
+                                        sourceColumn,
+                                        sourceColumn,
+                                        sourceValue,
+                                        newValue)

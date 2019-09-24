@@ -33,23 +33,24 @@ class SameColValueReplacerTest extends ArlasTest {
       StructField("lat", DoubleType, true),
       StructField("lon", DoubleType, true),
       StructField("speed", DoubleType, true)
-      )
     )
+  )
 
   val testData = Seq(
     ("ObjectA", "01/06/2018 00:00:00+02:00", 55.921028, 17.320418, 0.280577132616533),
-    ("ObjectA", "01/06/2018 00:00:31+02:00", 55.920583, 17.31733, 0.032068662532024))
-  val testDF     = spark.createDataFrame(testData.toDF().rdd, testSchema)
+    ("ObjectA", "01/06/2018 00:00:31+02:00", 55.920583, 17.31733, 0.032068662532024)
+  )
+  val testDF = spark.createDataFrame(testData.toDF().rdd, testSchema)
 
   "ValueReplacer " should "replace values of different types in same column" in {
 
-    val expectedData = Seq(
-      ("ObjectA", "01/06/2018 00:00:00+02:00", 0.0, 17.320418, 0.280577132616533),
-      ("ObjectA", "01/06/2018 00:00:31+02:00", 55.920583, 17.31733, 0.032068662532024))
+    val expectedData =
+      Seq(("ObjectA", "01/06/2018 00:00:00+02:00", 0.0, 17.320418, 0.280577132616533),
+          ("ObjectA", "01/06/2018 00:00:31+02:00", 55.920583, 17.31733, 0.032068662532024))
     val expectedDF = spark.createDataFrame(expectedData.toDF().rdd, testSchema)
 
-    val transformedDF = testDF.enrichWithArlas(
-      new SameColValueReplacer(dataModel, "lat", 55.921028, 0.0))
+    val transformedDF =
+      testDF.enrichWithArlas(new SameColValueReplacer(dataModel, "lat", 55.921028, 0.0))
 
     assertDataFrameEquality(transformedDF, expectedDF)
   }

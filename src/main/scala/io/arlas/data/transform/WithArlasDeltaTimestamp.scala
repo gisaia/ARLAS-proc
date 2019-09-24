@@ -51,9 +51,10 @@ class WithArlasDeltaTimestamp(dataModel: DataModel,
       )
       .withColumn(
         arlasDeltaTimestampVariationColumn,
-        when(col(arlasDeltaTimestampColumn).isNull or col(arlasPreviousDeltaTimestampColumn).isNull, null)
+        when(col(arlasDeltaTimestampColumn).isNull or col(arlasPreviousDeltaTimestampColumn).isNull,
+             null)
           .otherwise(col(arlasDeltaTimestampColumn) - col(arlasPreviousDeltaTimestampColumn))
-        )
+      )
   }
 
   override def transformSchema(schema: StructType): StructType = {

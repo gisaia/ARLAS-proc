@@ -34,8 +34,7 @@ class WithArlasVisibil0ityStateFromTimestampTest extends ArlasTest {
     val sourceDF = cleanedDF
 
     val transformedDF: DataFrame = sourceDF
-      .enrichWithArlas(
-        new WithArlasVisibilityStateFromTimestamp(dataModel, visibilityTimeout))
+      .enrichWithArlas(new WithArlasVisibilityStateFromTimestamp(dataModel, visibilityTimeout))
 
     val expectedDF = visibleSequencesDF.drop(arlasVisibleSequenceIdColumn)
 
@@ -51,7 +50,7 @@ class WithArlasVisibil0ityStateFromTimestampTest extends ArlasTest {
       lonColumn = "longitude",
       dynamicFields = Array("latitude", "longitude"),
       timeFormat = "dd/MM/yyyy HH:mm:ssXXX"
-      )
+    )
 
     val sourceDF = cleanedDF
       .withColumnRenamed("id", "identifier")

@@ -24,12 +24,25 @@ import io.arlas.data.model.{ArgumentMap, DataModel}
 import org.apache.spark.sql.SparkSession
 import org.slf4j.LoggerFactory
 
-trait BasicApp[R<:RunOptions] {
+trait BasicApp[R <: RunOptions] {
 
   @transient lazy val logger = LoggerFactory.getLogger(this.getClass)
 
-  def appArguments = Seq("id", "timestamp", "timeformat", "lat", "lon", "speed", "distance", "dynamic", "warmingPeriod", "endingPeriod", "start", "stop", "source",
-                         "target")
+  def appArguments =
+    Seq("id",
+        "timestamp",
+        "timeformat",
+        "lat",
+        "lon",
+        "speed",
+        "distance",
+        "dynamic",
+        "warmingPeriod",
+        "endingPeriod",
+        "start",
+        "stop",
+        "source",
+        "target")
 
   def getName: String
 

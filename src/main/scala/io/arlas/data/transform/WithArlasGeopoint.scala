@@ -25,11 +25,11 @@ import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types._
 import org.apache.spark.sql.{DataFrame, Dataset}
 
-class WithArlasGeopoint(dataModel            : DataModel)
-  extends ArlasTransformer(dataModel) {
+class WithArlasGeopoint(dataModel: DataModel) extends ArlasTransformer(dataModel) {
 
   override def transform(dataset: Dataset[_]): DataFrame = {
-    dataset.withColumn(arlasGeoPointColumn, concat(col(dataModel.latColumn), lit(","), col(dataModel.lonColumn)))
+    dataset.withColumn(arlasGeoPointColumn,
+                       concat(col(dataModel.latColumn), lit(","), col(dataModel.lonColumn)))
   }
 
   override def transformSchema(schema: StructType): StructType = {

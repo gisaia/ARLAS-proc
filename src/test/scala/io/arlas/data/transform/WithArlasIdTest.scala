@@ -32,9 +32,13 @@ class WithArlasIdTest extends ArlasTest {
     val transformedDF: DataFrame = sourceDF
       .enrichWithArlas(new WithArlasId(dataModel))
 
-    transformedDF.collect().foreach(row => {
-      assert(row.getAs[String](arlasIdColumn) == row.getAs[String](dataModel.idColumn) + "#" + row.getAs[Long](arlasTimestampColumn))
-    })
+    transformedDF
+      .collect()
+      .foreach(row => {
+        assert(
+          row.getAs[String](arlasIdColumn) == row.getAs[String](dataModel.idColumn) + "#" + row
+            .getAs[Long](arlasTimestampColumn))
+      })
   }
 
 }

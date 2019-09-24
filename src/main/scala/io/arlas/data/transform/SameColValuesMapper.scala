@@ -21,12 +21,5 @@ package io.arlas.data.transform
 
 import io.arlas.data.model.DataModel
 
-class SameColValuesMapper[T](dataModel   : DataModel,
-                             sourceColumn: String,
-                             valuesMap   : Map[T, T])
-  extends OtherColValuesMapper[T](dataModel,
-                                  sourceColumn,
-                                  sourceColumn,
-                                  valuesMap) {
-
-}
+class SameColValuesMapper[T](dataModel: DataModel, sourceColumn: String, valuesMap: Map[T, T])
+    extends OtherColValuesMapper[T](dataModel, sourceColumn, sourceColumn, valuesMap) {}

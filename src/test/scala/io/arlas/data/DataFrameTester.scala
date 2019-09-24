@@ -34,7 +34,7 @@ trait DataFrameTester {
     if (!a.schema.equals(e.schema)) {
       throw DataFrameMismatchException(
         schemeMismatchMessage(actualDF, expectedDF)
-        )
+      )
     }
 
     val aElements = a.collect()
@@ -43,15 +43,14 @@ trait DataFrameTester {
     if (!aElements.sameElements(eElements)) {
       throw DataFrameMismatchException(
         contentMismatchMessage(aElements, eElements)
-        )
+      )
     }
   }
 
   def defaultSortAndColsOrder(ds: DataFrame): DataFrame = {
     val colNames = ds.columns.sorted
     val cols = colNames.map(col)
-    ds
-      .sort(cols: _*) //sort rows
+    ds.sort(cols: _*) //sort rows
       .select(cols: _*) //sort columns for a consistent schema
   }
 
@@ -59,13 +58,13 @@ trait DataFrameTester {
     "DataFrame content mismatch [ actual rows | expected rows ]\n" + a
       .zip(e)
       .map {
-             case (r1, r2) =>
-               if (r1.equals(r2)) {
-                 s"= [ $r1 | $r2 ]"
-               } else {
-                 s"# [ $r1 | $r2 ]"
-               }
-           }
+        case (r1, r2) =>
+          if (r1.equals(r2)) {
+            s"= [ $r1 | $r2 ]"
+          } else {
+            s"# [ $r1 | $r2 ]"
+          }
+      }
       .mkString("\n")
   }
 

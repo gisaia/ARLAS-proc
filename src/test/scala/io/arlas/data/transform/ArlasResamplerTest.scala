@@ -64,10 +64,12 @@ class ArlasResamplerTest extends ArlasTest {
       15) ++ expectedInterpolation(objectBSeq2Raw, 15)
   }
 
-  def expectedInterpolation(data: Seq[(String, String, Double, Double, Double)],
-                            timeSampling: Long): Seq[(String, String, Double, Double, Double, String)] = {
+  def expectedInterpolation(
+      data: Seq[(String, String, Double, Double, Double)],
+      timeSampling: Long): Seq[(String, String, Double, Double, Double, String)] = {
     val dataTimestamped = data
-      .map(row => (ZonedDateTime.parse(row._2, timeFormatter).toEpochSecond(), row._3, row._4, row._5))
+      .map(row =>
+        (ZonedDateTime.parse(row._2, timeFormatter).toEpochSecond(), row._3, row._4, row._5))
       .distinct
       .sortBy(_._1)
     val ts = dataTimestamped.map(_._1.toDouble).toArray
@@ -100,8 +102,7 @@ class ArlasResamplerTest extends ArlasTest {
     val transformedDf = sourceDF
       .asArlasFormattedData(dataModel)
       .asArlasVisibleSequencesFromTimestamp(dataModel, visibilityTimeout)
-      .enrichWithArlas(
-        new ArlasResampler(dataModel, arlasVisibleSequenceIdColumn, spark, 15))
+      .enrichWithArlas(new ArlasResampler(dataModel, arlasVisibleSequenceIdColumn, spark, 15))
       .drop(arlasTimestampColumn, arlasPartitionColumn, arlasVisibilityStateColumn)
 
     val expectedDF = expected

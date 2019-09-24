@@ -33,31 +33,40 @@ class WithArlasDeltaTimestampTest extends ArlasTest {
       StructField(arlasVisibleSequenceIdColumn, StringType, true),
       StructField(arlasDeltaTimestampColumn, LongType, true),
       StructField(arlasPreviousDeltaTimestampColumn, LongType, true),
-      StructField(arlasDeltaTimestampVariationColumn, LongType, true)))
+      StructField(arlasDeltaTimestampVariationColumn, LongType, true)
+    ))
 
-  val deltaTimestampData: Seq[Row] = visibleSequencesDF.select("id", arlasTimestampColumn, arlasVisibleSequenceIdColumn).collect()
+  val deltaTimestampData: Seq[Row] = visibleSequencesDF
+    .select("id", arlasTimestampColumn, arlasVisibleSequenceIdColumn)
+    .collect()
     .groupBy(_.getAs[String](arlasVisibleSequenceIdColumn))
     .flatMap(f => {
       val data = f._2
-      (Seq(Row.fromSeq(data(0).toSeq ++ Array[Any](
-          null,
-          null,
-          null))) :+
-       Row.fromSeq(data(1).toSeq ++ Array[Any](
-          data(1).getAs[Long](arlasTimestampColumn) - data(0).getAs[Long](arlasTimestampColumn),
-          null,
-          null))) ++
-      data.sliding(3).map(window => Row.fromSeq(window(2).toSeq ++ Array[Any](
-          window(2).getAs[Long](arlasTimestampColumn) - window(1).getAs[Long](arlasTimestampColumn),
-          window(1).getAs[Long](arlasTimestampColumn) - window(0).getAs[Long](arlasTimestampColumn),
-          window(2).getAs[Long](arlasTimestampColumn) - window(1).getAs[Long](arlasTimestampColumn) - (window(1).getAs[Long](arlasTimestampColumn) - window(0).getAs[Long](arlasTimestampColumn))
-        )))
-    }).toSeq
+      (Seq(Row.fromSeq(data(0).toSeq ++ Array[Any](null, null, null))) :+
+        Row.fromSeq(
+          data(1).toSeq ++ Array[Any](
+            data(1).getAs[Long](arlasTimestampColumn) - data(0).getAs[Long](arlasTimestampColumn),
+            null,
+            null))) ++
+        data
+          .sliding(3)
+          .map(window =>
+            Row.fromSeq(window(2).toSeq ++ Array[Any](
+              window(2).getAs[Long](arlasTimestampColumn) - window(1).getAs[Long](
+                arlasTimestampColumn),
+              window(1).getAs[Long](arlasTimestampColumn) - window(0).getAs[Long](
+                arlasTimestampColumn),
+              window(2).getAs[Long](arlasTimestampColumn) - window(1).getAs[Long](
+                arlasTimestampColumn) - (window(1).getAs[Long](arlasTimestampColumn) - window(0)
+                .getAs[Long](arlasTimestampColumn))
+            )))
+    })
+    .toSeq
 
   val deltaTimestampDF = spark.createDataFrame(
     spark.sparkContext.parallelize(deltaTimestampData),
     deltaTimestampSchema
-    )
+  )
 
   "WithArlasDeltaTimestamp transformation" should "fill the arlasDeltaTimestamp against dataframe's timeseries" in {
 
@@ -65,7 +74,12 @@ class WithArlasDeltaTimestampTest extends ArlasTest {
 
     val transformedDF: DataFrame = sourceDF
       .enrichWithArlas(new WithArlasDeltaTimestamp(dataModel, spark, arlasVisibleSequenceIdColumn))
-      .select("id", arlasTimestampColumn, arlasVisibleSequenceIdColumn, arlasDeltaTimestampColumn, arlasPreviousDeltaTimestampColumn, arlasDeltaTimestampVariationColumn)
+      .select("id",
+              arlasTimestampColumn,
+              arlasVisibleSequenceIdColumn,
+              arlasDeltaTimestampColumn,
+              arlasPreviousDeltaTimestampColumn,
+              arlasDeltaTimestampVariationColumn)
 
     val expectedDF = deltaTimestampDF
     assertDataFrameEquality(transformedDF, expectedDF)

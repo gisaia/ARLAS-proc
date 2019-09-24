@@ -35,52 +35,115 @@ class OtherColValuesMapperTest extends ArlasTest {
       StructField("speed", DoubleType, true),
       StructField("sourcestring", StringType, true),
       StructField("sourcedouble", DoubleType, true)
-      ))
+    ))
 
   val testData = Seq(
     ("ObjectA", "01/06/2018 00:00:00+02:00", 55.921028, 17.320418, 0.280577132616533, "test", 0.0),
     ("ObjectA", "01/06/2018 00:00:10+02:00", 55.920875, 17.319322, 0.032068662532024, "test", 0.0),
-    ("ObjectA", "01/06/2018 00:00:31+02:00", 55.920583, 17.31733, 0.178408676103601, "other-test", 1.0),
-    ("ObjectB", "01/06/2018 00:00:10+02:00", 55.920437, 17.316335, 0.180505395097491, "out", 2.0))
+    ("ObjectA",
+     "01/06/2018 00:00:31+02:00",
+     55.920583,
+     17.31733,
+     0.178408676103601,
+     "other-test",
+     1.0),
+    ("ObjectB", "01/06/2018 00:00:10+02:00", 55.920437, 17.316335, 0.180505395097491, "out", 2.0)
+  )
 
-  val testDF     = spark.createDataFrame(testData.toDF().rdd, testSchema)
+  val testDF = spark.createDataFrame(testData.toDF().rdd, testSchema)
 
   "WithValuesMapper " should "replace values of type string in another column" in {
 
     val expectedData = Seq(
-      ("ObjectA", "01/06/2018 00:00:00+02:00", 55.921028, 17.320418, 0.280577132616533, "test", 0.0, "success"),
-      ("ObjectA", "01/06/2018 00:00:10+02:00", 55.920875, 17.319322, 0.032068662532024, "test", 0.0, "success"),
-      ("ObjectA", "01/06/2018 00:00:31+02:00", 55.920583, 17.31733, 0.178408676103601, "other-test", 1.0, "other-success"),
-      ("ObjectB", "01/06/2018 00:00:10+02:00", 55.920437, 17.316335, 0.180505395097491, "out", 2.0, "out"))
+      ("ObjectA",
+       "01/06/2018 00:00:00+02:00",
+       55.921028,
+       17.320418,
+       0.280577132616533,
+       "test",
+       0.0,
+       "success"),
+      ("ObjectA",
+       "01/06/2018 00:00:10+02:00",
+       55.920875,
+       17.319322,
+       0.032068662532024,
+       "test",
+       0.0,
+       "success"),
+      ("ObjectA",
+       "01/06/2018 00:00:31+02:00",
+       55.920583,
+       17.31733,
+       0.178408676103601,
+       "other-test",
+       1.0,
+       "other-success"),
+      ("ObjectB",
+       "01/06/2018 00:00:10+02:00",
+       55.920437,
+       17.316335,
+       0.180505395097491,
+       "out",
+       2.0,
+       "out")
+    )
 
     val expectedSchema = testSchema.add(StructField("targetstring", StringType))
 
     val transformedDF = testDF.enrichWithArlas(
-      new OtherColValuesMapper(dataModel, "sourcestring", "targetstring", Map("test" -> "success", "other-test" -> "other-success")))
+      new OtherColValuesMapper(dataModel,
+                               "sourcestring",
+                               "targetstring",
+                               Map("test" -> "success", "other-test" -> "other-success")))
 
-    assertDataFrameEquality(transformedDF, spark.createDataFrame(expectedData.toDF().rdd, expectedSchema))
+    assertDataFrameEquality(transformedDF,
+                            spark.createDataFrame(expectedData.toDF().rdd, expectedSchema))
   }
 
   "WithValuesMapper " should "replace values of another type" in {
 
     val expectedData = Seq(
-      ("ObjectA", "01/06/2018 00:00:00+02:00", 55.921028, 17.320418, 0.280577132616533, "test", 99.0),
-      ("ObjectA", "01/06/2018 00:00:10+02:00", 55.920875, 17.319322, 0.032068662532024, "test", 99.0),
-      ("ObjectA", "01/06/2018 00:00:31+02:00", 55.920583, 17.31733, 0.178408676103601, "other-test", 100.0),
-      ("ObjectB", "01/06/2018 00:00:10+02:00", 55.920437, 17.316335, 0.180505395097491, "out", 2.0))
+      ("ObjectA",
+       "01/06/2018 00:00:00+02:00",
+       55.921028,
+       17.320418,
+       0.280577132616533,
+       "test",
+       99.0),
+      ("ObjectA",
+       "01/06/2018 00:00:10+02:00",
+       55.920875,
+       17.319322,
+       0.032068662532024,
+       "test",
+       99.0),
+      ("ObjectA",
+       "01/06/2018 00:00:31+02:00",
+       55.920583,
+       17.31733,
+       0.178408676103601,
+       "other-test",
+       100.0),
+      ("ObjectB", "01/06/2018 00:00:10+02:00", 55.920437, 17.316335, 0.180505395097491, "out", 2.0)
+    )
 
     val transformedDF = testDF.enrichWithArlas(
-      new OtherColValuesMapper(dataModel, "sourcedouble", "sourcedouble", Map(0.0 -> 99.0, 1.0 -> 100.0)))
+      new OtherColValuesMapper(dataModel,
+                               "sourcedouble",
+                               "sourcedouble",
+                               Map(0.0 -> 99.0, 1.0 -> 100.0)))
 
-    assertDataFrameEquality(transformedDF, spark.createDataFrame(expectedData.toDF().rdd, testSchema))
+    assertDataFrameEquality(transformedDF,
+                            spark.createDataFrame(expectedData.toDF().rdd, testSchema))
   }
 
   "WithValuesMapper " should "throw exception with target column of another type" in {
 
     val thrown = intercept[DataFrameException] {
-                                                        testDF.enrichWithArlas(
-                                                          new OtherColValuesMapper(dataModel, "sourcestring", "sourcedouble", Map("test" -> "value")))
-                                                      }
+      testDF.enrichWithArlas(
+        new OtherColValuesMapper(dataModel, "sourcestring", "sourcedouble", Map("test" -> "value")))
+    }
 
     assert(
       thrown.getMessage == "Source and target columns should be of the same type, currently source is StringType and target DoubleType")
