@@ -20,28 +20,28 @@
 package io.arlas.data.model
 
 case class MotionConfiguration(
-                                movingStateModel               : MLModel = null,
-                                movingStateHmmWindowSize       : Int = 5000,
-                                supportPointsConfiguration     : SupportPointsConfiguration = new SupportPointsConfiguration(),
-                                tempoConfiguration             : TempoConfiguration = new TempoConfiguration()
-                              )
+    movingStateModel: MLModel = null,
+    movingStateHmmWindowSize: Int = 5000,
+    supportPointsConfiguration: SupportPointsConfiguration = new SupportPointsConfiguration(),
+    tempoConfiguration: TempoConfiguration = new TempoConfiguration()
+)
 
 case class SupportPointsConfiguration(
-                                       supportPointDeltaTime          : Int = 120,
-                                       supportPointColsToPropagate    : Seq[String] = Seq(),
-                                       supportPointMaxNumberInGap     : Int = 10,
-                                       supportPointMeanSpeedMultiplier: Double = 1.0
-                                     )
+    supportPointDeltaTime: Int = 120,
+    supportPointColsToPropagate: Seq[String] = Seq(),
+    supportPointMaxNumberInGap: Int = 10,
+    supportPointMeanSpeedMultiplier: Double = 1.0
+)
 
 //TODO move to customer specific project
 case class TempoConfiguration(
-                               tempoModel                     : MLModel = null,
-                               tempoHmmWindowSize             : Int = 5000,
-                               irregularTempo                 : String = "",
-                               salvoTempo                     : String = "",
-                               salvoTempoValues               : Seq[String] = Seq()
-                             )
+    tempoModel: MLModel = null,
+    tempoHmmWindowSize: Int = 5000,
+    irregularTempo: String = "",
+    salvoTempo: String = "",
+    salvoTempoValues: Seq[String] = Seq()
+)
 
 case class CourseConfiguration(
-                                courseTimeout                  : Int = 3600 //in seconds
-                              )
+    courseTimeout: Int = 3600 //in seconds
+)

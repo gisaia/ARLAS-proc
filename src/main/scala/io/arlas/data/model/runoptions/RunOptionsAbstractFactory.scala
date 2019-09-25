@@ -24,7 +24,7 @@ import java.time.format.DateTimeFormatter
 
 import io.arlas.data.model.{ArgumentMap, Period}
 
-abstract class RunOptionsAbstractFactory[R<:RunOptions](arguments: ArgumentMap) {
+abstract class RunOptionsAbstractFactory[R <: RunOptions](arguments: ArgumentMap) {
 
   val start = arguments.get("start") match {
     case Some(startStr) =>

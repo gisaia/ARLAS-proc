@@ -32,9 +32,13 @@ class WithArlasGeopointTest extends ArlasTest {
     val transformedDF: DataFrame = sourceDF
       .enrichWithArlas(new WithArlasGeopoint(dataModel))
 
-    transformedDF.collect().foreach(row => {
-      assert(row.getAs[String](arlasGeoPointColumn) == row.getAs[Double]("lat") + "," + row.getAs[Double]("lon"))
-    })
+    transformedDF
+      .collect()
+      .foreach(row => {
+        assert(
+          row.getAs[String](arlasGeoPointColumn) == row.getAs[Double]("lat") + "," + row
+            .getAs[Double]("lon"))
+      })
   }
 
 }

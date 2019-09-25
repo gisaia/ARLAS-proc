@@ -138,8 +138,8 @@ class EdgingPeriodRemoverTest extends ArlasTest {
       StructField("id", StringType, true),
       StructField("timestamp", StringType, true),
       StructField(arlasVisibleSequenceIdColumn, StringType, true)
-      )
     )
+  )
 
   def performTestByPeriod(warmingPeriod: Int, endingPeriod: Int, expectedDF: DataFrame) = {
 

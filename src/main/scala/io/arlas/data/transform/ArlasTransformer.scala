@@ -23,11 +23,25 @@ import io.arlas.data.model.DataModel
 import org.apache.spark.ml.param.ParamMap
 import org.apache.spark.ml.util.Identifiable
 import org.apache.spark.ml.{Transformer => SparkTransformer}
-import org.apache.spark.sql.types.{BinaryType, BooleanType, ByteType, DataType, DateType, DoubleType, FloatType, IntegerType, LongType, ShortType, StringType, StructType, TimestampType}
+import org.apache.spark.sql.types.{
+  BinaryType,
+  BooleanType,
+  ByteType,
+  DataType,
+  DateType,
+  DoubleType,
+  FloatType,
+  IntegerType,
+  LongType,
+  ShortType,
+  StringType,
+  StructType,
+  TimestampType
+}
 
 abstract class ArlasTransformer(val dataModel: DataModel,
                                 val requiredCols: Vector[String] = Vector.empty)
-  extends SparkTransformer {
+    extends SparkTransformer {
 
   override def copy(extra: ParamMap): SparkTransformer = {
     defaultCopy(extra)
@@ -63,18 +77,18 @@ abstract class ArlasTransformer(val dataModel: DataModel,
     */
   protected def findDataTypeForValue(value: Any): DataType =
     value match {
-      case b: Byte => ByteType
-      case s: Short => ShortType
-      case i: Int => IntegerType
-      case l: Long => LongType
-      case f: Float => FloatType
-      case d: Double => DoubleType
-      case s: String => StringType
-      case b: Array[Byte] => BinaryType
-      case b: Boolean => BooleanType
+      case b: Byte               => ByteType
+      case s: Short              => ShortType
+      case i: Int                => IntegerType
+      case l: Long               => LongType
+      case f: Float              => FloatType
+      case d: Double             => DoubleType
+      case s: String             => StringType
+      case b: Array[Byte]        => BinaryType
+      case b: Boolean            => BooleanType
       case t: java.sql.Timestamp => TimestampType
-      case d: java.sql.Date => DateType
-      case _ => throw new DataFrameException(s"Unsupported type ${value.getClass.getName}")
+      case d: java.sql.Date      => DateType
+      case _                     => throw new DataFrameException(s"Unsupported type ${value.getClass.getName}")
     }
 
 }

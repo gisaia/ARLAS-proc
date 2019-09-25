@@ -42,8 +42,10 @@ import org.apache.spark.sql.types.{StructField, StructType}
   * @param targetColumn
   * @tparam A
   */
-class MultipleColsValuesMapper[A](dataModel: DataModel, valuesMap: Map[A, Map[String, Any]], targetColumn: String)//TODO invert map order
-  extends ArlasTransformer(dataModel, valuesMap.values.flatMap(_.keySet).toVector) {
+class MultipleColsValuesMapper[A](dataModel: DataModel,
+                                  valuesMap: Map[A, Map[String, Any]],
+                                  targetColumn: String) //TODO invert map order
+    extends ArlasTransformer(dataModel, valuesMap.values.flatMap(_.keySet).toVector) {
 
   override def transform(dataset: Dataset[_]): DataFrame = {
     valuesMap.size match {

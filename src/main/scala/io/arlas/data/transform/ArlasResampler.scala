@@ -24,11 +24,10 @@ import io.arlas.data.model.DataModel
 import io.arlas.data.transform.ArlasTransformerColumns._
 import org.apache.spark.sql.{DataFrame, Dataset, Row, SparkSession}
 
-class ArlasResampler(
-                      dataModel: DataModel,
-                      aggregationColumnName: String,
-                      spark: SparkSession,
-                      timeSampling: Long)
+class ArlasResampler(dataModel: DataModel,
+                     aggregationColumnName: String,
+                     spark: SparkSession,
+                     timeSampling: Long)
     extends ArlasTransformer(
       dataModel,
       Vector(arlasTimestampColumn, arlasPartitionColumn, aggregationColumnName)) {

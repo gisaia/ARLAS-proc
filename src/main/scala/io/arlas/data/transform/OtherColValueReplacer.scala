@@ -36,8 +36,12 @@ import org.apache.spark.sql.{DataFrame, Dataset}
   * @tparam A scala type of source column
   * @tparam B scala type of target column
   */
-class OtherColValueReplacer[A, B](dataModel: DataModel, sourceColumn: String, targetColumn: String, sourceValue: A, newValue: B)
-  extends ArlasTransformer(dataModel, Vector(sourceColumn, targetColumn)) {
+class OtherColValueReplacer[A, B](dataModel: DataModel,
+                                  sourceColumn: String,
+                                  targetColumn: String,
+                                  sourceValue: A,
+                                  newValue: B)
+    extends ArlasTransformer(dataModel, Vector(sourceColumn, targetColumn)) {
 
   override def transform(dataset: Dataset[_]): DataFrame = {
 
@@ -55,23 +59,29 @@ class OtherColValueReplacer[A, B](dataModel: DataModel, sourceColumn: String, ta
     val targetColumnDataType = transformedSchema.fields.filter(_.name == targetColumn).head.dataType
 
     //check that source value & column are of the same type
-    Option(sourceValue).map(findDataTypeForValue(_)).map(
-      dataType => {
-        if (sourceColumnDataType != dataType) {
-          throw new DataFrameException(s"The column ${sourceColumn} is expected to be of type ${dataType.typeName}, " +
-                                       s"current: ${sourceColumnDataType.typeName}")
+    Option(sourceValue)
+      .map(findDataTypeForValue(_))
+      .map(
+        dataType => {
+          if (sourceColumnDataType != dataType) {
+            throw new DataFrameException(
+              s"The column ${sourceColumn} is expected to be of type ${dataType.typeName}, " +
+                s"current: ${sourceColumnDataType.typeName}")
+          }
         }
-      }
-    )
+      )
 
     //check that target value & column are of the same type
-    Option(newValue).map(findDataTypeForValue(_)).map(
-      dataType => {
-        if (targetColumnDataType != dataType) {
-          throw new DataFrameException(s"The column ${targetColumn} is expected to be of type ${dataType.typeName}, " +
-                                       s"current: ${targetColumnDataType.typeName}")
+    Option(newValue)
+      .map(findDataTypeForValue(_))
+      .map(
+        dataType => {
+          if (targetColumnDataType != dataType) {
+            throw new DataFrameException(
+              s"The column ${targetColumn} is expected to be of type ${dataType.typeName}, " +
+                s"current: ${targetColumnDataType.typeName}")
+          }
         }
-      }
       )
 
     transformedSchema
