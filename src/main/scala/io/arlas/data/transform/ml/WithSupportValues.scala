@@ -17,8 +17,9 @@
  * under the License.
  */
 
-package io.arlas.data.transform
+package io.arlas.data.transform.ml
 
+import io.arlas.data.transform.ArlasTransformer
 import io.arlas.data.transform.ArlasTransformerColumns._
 import org.apache.spark.sql.catalyst.encoders.RowEncoder
 import org.apache.spark.sql.types._

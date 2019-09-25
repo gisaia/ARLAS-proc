@@ -17,10 +17,15 @@
  * under the License.
  */
 
-package io.arlas.data.transform
+package io.arlas.data.transform.timeseries
 
 import io.arlas.data.sql._
 import io.arlas.data.transform.ArlasTransformerColumns._
+import io.arlas.data.transform.{
+  ArlasTest,
+  ArlasVisibilityStates,
+  WithArlasVisibilityStateFromTimestamp
+}
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.functions._
 

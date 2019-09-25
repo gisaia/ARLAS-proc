@@ -44,7 +44,7 @@ class WithArlasVisibilityStateFromTimestamp(dataModel: DataModel, visibilityTime
         datasetDF.withEmptyCol(arlasVisibilityStateColumn)
       else datasetDF
 
-    // prequisites visibility timeout computations
+    // prerequisites visibility timeout computations
     val window = Window.partitionBy(dataModel.idColumn).orderBy(arlasTimestampColumn)
     val previousGap = col(arlasTimestampColumn) - lag(arlasTimestampColumn, 1).over(window)
     val nextGap = lead(arlasTimestampColumn, 1).over(window) - col(arlasTimestampColumn)
