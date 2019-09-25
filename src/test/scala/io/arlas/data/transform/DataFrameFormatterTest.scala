@@ -26,7 +26,7 @@ import org.apache.spark.sql.types._
 
 class DataFrameFormatterTest extends ArlasTest {
 
-  "DataFrameValidator " should " fix invalid column names" in {
+  "DataFrameFormatter " should " fix invalid column names" in {
 
     val sourceDF = rawDF
       .withColumn("white space", lit(0).cast(IntegerType))
@@ -44,41 +44,45 @@ class DataFrameFormatterTest extends ArlasTest {
     assertDataFrameEquality(transformedDF, expectedDF)
   }
 
-  "DataFrameValidator " should " cast dynamic column to DoubleType if necessary" in {
+  "DataFrameFormatter " should " fail with missing DataModel columns" in {
 
     val sourceDF = rawDF
-      .withColumnRenamed("lat", "oldlat")
-      .withColumnRenamed("lon", "oldlon")
-      .withColumn("lat", col("oldlat").cast(StringType))
-      .withColumn("lon", col("oldlon").cast(FloatType))
-      .drop("oldlat", "oldlon")
+      .drop(dataModel.latColumn)
+
+    val thrown = intercept[DataFrameException] {
+      sourceDF
+        .enrichWithArlas(new DataFrameFormatter(dataModel))
+    }
+    assert(
+      thrown.getMessage === "The lat columns are not included in the DataFrame with the following columns: id, timestamp, lon, speed")
+  }
+
+  "DataFrameFormatter " should " fail with missing double columns" in {
+
+    val thrown = intercept[DataFrameException] {
+      rawDF
+        .enrichWithArlas(new DataFrameFormatter(dataModel, Vector("notExistingCol")))
+    }
+    assert(
+      thrown.getMessage === "The notExistingCol columns are not included in the DataFrame with the following columns: id, timestamp, lat, lon, speed")
+  }
+
+  "DataFrameFormatter " should " cast double columns" in {
+
+    val sourceDF = rawDF
+      .withColumn("stringdouble", lit("000.5"))
+      .withColumn("stringeuropeandouble", lit("000,5"))
 
     val expectedDF = rawDF
-      .withColumnRenamed("lon", "oldlon")
-      .withColumn("newlon", col("oldlon").cast(FloatType))
-      .withColumn("lon", col("newlon").cast(DoubleType))
-      .drop("oldlon", "newlon")
+    //using when/otherwise to make column nullable
+      .withColumn("stringdouble", when(lit(true), lit(0.5)).otherwise(null))
+      .withColumn("stringeuropeandouble", when(lit(true), lit(0.5)).otherwise(null))
 
     val transformedDF: DataFrame = sourceDF
-      .enrichWithArlas(new DataFrameFormatter(dataModel))
+      .enrichWithArlas(
+        new DataFrameFormatter(dataModel, Vector("stringdouble", "stringeuropeandouble")))
 
     assertDataFrameEquality(transformedDF, expectedDF)
   }
 
-  "DataFrameValidator " should " cast dynamic column with european format to DoubleType if necessary" in {
-
-    val sourceDF = rawDF
-      .withColumnRenamed("lat", "oldlat")
-      .withColumnRenamed("lon", "oldlon")
-      .withColumn("lat", regexp_replace(col("oldlat").cast(StringType), "\\.", ","))
-      .withColumn("lon", regexp_replace(col("oldlon").cast(StringType), "\\.", ","))
-      .drop("oldlat", "oldlon")
-
-    val expectedDF = rawDF
-
-    val transformedDF: DataFrame = sourceDF
-      .enrichWithArlas(new DataFrameFormatter(dataModel))
-
-    assertDataFrameEquality(transformedDF, expectedDF)
-  }
 }

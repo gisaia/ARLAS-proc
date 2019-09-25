@@ -49,7 +49,6 @@ class WithArlasVisibilityStateFromTimestampTest extends ArlasTest {
       timestampColumn = "t",
       latColumn = "latitude",
       lonColumn = "longitude",
-      dynamicFields = Array("latitude", "longitude"),
       timeFormat = "dd/MM/yyyy HH:mm:ssXXX"
     )
 

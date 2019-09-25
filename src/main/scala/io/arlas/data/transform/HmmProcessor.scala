@@ -27,7 +27,7 @@ import org.apache.spark.sql.catalyst.encoders.RowEncoder
 import org.apache.spark.sql.expressions.Window
 import org.apache.spark.sql.functions.{col, _}
 import org.apache.spark.sql.types._
-import org.apache.spark.sql.{DataFrame, Dataset, Row, SparkSession}
+import org.apache.spark.sql.{DataFrame, Dataset, Row}
 import org.slf4j.LoggerFactory
 
 import scala.collection.mutable.ArrayBuffer
@@ -54,8 +54,6 @@ class HmmProcessor(sourceColumn: String,
   }
 
   override def transform(dataset: Dataset[_]): DataFrame = {
-
-    val columns = dataset.columns
 
     val hmmModelContent = hmmModel.getModelString()
 

@@ -180,7 +180,7 @@ class HmmProcessorTest extends ArlasTest {
     //avoid natural ordering to ensure that hmm doesn't depend on initial order
       .sort(dataModel.latColumn, dataModel.lonColumn)
       .enrichWithArlas(
-        new HmmProcessor(dataModel.speedColumn,
+        new HmmProcessor(speedColumn,
                          motionConfig.movingStateModel,
                          dataModel.idColumn,
                          arlasMovingStateColumn,
@@ -201,7 +201,7 @@ class HmmProcessorTest extends ArlasTest {
 
     val transformedDf = visibleSequencesDF
       .enrichWithArlas(
-        new HmmProcessor(dataModel.speedColumn,
+        new HmmProcessor(speedColumn,
                          motionConfig.movingStateModel,
                          dataModel.idColumn,
                          arlasMovingStateColumn,
@@ -221,7 +221,7 @@ class HmmProcessorTest extends ArlasTest {
     val transformedDf = visibleSequencesDF
       .withColumn("speed", array(col("speed")))
       .enrichWithArlas(
-        new HmmProcessor(dataModel.speedColumn,
+        new HmmProcessor(speedColumn,
                          motionConfig.movingStateModel,
                          dataModel.idColumn,
                          arlasMovingStateColumn,
@@ -271,7 +271,7 @@ class HmmProcessorTest extends ArlasTest {
     //get moving states
     val transformedDf = sourceDF
       .enrichWithArlas(
-        new HmmProcessor(dataModel.speedColumn,
+        new HmmProcessor(speedColumn,
                          motionConfig.movingStateModel,
                          dataModel.idColumn,
                          arlasMovingStateColumn,

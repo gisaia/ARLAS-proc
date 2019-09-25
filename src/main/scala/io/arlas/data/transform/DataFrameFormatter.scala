@@ -20,17 +20,19 @@
 package io.arlas.data.transform
 
 import io.arlas.data.model.DataModel
+import org.apache.spark.sql.functions.{col, regexp_replace}
 import org.apache.spark.sql.types.{DoubleType, StringType, StructField, StructType}
 import org.apache.spark.sql.{DataFrame, Dataset}
-import org.apache.spark.sql.functions.{col, regexp_replace, to_timestamp}
 
-class DataFrameFormatter(dataModel: DataModel) extends ArlasTransformer() {
+class DataFrameFormatter(dataModel: DataModel, doubleColumns: Vector[String] = Vector.empty)
+    extends ArlasTransformer() {
 
   override def transform(dataset: Dataset[_]): DataFrame = {
     dataset.toDF
       .transform(withValidColumnNames())
-      .transform(withValidDynamicColumnsType())
       .transform(withNoDuplicates())
+      .transform(withRequiredColumns())
+      .transform(withValidDoubleColumns())
   }
 
   def withValidColumnNames()(df: DataFrame): DataFrame = {
@@ -48,23 +50,36 @@ class DataFrameFormatter(dataModel: DataModel) extends ArlasTransformer() {
       .toLowerCase()
   }
 
-  def withValidDynamicColumnsType()(df: DataFrame): DataFrame = {
-
-    //Dynamic columns only support double values
-    //For those dynamic columns, if it is a string, replace possible coma "," (decimal european format) in decimal with a dot ".", that spark supports
-    df.columns.filter(dataModel.dynamicFields.contains(_)).foldLeft(df) { (dataframe, column) =>
-      if (df.schema.filter(c => c.name == column && c.dataType == StringType).nonEmpty) {
-        dataframe
-          .withColumn(column, regexp_replace(col(column), ",", ".").cast(DoubleType))
-      } else if (df.schema.filter(c => c.name == column && c.dataType == DoubleType).isEmpty) {
-        dataframe.withColumn(column, col(column).cast(DoubleType))
-      } else dataframe
-    }
-
-  }
-
   def withNoDuplicates()(df: DataFrame): DataFrame = {
     df.dropDuplicates(dataModel.idColumn, dataModel.timestampColumn)
+  }
+
+  def withRequiredColumns()(df: DataFrame): DataFrame = {
+    val colsNotFound =
+      (doubleColumns ++ Vector(dataModel.lonColumn,
+                               dataModel.latColumn,
+                               dataModel.idColumn,
+                               dataModel.timestampColumn)).distinct.diff(df.schema.fieldNames)
+    if (colsNotFound.length > 0) {
+      throw DataFrameException(
+        s"The ${colsNotFound.mkString(", ")} columns are not included in the DataFrame with the following columns: ${df.schema.fieldNames
+          .mkString(", ")}")
+    }
+    df
+  }
+
+  def withValidDoubleColumns()(df: DataFrame): DataFrame = {
+    df.columns
+      .filter((doubleColumns ++ Vector(dataModel.lonColumn, dataModel.latColumn))
+        .contains(_))
+      .foldLeft(df) { (dataframe, column) =>
+        if (df.schema.filter(c => c.name == column && c.dataType == StringType).nonEmpty) {
+          dataframe
+            .withColumn(column, regexp_replace(col(column), ",", ".").cast(DoubleType))
+        } else if (df.schema.filter(c => c.name == column && c.dataType == DoubleType).isEmpty) {
+          dataframe.withColumn(column, col(column).cast(DoubleType))
+        } else dataframe
+      }
   }
 
   override def transformSchema(schema: StructType): StructType = {
@@ -73,13 +88,7 @@ class DataFrameFormatter(dataModel: DataModel) extends ArlasTransformer() {
         .map(field => {
           StructField(getValidColumnName(field.name), field.dataType, field.nullable)
         })
-        .map(field => {
-          if (dataModel.dynamicFields.contains(field.name)) {
-            StructField(field.name, DoubleType, field.nullable)
-          } else {
-            field
-          }
-        })
     )
   }
+
 }
