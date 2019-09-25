@@ -32,9 +32,10 @@ class FlowFragmentMapper(dataModel: DataModel,
                          spark: SparkSession,
                          aggregationColumnName: String,
                          averageColumns: List[String] = Nil)
-    extends ArlasTransformer(
-      dataModel,
-      Vector(arlasTimestampColumn, aggregationColumnName) ++ averageColumns.toVector) {
+    extends ArlasTransformer(Vector(arlasTimestampColumn,
+                                    aggregationColumnName,
+                                    dataModel.latColumn,
+                                    dataModel.lonColumn) ++ averageColumns.toVector) {
 
   override def transform(dataset: Dataset[_]): DataFrame = {
 

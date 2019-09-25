@@ -34,7 +34,7 @@ import org.apache.spark.sql.{DataFrame, Dataset}
 @Deprecated
 //TODO remove as soon as tests don't rely on it anymore
 class WithArlasVisibilityStateFromTimestamp(dataModel: DataModel, visibilityTimeout: Int)
-    extends ArlasTransformer(dataModel, Vector(arlasTimestampColumn, arlasPartitionColumn)) {
+    extends ArlasTransformer(Vector(arlasTimestampColumn, arlasPartitionColumn, dataModel.idColumn)) {
 
   override def transform(dataset: Dataset[_]): DataFrame = {
 

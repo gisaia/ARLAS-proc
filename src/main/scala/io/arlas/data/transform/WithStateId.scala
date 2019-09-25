@@ -40,7 +40,7 @@ class WithStateId(dataModel: DataModel,
                   orderColumn: String,
                   targetIdColumn: String,
                   isNewIdColumn: Column)
-    extends ArlasTransformer(dataModel, Vector(stateColumn, orderColumn)) {
+    extends ArlasTransformer(Vector(stateColumn, orderColumn, dataModel.idColumn)) {
 
   override def transform(dataset: Dataset[_]): DataFrame = {
 

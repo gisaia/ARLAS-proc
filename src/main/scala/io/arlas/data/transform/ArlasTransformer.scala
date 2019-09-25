@@ -19,28 +19,12 @@
 
 package io.arlas.data.transform
 
-import io.arlas.data.model.DataModel
 import org.apache.spark.ml.param.ParamMap
 import org.apache.spark.ml.util.Identifiable
 import org.apache.spark.ml.{Transformer => SparkTransformer}
-import org.apache.spark.sql.types.{
-  BinaryType,
-  BooleanType,
-  ByteType,
-  DataType,
-  DateType,
-  DoubleType,
-  FloatType,
-  IntegerType,
-  LongType,
-  ShortType,
-  StringType,
-  StructType,
-  TimestampType
-}
+import org.apache.spark.sql.types.StructType
 
-abstract class ArlasTransformer(val dataModel: DataModel,
-                                val requiredCols: Vector[String] = Vector.empty)
+abstract class ArlasTransformer(val requiredCols: Vector[String] = Vector.empty)
     extends SparkTransformer {
 
   override def copy(extra: ParamMap): SparkTransformer = {
@@ -52,12 +36,7 @@ abstract class ArlasTransformer(val dataModel: DataModel,
   }
 
   def checkSchema(schema: StructType): StructType = {
-    val allRequiredCols = requiredCols ++ Vector(
-      dataModel.timestampColumn,
-      dataModel.idColumn,
-      dataModel.latColumn,
-      dataModel.lonColumn) ++ dataModel.dynamicFields.toSeq
-    val colsNotFound = allRequiredCols.distinct.diff(schema.fieldNames)
+    val colsNotFound = requiredCols.distinct.diff(schema.fieldNames)
     if (colsNotFound.length > 0) {
       throw new DataFrameException(
         s"The ${colsNotFound.mkString(", ")} columns are not included in the DataFrame with the following columns ${schema.fieldNames
