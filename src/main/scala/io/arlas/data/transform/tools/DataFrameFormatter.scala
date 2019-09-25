@@ -17,9 +17,10 @@
  * under the License.
  */
 
-package io.arlas.data.transform
+package io.arlas.data.transform.tools
 
 import io.arlas.data.model.DataModel
+import io.arlas.data.transform.{ArlasTransformer, DataFrameException}
 import org.apache.spark.sql.functions.{col, regexp_replace}
 import org.apache.spark.sql.types.{DoubleType, StringType, StructField, StructType}
 import org.apache.spark.sql.{DataFrame, Dataset}

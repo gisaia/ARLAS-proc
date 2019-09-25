@@ -17,24 +17,16 @@
  * under the License.
  */
 
-package io.arlas.data.transform
+package io.arlas.data.transform.ml
 
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
-
 import io.arlas.data.model.MLModelLocal
-import io.arlas.data.transform.ArlasTransformerColumns._
 import io.arlas.data.sql._
+import io.arlas.data.transform.ArlasTransformerColumns._
+import io.arlas.data.transform.{ArlasMovingStates, ArlasTest}
 import org.apache.spark.sql.functions._
-import org.apache.spark.sql.types.{
-  ArrayType,
-  DoubleType,
-  IntegerType,
-  LongType,
-  StringType,
-  StructField,
-  StructType
-}
+import org.apache.spark.sql.types._
 
 class HmmProcessorTest extends ArlasTest {
 

@@ -20,6 +20,7 @@
 package io.arlas.data.transform
 
 import io.arlas.data.sql._
+import io.arlas.data.transform.tools.DataFrameFormatter
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types._

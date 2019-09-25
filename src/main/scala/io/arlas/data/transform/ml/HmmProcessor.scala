@@ -17,9 +17,10 @@
  * under the License.
  */
 
-package io.arlas.data.transform
+package io.arlas.data.transform.ml
 
 import io.arlas.data.model.MLModel
+import io.arlas.data.transform.ArlasTransformer
 import io.arlas.data.transform.ArlasTransformerColumns.arlasTimestampColumn
 import io.arlas.ml.classification.Hmm
 import io.arlas.ml.parameter.State

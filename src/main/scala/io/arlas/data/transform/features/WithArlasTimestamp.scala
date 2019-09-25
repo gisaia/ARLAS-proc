@@ -17,11 +17,12 @@
  * under the License.
  */
 
-package io.arlas.data.transform
+package io.arlas.data.transform.features
 
 import java.time.format.{DateTimeFormatter, DateTimeParseException}
 import java.time.{ZoneOffset, ZonedDateTime}
 import io.arlas.data.model.DataModel
+import io.arlas.data.transform.ArlasTransformer
 import io.arlas.data.transform.ArlasTransformerColumns._
 import org.apache.spark.sql.expressions.UserDefinedFunction
 import org.apache.spark.sql.functions._
