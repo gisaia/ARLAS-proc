@@ -17,71 +17,75 @@
  * under the License.
  */
 
-package io.arlas.data.transform.timeseries
+package io.arlas.data.transform
 
+import io.arlas.data.model.DataModel
 import io.arlas.data.sql._
-import io.arlas.data.transform.ArlasTransformerColumns._
-import io.arlas.data.transform.{
-  ArlasTest,
-  ArlasVisibilityStates,
-  WithArlasVisibilityStateFromTimestamp
-}
-import org.apache.spark.sql.DataFrame
+import io.arlas.data.transform.timeseries.WithStateIdFromState
 import org.apache.spark.sql.functions._
+import org.apache.spark.sql.types.{IntegerType, StringType}
+
+import scala.collection.immutable.ListMap
 
 class WithStateIdFromStateTest extends ArlasTest {
 
+  val testDF = createDataFrameWithTypes(
+    List(
+      Seq("id1", 1, "new", "id1#1"),
+      Seq("id1", 2, "new", "id1#2"),
+      Seq("id1", 3, "not-new", "id1#2"),
+      Seq("id1", 4, "not-new", "id1#2"),
+      Seq("id1", 5, "not-new", "id1#2"),
+      Seq("id1", 6, "new", "id1#6"),
+      Seq("id1", 7, "not-new", "id1#6"),
+      Seq("id2", 1, "new", "id2#1"),
+      Seq("id2", 2, "not-new", "id2#1")
+    ),
+    ListMap("id" -> (StringType, true),
+            "timestamp" -> (IntegerType, true),
+            "state" -> (StringType, true),
+            "expected_state_id" -> (StringType, true))
+  )
+
   "WithStateIdFromState transformation " should " fill/generate state id against dataframe's timeseries" in {
 
-    val sourceDF = cleanedDF
-
-    val transformedDF: DataFrame = sourceDF
+    val transformedDF = testDF
       .enrichWithArlas(
-        new WithArlasVisibilityStateFromTimestamp(dataModel, visibilityTimeout),
-        new WithStateIdFromState(dataModel,
-                                 arlasVisibilityStateColumn,
-                                 arlasTimestampColumn,
-                                 ArlasVisibilityStates.APPEAR.toString,
-                                 arlasVisibleSequenceIdColumn)
-      )
+        new WithStateIdFromState(
+          DataModel(),
+          "state",
+          "timestamp",
+          "new",
+          "result_state_id"
+        ))
 
-    val expectedDF = visibleSequencesDF
-
-    assertDataFrameEquality(transformedDF, expectedDF)
+    assertColumnsAreEqual(transformedDF, "result_state_id", "expected_state_id")
   }
 
   "WithStateIdFromState transformation " should " resume state id when adding a warm up period" in {
 
-    val sourceDF = cleanedDF
-
-    val warmupDF: DataFrame = sourceDF
-      .filter(col(arlasTimestampColumn) < 1527804100)
+    val transformedDF = testDF
       .enrichWithArlas(
-        new WithArlasVisibilityStateFromTimestamp(dataModel, visibilityTimeout),
-        new WithStateIdFromState(dataModel,
-                                 arlasVisibilityStateColumn,
-                                 arlasTimestampColumn,
-                                 ArlasVisibilityStates.APPEAR.toString,
-                                 arlasVisibleSequenceIdColumn)
-      )
-
-    val transformedDF: DataFrame = sourceDF
-      .withEmptyCol(arlasVisibleSequenceIdColumn)
-      .withEmptyCol(arlasVisibilityStateColumn)
-      .filter(col(arlasTimestampColumn) >= 1527804100)
-      .unionByName(warmupDF)
+        new WithStateIdFromState(
+          DataModel(),
+          "state",
+          "timestamp",
+          "new",
+          "result_state_id"
+        ))
+      .withColumn("result_state_id",
+                  when(col("id").equalTo("id1").and(col("timestamp").lt(5)), lit(null))
+                    .otherwise(col("result_state_id")))
       .enrichWithArlas(
-        new WithArlasVisibilityStateFromTimestamp(dataModel, visibilityTimeout),
-        new WithStateIdFromState(dataModel,
-                                 arlasVisibilityStateColumn,
-                                 arlasTimestampColumn,
-                                 ArlasVisibilityStates.APPEAR.toString,
-                                 arlasVisibleSequenceIdColumn)
-      )
+        new WithStateIdFromState(
+          DataModel(),
+          "state",
+          "timestamp",
+          "new",
+          "result_state_id"
+        ))
 
-    val expectedDF = visibleSequencesDF
-
-    assertDataFrameEquality(transformedDF, expectedDF)
+    assertColumnsAreEqual(transformedDF, "result_state_id", "expected_state_id")
   }
 
 }

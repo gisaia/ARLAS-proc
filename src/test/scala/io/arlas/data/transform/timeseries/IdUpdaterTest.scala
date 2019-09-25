@@ -17,56 +17,42 @@
  * under the License.
  */
 
-package io.arlas.data.transform.timeseries
+package io.arlas.data.transform
 
+import io.arlas.data.model.DataModel
 import io.arlas.data.sql._
 import io.arlas.data.transform.ArlasTransformerColumns._
-import io.arlas.data.transform.{
-  ArlasTest,
-  ArlasVisibilityStates,
-  WithArlasVisibilityStateFromTimestamp
-}
-import org.apache.spark.sql.DataFrame
-import org.apache.spark.sql.functions._
+import io.arlas.data.transform.timeseries._
+import org.apache.spark.sql.types.{IntegerType, StringType}
+
+import scala.collection.immutable.ListMap
 
 class IdUpdaterTest extends ArlasTest {
 
-  val sequenceIdObjA =
-    when(col(arlasTimestampColumn).lt(lit(1527804601)), lit("ObjectA#1527804000_1527804291"))
-      .otherwise(lit("ObjectA#1527804291_1527804771"))
-  val sequenceIdObjB =
-    when(col(arlasTimestampColumn).lt(lit(1527804451)), lit("ObjectB#1527804000_1527804060"))
-      .otherwise(lit("ObjectB#1527804060_1527804600"))
-
-  val baseDF = cleanedDF
-    .enrichWithArlas(
-      new FlowFragmentMapper(dataModel, spark, dataModel.idColumn),
-      new WithArlasVisibilityStateFromTimestamp(dataModel, visibilityTimeout),
-      new WithStateIdFromState(dataModel,
-                               arlasVisibilityStateColumn,
-                               arlasTimestampColumn,
-                               ArlasVisibilityStates.APPEAR.toString,
-                               arlasVisibleSequenceIdColumn)
+  val testDF = createDataFrameWithTypes(
+    List(
+      Seq("id1", "1#0", 1, 10, "id1#1_100"),
+      Seq("id1", "1#0", 10, 20, "id1#1_100"),
+      Seq("id1", "1#0", 20, 50, "id1#1_100"),
+      Seq("id1", "1#0", 50, 100, "id1#1_100"),
+      Seq("id1", "1#100", 100, 1000, "id1#100_2000"),
+      Seq("id1", "1#100", 1000, 2000, "id1#100_2000"),
+      Seq("id2", "2#10000", 10000, 10001, "id2#10000_10001")
+    ),
+    ListMap(
+      "id" -> (StringType, true),
+      "seq_id" -> (StringType, true),
+      arlasTrackTimestampStart -> (IntegerType, true),
+      arlasTrackTimestampEnd -> (IntegerType, true),
+      "expected_new_seq_id" -> (StringType, true)
     )
-  val expectedDF = baseDF
-    .withColumn(
-      arlasVisibleSequenceIdColumn,
-      when(col(dataModel.idColumn).equalTo("ObjectA"), sequenceIdObjA)
-        .otherwise(when(col(dataModel.idColumn).equalTo("ObjectB"), sequenceIdObjB)
-          .otherwise(lit(null))) //NB : last otherwise is useless but create a nullable column for schema compliance
-    )
+  )
 
   "IdUpdater transformation " should " update idColumn as objectid#start_end" in {
 
-    val transformedDF: DataFrame = baseDF
-      .enrichWithArlas(
-        new IdUpdater(dataModel, arlasVisibleSequenceIdColumn)
-      )
+    val transformedDF = testDF.enrichWithArlas(new IdUpdater(DataModel(), "seq_id"))
 
-    assertDataFrameEquality(
-      transformedDF.select(dataModel.idColumn, arlasVisibleSequenceIdColumn),
-      expectedDF.select(dataModel.idColumn, arlasVisibleSequenceIdColumn)
-    )
+    assertColumnsAreEqual(transformedDF, "seq_id", "expected_new_seq_id")
   }
 
 }

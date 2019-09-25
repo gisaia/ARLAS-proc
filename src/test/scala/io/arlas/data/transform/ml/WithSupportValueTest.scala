@@ -19,61 +19,39 @@
 
 package io.arlas.data.transform.ml
 
-import io.arlas.data.model.DataModel
 import io.arlas.data.sql._
 import io.arlas.data.transform.ArlasTest
 import io.arlas.data.transform.ArlasTransformerColumns._
 import org.apache.spark.sql.types._
 
+import scala.collection.immutable.ListMap
+
 class WithSupportValueTest extends ArlasTest {
 
-  import spark.implicits._
-
-  val testDataModel = DataModel(timeFormat = "dd/MM/yyyy HH:mm:ssXXX")
-  val distanceColumn = "distance"
-
-  val testData = Seq(
-    ("ObjectA", 0l, 0d, 0d, 10l, 4.0d, 0.1d, "tempo_other"),
-    ("ObjectA", 0l, 0d, 0d, 10l, 4.0d, 0.2d, "tempo_irregular"),
-    ("ObjectA", 0l, 0d, 0d, 100l, 10.0d, 0.3d, "tempo_other"),
-    ("ObjectA", 0l, 0d, 0d, 100l, 10.0d, 0.4d, "tempo_irregular")
-  )
-
-  val expectedData = Seq(
-    ("ObjectA", 0l, 0d, 0d, 10l, 4.0d, 0.1d, "tempo_other", Seq(0.1d)),
-    ("ObjectA", 0l, 0d, 0d, 10l, 4.0d, 0.2d, "tempo_irregular", Seq(0.4d, 0.4d)),
-    ("ObjectA", 0l, 0d, 0d, 100l, 10.0d, 0.3d, "tempo_other", Seq(0.3d)),
-    ("ObjectA", 0l, 0d, 0d, 100l, 10.0d, 0.4d, "tempo_irregular", Seq.fill(8)(0.1d))
-  )
-
-  val testSchema = StructType(
+  val testDF = createDataFrameWithTypes(
     List(
-      StructField(dataModel.idColumn, StringType, true),
-      StructField(dataModel.timestampColumn, LongType, true),
-      StructField(dataModel.latColumn, DoubleType, true),
-      StructField(dataModel.lonColumn, DoubleType, true),
-      StructField(arlasTrackDuration, LongType, true),
-      StructField(distanceColumn, DoubleType, true),
-      StructField(speedColumn, DoubleType, true),
-      StructField(arlasTempoColumn, StringType, true)
-    ))
-
-  val expectedSchema = testSchema.add(
-    StructField(speedColumn + "_array", ArrayType(DoubleType, true), false)
+      Seq(10l, 4.0d, 0.1d, "tempo_other", Seq(0.1d)),
+      Seq(10l, 4.0d, 0.2d, "tempo_irregular", Seq(0.4d, 0.4d)),
+      Seq(100l, 10.0d, 0.3d, "tempo_other", Seq(0.3d)),
+      Seq(100l, 10.0d, 0.4d, "tempo_irregular", Seq.fill(8)(0.1d))
+    ),
+    ListMap(
+      arlasTrackDuration -> (LongType, true),
+      "distance" -> (DoubleType, true),
+      speedColumn -> (DoubleType, true),
+      arlasTempoColumn -> (StringType, true),
+      "expected" + speedColumn + "_array" -> (ArrayType(DoubleType, true), false)
+    )
   )
-
-  val testDF = spark.createDataFrame(testData.toDF().rdd, testSchema)
-  val expectedDF = spark
-    .createDataFrame(expectedData.toDF().rdd, expectedSchema)
 
   "WithSupportValues " should "add a column with a list of support column's value" in {
 
-    val transformedDF = testDF
-      .enrichWithArlas(
-        new WithSupportValues(speedColumn, 5, 8, "tempo_irregular", distanceColumn)
-      )
+    val transformedDF = testDF.enrichWithArlas(
+      new WithSupportValues(speedColumn, 5, 8, "tempo_irregular", "distance"))
 
-    assertDataFrameEquality(transformedDF, expectedDF)
+    assertColumnsAreEqual(transformedDF,
+                          speedColumn + "_array",
+                          "expected" + speedColumn + "_array")
   }
 
 }
