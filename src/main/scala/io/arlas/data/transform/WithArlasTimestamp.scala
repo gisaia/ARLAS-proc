@@ -21,7 +21,6 @@ package io.arlas.data.transform
 
 import java.time.format.{DateTimeFormatter, DateTimeParseException}
 import java.time.{ZoneOffset, ZonedDateTime}
-
 import io.arlas.data.model.DataModel
 import io.arlas.data.transform.ArlasTransformerColumns._
 import org.apache.spark.sql.expressions.UserDefinedFunction
@@ -29,7 +28,8 @@ import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types.{LongType, StructField, StructType}
 import org.apache.spark.sql.{DataFrame, Dataset}
 
-class WithArlasTimestamp(dataModel: DataModel) extends ArlasTransformer(dataModel) {
+class WithArlasTimestamp(dataModel: DataModel)
+    extends ArlasTransformer(Vector(dataModel.timestampColumn)) {
 
   override def transform(dataset: Dataset[_]): DataFrame = {
     val timestampConversion = getUdf(dataModel.timeFormat)

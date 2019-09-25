@@ -20,7 +20,6 @@
 package io.arlas.data.transform
 
 import io.arlas.data.model.DataModel
-import io.arlas.data.transform.ArlasTransformerColumns.arlasTimestampColumn
 import org.apache.spark.sql.expressions.Window
 import org.apache.spark.sql.functions._
 

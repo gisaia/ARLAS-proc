@@ -19,7 +19,6 @@
 
 package io.arlas.data.transform
 
-import io.arlas.data.model.DataModel
 import io.arlas.data.transform.ArlasTransformerColumns._
 import org.apache.spark.sql.expressions.Window
 import org.apache.spark.sql.functions._
@@ -29,13 +28,11 @@ import org.apache.spark.sql.{DataFrame, Dataset}
 /**
   * For a ID that is hold by multiple rows, it computes the 'duration of this id'
   * i.a. <oldest row with this id> - <earlier row with this id>
-  * @param dataModel
   * @param idColumn
   * @param durationColumn
   */
-class WithDurationFromId(dataModel: DataModel, idColumn: String, durationColumn: String)
-    extends ArlasTransformer(dataModel,
-                             Vector(idColumn, arlasTrackTimestampStart, arlasTrackTimestampEnd)) {
+class WithDurationFromId(idColumn: String, durationColumn: String)
+    extends ArlasTransformer(Vector(idColumn, arlasTrackTimestampStart, arlasTrackTimestampEnd)) {
 
   override def transform(dataset: Dataset[_]): DataFrame = {
 

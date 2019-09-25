@@ -52,7 +52,7 @@ class WithDurationFromIdTest extends ArlasTest {
 
     val transformedDF: DataFrame = baseDF
       .enrichWithArlas(
-        new WithDurationFromId(dataModel, arlasVisibleSequenceIdColumn, "duration")
+        new WithDurationFromId(arlasVisibleSequenceIdColumn, "duration")
       )
 
     assertDataFrameEquality(

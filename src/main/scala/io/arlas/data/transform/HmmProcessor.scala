@@ -19,7 +19,7 @@
 
 package io.arlas.data.transform
 
-import io.arlas.data.model.{DataModel, MLModel}
+import io.arlas.data.model.MLModel
 import io.arlas.data.transform.ArlasTransformerColumns.arlasTimestampColumn
 import io.arlas.ml.classification.Hmm
 import io.arlas.ml.parameter.State
@@ -33,14 +33,12 @@ import org.slf4j.LoggerFactory
 import scala.collection.mutable.ArrayBuffer
 import scala.util.{Failure, Success}
 
-class HmmProcessor(dataModel: DataModel,
-                   spark: SparkSession,
-                   sourceColumn: String,
+class HmmProcessor(sourceColumn: String,
                    hmmModel: MLModel,
                    partitionColumn: String,
                    resultColumn: String,
                    hmmWindowSize: Int)
-    extends ArlasTransformer(dataModel, Vector(partitionColumn)) {
+    extends ArlasTransformer(Vector(partitionColumn)) {
 
   @transient lazy val logger = LoggerFactory.getLogger(this.getClass)
   val UNKNOWN_RESULT = "Unknown"
