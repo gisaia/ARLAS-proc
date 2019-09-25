@@ -38,7 +38,7 @@ abstract class ArlasTransformer(val requiredCols: Vector[String] = Vector.empty)
   def checkSchema(schema: StructType): StructType = {
     val colsNotFound = requiredCols.distinct.diff(schema.fieldNames)
     if (colsNotFound.length > 0) {
-      throw new DataFrameException(
+      throw DataFrameException(
         s"The ${colsNotFound.mkString(", ")} columns are not included in the DataFrame with the following columns ${schema.fieldNames
           .mkString(", ")}")
     }

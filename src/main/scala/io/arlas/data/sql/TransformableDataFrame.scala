@@ -29,7 +29,8 @@ import org.apache.spark.sql.DataFrame
 
 class TransformableDataFrame(df: DataFrame) {
 
-  def asArlasFormattedData(dataModel: DataModel): DataFrame = {
+  def asArlasFormattedData(dataModel: DataModel,
+                           doubleColumns: Vector[String] = Vector()): DataFrame = {
     df.enrichWithArlas(new DataFrameFormatter(dataModel), new WithArlasTimestamp(dataModel))
       .withColumn(arlasPartitionColumn,
                   date_format(to_date(col(dataModel.timestampColumn), dataModel.timeFormat),

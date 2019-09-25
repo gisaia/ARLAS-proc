@@ -28,9 +28,8 @@ class WithSupportValueTest extends ArlasTest {
 
   import spark.implicits._
 
-  val testDataModel = DataModel(timeFormat = "dd/MM/yyyy HH:mm:ssXXX",
-                                speedColumn = "speed",
-                                dynamicFields = Array("lat", "lon", "speed"))
+  val testDataModel = DataModel(timeFormat = "dd/MM/yyyy HH:mm:ssXXX")
+  val distanceColumn = "distance"
 
   val testData = Seq(
     ("ObjectA", 0l, 0d, 0d, 10l, 4.0d, 0.1d, "tempo_other"),
@@ -53,13 +52,13 @@ class WithSupportValueTest extends ArlasTest {
       StructField(dataModel.latColumn, DoubleType, true),
       StructField(dataModel.lonColumn, DoubleType, true),
       StructField(arlasTrackDuration, LongType, true),
-      StructField(dataModel.distanceColumn, DoubleType, true),
-      StructField(dataModel.speedColumn, DoubleType, true),
+      StructField(distanceColumn, DoubleType, true),
+      StructField(speedColumn, DoubleType, true),
       StructField(arlasTempoColumn, StringType, true)
     ))
 
   val expectedSchema = testSchema.add(
-    StructField(dataModel.speedColumn + "_array", ArrayType(DoubleType, true), false)
+    StructField(speedColumn + "_array", ArrayType(DoubleType, true), false)
   )
 
   val testDF = spark.createDataFrame(testData.toDF().rdd, testSchema)
@@ -70,7 +69,7 @@ class WithSupportValueTest extends ArlasTest {
 
     val transformedDF = testDF
       .enrichWithArlas(
-        new WithSupportValues(testDataModel, spark, dataModel.speedColumn, 5, 8, "tempo_irregular")
+        new WithSupportValues(speedColumn, 5, 8, "tempo_irregular", distanceColumn)
       )
 
     assertDataFrameEquality(transformedDF, expectedDF)
