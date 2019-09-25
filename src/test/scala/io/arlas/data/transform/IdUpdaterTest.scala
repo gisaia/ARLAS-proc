@@ -34,8 +34,15 @@ class IdUpdaterTest extends ArlasTest {
       .otherwise(lit("ObjectB#1527804060_1527804600"))
 
   val baseDF = cleanedDF
-    .enrichWithArlas(new FlowFragmentMapper(dataModel, spark, dataModel.idColumn))
-    .asArlasVisibleSequencesFromTimestamp(dataModel, visibilityTimeout)
+    .enrichWithArlas(
+      new FlowFragmentMapper(dataModel, spark, dataModel.idColumn),
+      new WithArlasVisibilityStateFromTimestamp(dataModel, visibilityTimeout),
+      new WithStateIdFromState(dataModel,
+                               arlasVisibilityStateColumn,
+                               arlasTimestampColumn,
+                               ArlasVisibilityStates.APPEAR.toString,
+                               arlasVisibleSequenceIdColumn)
+    )
   val expectedDF = baseDF
     .withColumn(
       arlasVisibleSequenceIdColumn,
