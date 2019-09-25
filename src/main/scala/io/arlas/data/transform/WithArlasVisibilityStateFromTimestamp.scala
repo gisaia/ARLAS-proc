@@ -31,6 +31,8 @@ import org.apache.spark.sql.{DataFrame, Dataset}
  * Split groups into sequences separated by gaps larger than visibilityTimeout.
  * Add arlas_visibility_state column (available values in ArlasVisibilityStates)
  */
+@Deprecated
+//TODO remove as soon as tests don't rely on it anymore
 class WithArlasVisibilityStateFromTimestamp(dataModel: DataModel, visibilityTimeout: Int)
     extends ArlasTransformer(dataModel, Vector(arlasTimestampColumn, arlasPartitionColumn)) {
 
