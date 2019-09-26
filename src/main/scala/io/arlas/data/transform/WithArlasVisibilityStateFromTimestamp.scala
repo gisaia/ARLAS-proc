@@ -37,9 +37,10 @@ class WithArlasVisibilityStateFromTimestamp(dataModel: DataModel, visibilityTime
   override def transform(dataset: Dataset[_]): DataFrame = {
 
     val datasetDF = dataset.toDF()
-    val df = if (!datasetDF.columns.contains(arlasVisibilityStateColumn))
-      datasetDF.withEmptyCol(arlasVisibilityStateColumn)
-        else datasetDF
+    val df =
+      if (!datasetDF.columns.contains(arlasVisibilityStateColumn))
+        datasetDF.withEmptyCol(arlasVisibilityStateColumn)
+      else datasetDF
 
     // prequisites visibility timeout computations
     val window = Window.partitionBy(dataModel.idColumn).orderBy(arlasTimestampColumn)
@@ -47,12 +48,13 @@ class WithArlasVisibilityStateFromTimestamp(dataModel: DataModel, visibilityTime
     val nextGap = lead(arlasTimestampColumn, 1).over(window) - col(arlasTimestampColumn)
 
     // sequence information computation
-    val sequenceId = when(
-      col("previousGap").isNull || col("previousGap") > visibilityTimeout,
-      concat(col(dataModel.idColumn), lit("#"), col(arlasTimestampColumn)))
+    val sequenceId = when(col("previousGap").isNull || col("previousGap") > visibilityTimeout,
+                          concat(col(dataModel.idColumn), lit("#"), col(arlasTimestampColumn)))
     val visibilityState =
-      when(col("previousGap").isNull || col("previousGap") > visibilityTimeout, ArlasVisibilityStates.APPEAR.toString)
-        .when(col("nextGap").isNull || col("nextGap") > visibilityTimeout, ArlasVisibilityStates.DISAPPEAR.toString)
+      when(col("previousGap").isNull || col("previousGap") > visibilityTimeout,
+           ArlasVisibilityStates.APPEAR.toString)
+        .when(col("nextGap").isNull || col("nextGap") > visibilityTimeout,
+              ArlasVisibilityStates.DISAPPEAR.toString)
         .otherwise(ArlasVisibilityStates.VISIBLE.toString)
 
     // dataframe enrichment
@@ -78,4 +80,3 @@ class WithArlasVisibilityStateFromTimestamp(dataModel: DataModel, visibilityTime
   }
 
 }
-

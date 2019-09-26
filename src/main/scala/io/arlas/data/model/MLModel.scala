@@ -34,10 +34,14 @@ case class MLModelLocal(spark: SparkSession, path: String) extends MLModel {
   }
 }
 
-case class MLModelHosted(spark: SparkSession, project: String, modelName: String, version: String = "latest") extends MLModel {
+case class MLModelHosted(spark: SparkSession,
+                         project: String,
+                         modelName: String,
+                         version: String = "latest")
+    extends MLModel {
 
   val CLOUDSMITH_TOKEN_KEY = "spark.driver.CLOUDSMITH_ML_MODELS_TOKEN"
-  val CLOUDSMITH_REPO_KEY  = "spark.driver.CLOUDSMITH_ML_MODELS_REPO"
+  val CLOUDSMITH_REPO_KEY = "spark.driver.CLOUDSMITH_ML_MODELS_REPO"
 
   override def getModelString(): Try[String] = {
 
@@ -45,14 +49,17 @@ case class MLModelHosted(spark: SparkSession, project: String, modelName: String
     val cloudsmithRepo = Try(spark.conf.get(CLOUDSMITH_REPO_KEY)).toOption
 
     if (!cloudsmithToken.isDefined) {
-      new Failure(new InvalidParameterException(s"${CLOUDSMITH_TOKEN_KEY} conf not set, cannot download ML Model ${modelName}:${version}/${project}"))
+      new Failure(new InvalidParameterException(
+        s"${CLOUDSMITH_TOKEN_KEY} conf not set, cannot download ML Model ${modelName}:${version}/${project}"))
     } else if (!cloudsmithRepo.isDefined) {
-      new Failure(new InvalidParameterException(s"${CLOUDSMITH_REPO_KEY} conf not set, cannot download ML Model ${modelName}:${version}/${project}"))
+      new Failure(new InvalidParameterException(
+        s"${CLOUDSMITH_REPO_KEY} conf not set, cannot download ML Model ${modelName}:${version}/${project}"))
     } else {
       //TODO put URL in a config class
-      Try(scala.io.Source.fromURL(
-        s"https://dl.cloudsmith.io/${cloudsmithToken.get}/${cloudsmithRepo.get}/raw/versions/${version}/io.arlas.ml.models.${project}.${modelName}")
-            .mkString)
+      Try(scala.io.Source
+        .fromURL(
+          s"https://dl.cloudsmith.io/${cloudsmithToken.get}/${cloudsmithRepo.get}/raw/versions/${version}/io.arlas.ml.models.${project}.${modelName}")
+        .mkString)
     }
 
   }

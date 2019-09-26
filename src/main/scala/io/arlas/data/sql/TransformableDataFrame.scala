@@ -46,13 +46,20 @@ class TransformableDataFrame(df: DataFrame) {
     pipeline.fit(df).transform(df)
   }
 
-  def withEmptyCol(colName: String, colType: DataType = StringType) = df.withColumn(colName, lit(null).cast(colType))
+  def withEmptyCol(colName: String, colType: DataType = StringType) =
+    df.withColumn(colName, lit(null).cast(colType))
 
-  def asArlasVisibleSequencesFromTimestamp(dataModel: DataModel, visibilityTimeout: Int): DataFrame = {
+  def asArlasVisibleSequencesFromTimestamp(dataModel: DataModel,
+                                           visibilityTimeout: Int): DataFrame = {
     doPipelineTransform(
       df,
       new WithArlasVisibilityStateFromTimestamp(dataModel, visibilityTimeout),
-      new WithStateIdFromState(dataModel, arlasVisibilityStateColumn, ArlasVisibilityStates.APPEAR.toString, arlasVisibleSequenceIdColumn))
+      new WithStateIdFromState(dataModel,
+                               arlasVisibilityStateColumn,
+                               arlasTimestampColumn,
+                               ArlasVisibilityStates.APPEAR.toString,
+                               arlasVisibleSequenceIdColumn)
+    )
   }
 
 }

@@ -20,30 +20,35 @@
 package io.arlas.data.transform
 
 import io.arlas.data.model.DataModel
-import io.arlas.data.transform.ArlasTransformerColumns.arlasTimestampColumn
+import io.arlas.data.transform.ArlasTransformerColumns._
 import org.apache.spark.sql.expressions.Window
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types.{LongType, StructField, StructType}
 import org.apache.spark.sql.{DataFrame, Dataset}
 
 /**
-* For a ID that is hold by multiple rows, it computes the 'duration of this id'
+  * For a ID that is hold by multiple rows, it computes the 'duration of this id'
   * i.a. <oldest row with this id> - <earlier row with this id>
   * @param dataModel
   * @param idColumn
   * @param durationColumn
   */
 class WithDurationFromId(dataModel: DataModel, idColumn: String, durationColumn: String)
-  extends ArlasTransformer(dataModel, Vector(idColumn)) {
+    extends ArlasTransformer(dataModel,
+                             Vector(idColumn, arlasTrackTimestampStart, arlasTrackTimestampEnd)) {
 
   override def transform(dataset: Dataset[_]): DataFrame = {
 
-    val window = Window.partitionBy(idColumn)
-      .orderBy(arlasTimestampColumn)
+    val window = Window
+      .partitionBy(idColumn)
+      .orderBy(arlasTrackTimestampStart)
       .rowsBetween(Window.unboundedPreceding, Window.unboundedFollowing)
 
-    dataset.toDF()
-      .withColumn(durationColumn, last(arlasTimestampColumn).over(window) - first(arlasTimestampColumn).over(window))
+    dataset
+      .toDF()
+      .withColumn(
+        durationColumn,
+        last(arlasTrackTimestampEnd).over(window) - first(arlasTrackTimestampStart).over(window))
   }
 
   override def transformSchema(schema: StructType): StructType = {

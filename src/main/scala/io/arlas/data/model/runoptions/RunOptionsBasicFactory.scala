@@ -21,7 +21,8 @@ package io.arlas.data.model.runoptions
 
 import io.arlas.data.model.ArgumentMap
 
-class RunOptionsBasicFactory(arguments: ArgumentMap) extends RunOptionsAbstractFactory[RunOptionsBasic](arguments) {
+class RunOptionsBasicFactory(arguments: ArgumentMap)
+    extends RunOptionsAbstractFactory[RunOptionsBasic](arguments) {
 
   override def create(): RunOptionsBasic = {
     RunOptionsBasic(source, target, period)

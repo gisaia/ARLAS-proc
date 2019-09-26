@@ -21,14 +21,14 @@ package io.arlas.data.transform
 
 import org.apache.spark.sql.{Column, DataFrame, Dataset}
 import io.arlas.data.model.DataModel
-import io.arlas.data.transform.ArlasTransformerColumns.arlasTimestampColumn
+import io.arlas.data.transform.ArlasTransformerColumns._
 import org.apache.spark.sql.expressions.Window
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types.{StringType, StructField, StructType}
 
 /**
-* Compute a state ID in targetIdColumn based on stateColumn.
-  * The generated ID looks like <object_id>_<first_timestamp>_<last_timestamp>
+  * Compute a state ID in targetIdColumn based on stateColumn.
+  * The generated ID looks like <object_id>_<first_timestamp>
   * @param dataModel
   * @param stateColumn
   * @param targetIdColumn
@@ -36,16 +36,23 @@ import org.apache.spark.sql.types.{StringType, StructField, StructType}
   * For example, if you expect the rows to have the same state_id for each consecutive row with the same state,
   * you should return a 'true' at each state change.
   */
-class WithStateId(dataModel: DataModel, stateColumn: String, targetIdColumn: String, isNewIdColumn: Column)
-  extends ArlasTransformer(dataModel, Vector(stateColumn)){
+class WithStateId(dataModel: DataModel,
+                  stateColumn: String,
+                  orderColumn: String,
+                  targetIdColumn: String,
+                  isNewIdColumn: Column)
+    extends ArlasTransformer(dataModel, Vector(stateColumn, orderColumn)) {
 
   override def transform(dataset: Dataset[_]): DataFrame = {
 
-    val window = Window.partitionBy(dataModel.idColumn).orderBy(arlasTimestampColumn)
+    val window = Window.partitionBy(dataModel.idColumn).orderBy(orderColumn)
 
-    dataset.toDF()
+    dataset
+      .toDF()
       .withColumn("is_new_id", isNewIdColumn)
-      .withColumn("temp_id", when(col("is_new_id").equalTo(true), concat(col(dataModel.idColumn), lit("#"), col(arlasTimestampColumn))))
+      .withColumn("temp_id",
+                  when(col("is_new_id").equalTo(true),
+                       concat(col(dataModel.idColumn), lit("#"), col(orderColumn))))
       .withColumn(targetIdColumn, last("temp_id", true).over(window))
       .drop("is_new_id", "temp_id")
   }

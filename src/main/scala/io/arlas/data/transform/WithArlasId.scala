@@ -26,10 +26,11 @@ import org.apache.spark.sql.types._
 import org.apache.spark.sql.{DataFrame, Dataset}
 
 class WithArlasId(dataModel: DataModel)
-  extends ArlasTransformer(dataModel, Vector(arlasTimestampColumn)) {
+    extends ArlasTransformer(dataModel, Vector(arlasTimestampColumn)) {
 
   override def transform(dataset: Dataset[_]): DataFrame = {
-    dataset.withColumn(arlasIdColumn, concat(col(dataModel.idColumn), lit("#"), col(arlasTimestampColumn)))
+    dataset.withColumn(arlasIdColumn,
+                       concat(col(dataModel.idColumn), lit("#"), col(arlasTimestampColumn)))
   }
 
   override def transformSchema(schema: StructType): StructType = {

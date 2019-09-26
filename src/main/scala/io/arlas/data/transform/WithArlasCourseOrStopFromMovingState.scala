@@ -26,16 +26,18 @@ import org.apache.spark.sql.types.{StringType, StructField, StructType}
 import org.apache.spark.sql.{DataFrame, Dataset}
 
 class WithArlasCourseOrStopFromMovingState(dataModel: DataModel, courseTimeout: Int)
-  extends ArlasTransformer(dataModel, Vector(arlasMovingStateColumn, arlasMotionDurationColumn)) {
+    extends ArlasTransformer(dataModel, Vector(arlasMovingStateColumn, arlasMotionDurationColumn)) {
 
   override def transform(dataset: Dataset[_]): DataFrame = {
 
     val courseState = when(
       col(arlasMovingStateColumn).equalTo(lit(ArlasMovingStates.STILL.toString)),
-      when(col(arlasMotionDurationColumn) < courseTimeout, lit(ArlasCourseOrStop.COURSE.toString)).otherwise(lit(ArlasCourseOrStop.STOP.toString)))
-      .otherwise(lit(ArlasCourseOrStop.COURSE.toString))
+      when(col(arlasMotionDurationColumn) < courseTimeout, lit(ArlasCourseOrStop.COURSE.toString))
+        .otherwise(lit(ArlasCourseOrStop.STOP.toString))
+    ).otherwise(lit(ArlasCourseOrStop.COURSE.toString))
 
-    dataset.toDF()
+    dataset
+      .toDF()
       .withColumn(arlasCourseOrStopColumn, courseState)
 
   }

@@ -1,6 +1,5 @@
 # Spark Application for Ingestion & Processing data  
 
-- [Spark Application for Ingestion & Processing data](#spark-application-for-ingestion---processing-data)
 - [Overview](#overview)
   * [Versions used in this project](#versions-used-in-this-project)
 - [Prerequisites](#prerequisites)
@@ -9,13 +8,9 @@
 - [Build and deploy application JAR](#build-and-deploy-application-jar)
   * [Build locally](#build-locally)
   * [Deploy JAR to Cloudsmith](#deploy-jar-to-cloudsmith)
-    + [Deploy thin JAR](#deploy-thin-jar)
-    + [Deploy fat JAR](#deploy-fat-jar)
-- [Integration tests](#integration-tests)
+  * [Release](#release)
 - [User guide](#user-guide)
-  * [Start spark-shell locally](#start-spark-shell-locally)
-  * [Start spark-shell on GCP](#start-spark-shell-on-gcp)
-  * [Spark-shell example](#spark-shell-example)
+  * [Test locally throught spark-shell](#test-locally-throught-spark-shell)
 - [Contributing](#contributing)
 - [Authors](#authors)
 - [License](#license)
@@ -34,14 +29,10 @@ A spark java application to submit a spark job on our spark cluster:
 
 ## Versions used in this project
 It's very important to check the version of spark being used, here we are using the following:   
-- Spark 2.3.1 for Hadoop 2.7 with OpenJDK 8 (Java 1.8.0)
-- Scala 2.11.2
+- Spark 2.3.3 for Hadoop 2.7 with OpenJDK 8 (Java 1.8.0)
+- Scala 2.11.8
 - ScyllaDB 2.2.0
-- Spark-cassandra-connector: 2.3.0-S_2.11 
-
-[Check Spark Dockerfile](scripts/tests/spark/Dockerfile)
-
-[Check Spark/ScyllaDB YAML](scripts/tests/docker-compose-standalone.yml)
+- Spark-cassandra-connector: 2.3.1-S_2.11 
 
 # Prerequisites
 
@@ -78,34 +69,21 @@ sbt clean assembly
 
 ## Deploy JAR to Cloudsmith
 
-### Deploy thin JAR
-
 ```bash
 sbt clean publish
 ```
 
-### Deploy fat JAR
- 
-This deploys a fat jar, ready to be used from GCP Dataproc to start processing.
+## Release
 
-```bash
-sbt clean "project arlasProcAssembly" publish
-```
+Simply type:
 
-# Integration tests
+`sbt release`
 
-```bash
-./scripts/tests/test.sh [cluster]
-```
+You will be asked for the versions to use for release & next version.
 
 # User guide
 
-## Start spark-shell locally
-
-Start ScyllaDB and Elasticsearch clusters. For example : 
-```bash
-docker-compose -f scripts/tests/docker-compose-standalone.yml up -d --force-recreate gisaia-scylla-db gisaia-elasticsearch
-```
+## Test locally throught spark-shell
 
 Start an interactive spark-shell session. For example :
 ```bash
@@ -121,7 +99,7 @@ docker run -ti \
         --packages datastax:spark-cassandra-connector:2.3.1-s_2.11,org.elasticsearch:elasticsearch-spark-20_2.11:6.4.0,org.geotools:gt-referencing:20.1,org.geotools:gt-geometry:20.1,org.geotools:gt-epsg-hsql:20.1 \
         --exclude-packages javax.media:jai_core \
         --repositories http://repo.boundlessgeo.com/main,http://download.osgeo.org/webdav/geotools/ \
-        --jars /opt/proc/target/scala-2.11/arlas-proc-assembly-0.3.0.jar \
+        --jars /opt/proc/target/scala-2.11/arlas-proc-assembly-0.4.0-SNAPSHOT.jar \
         --conf spark.es.nodes="gisaia-elasticsearch" \
         --conf spark.es.index.auto.create="true" \
         --conf spark.cassandra.connection.host="gisaia-scylla-db" \
@@ -134,33 +112,6 @@ docker run -ti \
 `spark.driver.CLOUDSMITH_ML_MODELS_REPO` and `spark.driver.CLOUDSMITH_ML_MODELS_TOKEN` are required when using ML models from Cloudsmith. 
 
 CLOUDSMITH_ML_MODELS_REPO is the repo hosting the models (e.g. `gisaia/private`), and CLOUDSMITH_ML_MODELS_TOKEN is the token to use to download from this repository.
-
-## Start spark-shell on GCP
-
-Once the cluster is started, open an SSH session to the master node.
-
-First, [you should set `CLOUDSMITH_PRIVATE_TOKEN`](#prerequisites) in the master node.
-
-Then copy-paste the following:
-
-```bash
-spark-shell \
-        --packages datastax:spark-cassandra-connector:2.3.1-s_2.11,org.elasticsearch:elasticsearch-spark-20_2.11:6.4.0,org.geotools:gt-referencing:20.1,org.geotools:gt-geometry:20.1,org.geotools:gt-epsg-hsql:20.1 \
-        --exclude-packages javax.media:jai_core \
-        --repositories http://repo.boundlessgeo.com/main,http://download.osgeo.org/webdav/geotools/ \
-        --jars https://dl.cloudsmith.io/CLOUDSMITH_PRIVATE_TOKEN/gisaia/arlas/maven/io/arlas/arlas-proc-assembly_2.11/0.3.0/arlas-proc-assembly_2.11-0.3.0.jar \
-        --conf spark.es.nodes="gisaia-elasticsearch" \
-        --conf spark.es.index.auto.create="true" \
-        --conf spark.cassandra.connection.host="gisaia-scylla-db" \
-        --conf spark.driver.allowMultipleContexts="true" \
-        --conf spark.rpc.netty.dispatcher.numThreads="2" \
-        --conf spark.driver.CLOUDSMITH_ML_MODELS_TOKEN="$CLOUDSMITH_PRIVATE_TOKEN" \
-        --conf spark.driver.CLOUDSMITH_ML_MODELS_REPO="gisaia/private"
-```
-
-You may also use a specific hosted JAR, eg. `arlas-proc-assembly_2.11-0.3.0-20190717.101238-7.jar`
-
-## Spark-shell example
 
 Paste (using `:paste`) the following code snippet :
 ```scala
@@ -182,20 +133,11 @@ Paste (using `:paste`) the following code snippet :
     )
 
     // extract and format raw data
-    val data = readFromCsv(spark, "/opt/proc/scripts/tests/resources/ais-sample-data-1.csv")
+    val data = readFromCsv(spark, ",", "/opt/proc/your-input.csv")
       .asArlasFormattedData(dataModel)
       
 
-    // transform and resample data
-    val transformedData = data
-      .asArlasVisibleSequencesFromTimestamp(dataModel, 120)
-    
-    // save result in ScyllaDB
-    transformedData.writeToScyllaDB(spark, dataModel, "data.geo_points")
-
-    // load ScyllaDB data to Elasticsearch
-    val storedData = readFromScyllaDB(spark, "data.geo_points")
-    storedData.writeToElasticsearch(spark, dataModel, "data/geo_points")
+    // then apply the transformers to test    
 ```
 
 # Contributing

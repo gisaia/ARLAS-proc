@@ -19,12 +19,11 @@
 
 package io.arlas.data.model
 
-case class DataModel(
-                      idColumn                       : String = "id",
-                      timestampColumn                : String = "timestamp",
-                      timeFormat                     : String = "yyyy-MM-dd'T'HH:mm:ssZ",
-                      latColumn                      : String = "lat",
-                      lonColumn                      : String = "lon",
-                      speedColumn                    : String = "",
-                      distanceColumn                 : String = "",
-                      dynamicFields                  : Array[String] = Array("lat", "lon"))
+case class DataModel(idColumn: String = "id",
+                     timestampColumn: String = "timestamp",
+                     timeFormat: String = "yyyy-MM-dd'T'HH:mm:ssZ",
+                     latColumn: String = "lat",
+                     lonColumn: String = "lon",
+                     speedColumn: String = "",
+                     distanceColumn: String = "",
+                     dynamicFields: Array[String] = Array("lat", "lon"))

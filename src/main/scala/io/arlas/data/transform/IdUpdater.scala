@@ -21,20 +21,34 @@ package io.arlas.data.transform
 
 import io.arlas.data.model.DataModel
 import io.arlas.data.transform.ArlasTransformerColumns._
+import org.apache.spark.sql.expressions.Window
 import org.apache.spark.sql.functions._
-import org.apache.spark.sql.types._
 import org.apache.spark.sql.{DataFrame, Dataset}
 
-class WithArlasGeopoint(dataModel: DataModel) extends ArlasTransformer(dataModel) {
+/**
+  * For a ID that is hold by multiple rows, it updates the id value as follows
+  * <dataModel.idColumn>#<earliest timestamp with this id>_<oldest timestamp with this id>
+  * @param dataModel
+  * @param idColumn
+  */
+class IdUpdater(dataModel: DataModel, idColumn: String)
+    extends ArlasTransformer(dataModel,
+                             Vector(idColumn, arlasTrackTimestampStart, arlasTrackTimestampEnd)) {
 
   override def transform(dataset: Dataset[_]): DataFrame = {
-    dataset.withColumn(arlasGeoPointColumn,
-                       concat(col(dataModel.latColumn), lit(","), col(dataModel.lonColumn)))
-  }
 
-  override def transformSchema(schema: StructType): StructType = {
-    checkSchema(schema)
-      .add(StructField(arlasGeoPointColumn, StringType, true))
-  }
+    val window = Window
+      .partitionBy(idColumn)
+      .orderBy(arlasTrackTimestampStart)
+      .rowsBetween(Window.unboundedPreceding, Window.unboundedFollowing)
 
+    dataset
+      .toDF()
+      .withColumn(idColumn,
+                  concat(col(dataModel.idColumn),
+                         lit("#"),
+                         first(arlasTrackTimestampStart).over(window),
+                         lit("_"),
+                         last(arlasTrackTimestampEnd).over(window)))
+  }
 }

@@ -30,26 +30,25 @@ class RowRemoverTest extends ArlasTest {
     ("ObjectA", "01/06/2018 00:00:10+02:00", 55.920875, 17.319322, 0.032068662532024),
     ("ObjectA", "01/06/2018 00:00:31+02:00", 55.920583, 17.31733, 0.178408676103601),
     ("ObjectB", "01/06/2018 00:01:59+02:00", 55.919267, 17.308382, 20.4161902434555753),
-    ("ObjectB", "01/06/2018 00:02:00+02:00", 55.919267, 17.308382, 20.4670321139802))
+    ("ObjectB", "01/06/2018 00:02:00+02:00", 55.919267, 17.308382, 20.4670321139802)
+  )
 
-  val testDF     = spark.createDataFrame(testData.toDF().rdd, rawSchema)
+  val testDF = spark.createDataFrame(testData.toDF().rdd, rawSchema)
 
   "RowRemover " should "remove rows with given string value" in {
 
-    val transformedDF = testDF.enrichWithArlas(
-      new RowRemover(dataModel, dataModel.idColumn, "ObjectB"))
+    val transformedDF =
+      testDF.enrichWithArlas(new RowRemover(dataModel, dataModel.idColumn, "ObjectB"))
 
-    assert (transformedDF.count() == 3)
+    assert(transformedDF.count() == 3)
   }
 
   "RowRemover " should "remove rows with given double value" in {
 
-    val transformedDF = testDF.enrichWithArlas(
-      new RowRemover(dataModel, dataModel.latColumn, 55.921028))
+    val transformedDF =
+      testDF.enrichWithArlas(new RowRemover(dataModel, dataModel.latColumn, 55.921028))
 
-    assert (transformedDF.count() == 4)
+    assert(transformedDF.count() == 4)
   }
-
-
 
 }

@@ -20,16 +20,22 @@
 package io.arlas.data.transform
 
 import io.arlas.data.model.DataModel
-import io.arlas.data.transform.ArlasTransformerColumns.{arlasCourseOrStopColumn, arlasCourseStateColumn, arlasMovingStateColumn}
+import io.arlas.data.transform.ArlasTransformerColumns.{
+  arlasCourseOrStopColumn,
+  arlasCourseStateColumn,
+  arlasMovingStateColumn
+}
 
 class WithArlasCourseState(dataModel: DataModel)
-  extends MultipleColsValuesMapper(
-    dataModel, Map(
-      ArlasCourseStates.MOTION.toString ->
-      Map(arlasCourseOrStopColumn -> ArlasCourseOrStop.COURSE.toString, arlasMovingStateColumn -> ArlasMovingStates.MOVE.toString),
-      ArlasCourseStates.PAUSE.toString ->
-      Map(arlasCourseOrStopColumn -> ArlasCourseOrStop.COURSE.toString, arlasMovingStateColumn -> ArlasMovingStates.STILL.toString)),
-    arlasCourseStateColumn) {
-
-
-}
+    extends MultipleColsValuesMapper(
+      dataModel,
+      Map(
+        ArlasCourseStates.MOTION.toString ->
+          Map(arlasCourseOrStopColumn -> ArlasCourseOrStop.COURSE.toString,
+              arlasMovingStateColumn -> ArlasMovingStates.MOVE.toString),
+        ArlasCourseStates.PAUSE.toString ->
+          Map(arlasCourseOrStopColumn -> ArlasCourseOrStop.COURSE.toString,
+              arlasMovingStateColumn -> ArlasMovingStates.STILL.toString)
+      ),
+      arlasCourseStateColumn
+    ) {}
