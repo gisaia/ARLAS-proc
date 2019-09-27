@@ -19,21 +19,19 @@
 
 package io.arlas.data.transform
 
-import io.arlas.data.model.DataModel
 import io.arlas.data.transform.ArlasTransformerColumns._
 import org.apache.spark.sql.catalyst.encoders.RowEncoder
 import org.apache.spark.sql.types._
-import org.apache.spark.sql.{DataFrame, Dataset, Row, SparkSession}
+import org.apache.spark.sql.{DataFrame, Dataset, Row}
 
 class WithSupportValues(
-    dataModel: DataModel,
-    spark: SparkSession,
     supportColumn: String,
     supportValueDeltaTime: Int,
     supportValueMaxNumberInGap: Int,
-    irregularTempo: String
+    irregularTempo: String,
+    distanceColumn: String
 ) extends ArlasTransformer(
-      Vector(arlasTrackDuration, dataModel.distanceColumn, supportColumn, arlasTempoColumn)) {
+      Vector(arlasTrackDuration, supportColumn, arlasTempoColumn, distanceColumn)) {
 
   override def transform(dataset: Dataset[_]): DataFrame = {
 
@@ -50,7 +48,7 @@ class WithSupportValues(
 
         if (tempo.equals(irregularTempo)) {
           val gapDuration = row.getAs[Long](arlasTrackDuration)
-          val gapDistance = row.getAs[Double](dataModel.distanceColumn)
+          val gapDistance = row.getAs[Double](distanceColumn)
           val gapSpeed = gapDistance / gapDuration
           val nbValues =
             scala.math.min(supportValueMaxNumberInGap, (gapDuration / supportValueDeltaTime).toInt)

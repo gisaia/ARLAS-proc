@@ -108,10 +108,7 @@ trait BasicApp[R <: RunOptions] {
       timestampColumn = arguments.getOrElse("timestamp", "timestamp"),
       timeFormat = arguments.getOrElse("timeformat", "yyyy-MM-dd'T'HH:mm:ssXXX"),
       latColumn = arguments.getOrElse("lat", "lat"),
-      lonColumn = arguments.getOrElse("lon", "lon"),
-      speedColumn = arguments.getOrElse("speed", ""),
-      distanceColumn = arguments.getOrElse("distance", ""),
-      dynamicFields = arguments.getOrElse("dynamic", "lat,lon").split(",")
+      lonColumn = arguments.getOrElse("lon", "lon")
     )
   }
 
