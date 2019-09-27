@@ -22,7 +22,7 @@ package io.arlas.data.transform
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
-import io.arlas.data.model.{MLModelLocal, MotionConfiguration}
+import io.arlas.data.model.MLModelLocal
 import io.arlas.data.transform.ArlasTransformerColumns._
 import io.arlas.data.sql._
 import org.apache.spark.sql.functions._
@@ -126,9 +126,7 @@ class HmmProcessorTest extends ArlasTest {
     expectedData.toDF("id", "timestamp", "speed", arlasMovingStateColumn).rdd,
     expectedSchema)
 
-  val motionConfig = new MotionConfiguration(
-    movingStateModel = MLModelLocal(spark, "src/test/resources/hmm_stillmove_model.json")
-  )
+  val movingStateModel = MLModelLocal(spark, "src/test/resources/hmm_stillmove_model.json")
 
   "HmmProcessor " should " have unknown result with not existing source column" in {
 
@@ -181,10 +179,10 @@ class HmmProcessorTest extends ArlasTest {
       .sort(dataModel.latColumn, dataModel.lonColumn)
       .enrichWithArlas(
         new HmmProcessor(speedColumn,
-                         motionConfig.movingStateModel,
+                         movingStateModel,
                          dataModel.idColumn,
                          arlasMovingStateColumn,
-                         motionConfig.movingStateHmmWindowSize))
+                         5000))
       .drop(dataModel.latColumn,
             dataModel.lonColumn,
             arlasPartitionColumn,
@@ -202,7 +200,7 @@ class HmmProcessorTest extends ArlasTest {
     val transformedDf = visibleSequencesDF
       .enrichWithArlas(
         new HmmProcessor(speedColumn,
-                         motionConfig.movingStateModel,
+                         movingStateModel,
                          dataModel.idColumn,
                          arlasMovingStateColumn,
                          30))
@@ -222,7 +220,7 @@ class HmmProcessorTest extends ArlasTest {
       .withColumn("speed", array(col("speed")))
       .enrichWithArlas(
         new HmmProcessor(speedColumn,
-                         motionConfig.movingStateModel,
+                         movingStateModel,
                          dataModel.idColumn,
                          arlasMovingStateColumn,
                          30))
@@ -272,7 +270,7 @@ class HmmProcessorTest extends ArlasTest {
     val transformedDf = sourceDF
       .enrichWithArlas(
         new HmmProcessor(speedColumn,
-                         motionConfig.movingStateModel,
+                         movingStateModel,
                          dataModel.idColumn,
                          arlasMovingStateColumn,
                          30))
