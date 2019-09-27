@@ -134,9 +134,7 @@ class HmmProcessorTest extends ArlasTest {
 
     val transformedDf = visibleSequencesDF
       .enrichWithArlas(
-        new HmmProcessor(dataModel,
-                         spark,
-                         "notExisting",
+        new HmmProcessor("notExisting",
                          MLModelLocal(spark, "src/test/resources/hmm_stillmove_model.json"),
                          arlasVisibleSequenceIdColumn,
                          "result",
@@ -152,9 +150,7 @@ class HmmProcessorTest extends ArlasTest {
 
     val transformedDf = visibleSequencesDF
       .enrichWithArlas(
-        new HmmProcessor(dataModel,
-                         spark,
-                         "speed",
+        new HmmProcessor("speed",
                          MLModelLocal(spark, "src/test/resources/not_existing.json"),
                          arlasVisibleSequenceIdColumn,
                          "result",
@@ -170,9 +166,7 @@ class HmmProcessorTest extends ArlasTest {
 
     val transformedDf = visibleSequencesDF
       .enrichWithArlas(
-        new HmmProcessor(dataModel,
-                         spark,
-                         "speed",
+        new HmmProcessor("speed",
                          MLModelLocal(spark, "src/test/resources/hmm_stillmove_model.json"),
                          arlasVisibleSequenceIdColumn,
                          arlasMovingStateColumn,
@@ -186,9 +180,7 @@ class HmmProcessorTest extends ArlasTest {
     //avoid natural ordering to ensure that hmm doesn't depend on initial order
       .sort(dataModel.latColumn, dataModel.lonColumn)
       .enrichWithArlas(
-        new HmmProcessor(dataModel,
-                         spark,
-                         dataModel.speedColumn,
+        new HmmProcessor(dataModel.speedColumn,
                          motionConfig.movingStateModel,
                          dataModel.idColumn,
                          arlasMovingStateColumn,
@@ -209,9 +201,7 @@ class HmmProcessorTest extends ArlasTest {
 
     val transformedDf = visibleSequencesDF
       .enrichWithArlas(
-        new HmmProcessor(dataModel,
-                         spark,
-                         dataModel.speedColumn,
+        new HmmProcessor(dataModel.speedColumn,
                          motionConfig.movingStateModel,
                          dataModel.idColumn,
                          arlasMovingStateColumn,
@@ -231,9 +221,7 @@ class HmmProcessorTest extends ArlasTest {
     val transformedDf = visibleSequencesDF
       .withColumn("speed", array(col("speed")))
       .enrichWithArlas(
-        new HmmProcessor(dataModel,
-                         spark,
-                         dataModel.speedColumn,
+        new HmmProcessor(dataModel.speedColumn,
                          motionConfig.movingStateModel,
                          dataModel.idColumn,
                          arlasMovingStateColumn,
@@ -283,9 +271,7 @@ class HmmProcessorTest extends ArlasTest {
     //get moving states
     val transformedDf = sourceDF
       .enrichWithArlas(
-        new HmmProcessor(dataModel,
-                         spark,
-                         dataModel.speedColumn,
+        new HmmProcessor(dataModel.speedColumn,
                          motionConfig.movingStateModel,
                          dataModel.idColumn,
                          arlasMovingStateColumn,

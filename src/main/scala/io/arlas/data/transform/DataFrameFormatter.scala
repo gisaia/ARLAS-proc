@@ -20,18 +20,11 @@
 package io.arlas.data.transform
 
 import io.arlas.data.model.DataModel
-import org.apache.spark.sql.types.{
-  DataType,
-  DoubleType,
-  StringType,
-  StructField,
-  StructType,
-  TimestampType
-}
+import org.apache.spark.sql.types.{DoubleType, StringType, StructField, StructType}
 import org.apache.spark.sql.{DataFrame, Dataset}
 import org.apache.spark.sql.functions.{col, regexp_replace, to_timestamp}
 
-class DataFrameFormatter(dataModel: DataModel) extends ArlasTransformer(dataModel) {
+class DataFrameFormatter(dataModel: DataModel) extends ArlasTransformer() {
 
   override def transform(dataset: Dataset[_]): DataFrame = {
     dataset.toDF

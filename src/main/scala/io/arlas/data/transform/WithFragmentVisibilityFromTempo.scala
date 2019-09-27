@@ -30,7 +30,7 @@ import org.apache.spark.sql.{DataFrame, Dataset, SparkSession}
 class WithFragmentVisibilityFromTempo(dataModel: DataModel,
                                       spark: SparkSession,
                                       irregularTempo: String)
-    extends ArlasTransformer(dataModel, Vector(arlasTimestampColumn, arlasTempoColumn)) {
+    extends ArlasTransformer(Vector(arlasTimestampColumn, arlasTempoColumn, dataModel.idColumn)) {
 
   override def transform(dataset: Dataset[_]): DataFrame = {
 
