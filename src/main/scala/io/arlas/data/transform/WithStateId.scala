@@ -21,7 +21,6 @@ package io.arlas.data.transform
 
 import org.apache.spark.sql.{Column, DataFrame, Dataset}
 import io.arlas.data.model.DataModel
-import io.arlas.data.transform.ArlasTransformerColumns._
 import org.apache.spark.sql.expressions.Window
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types.{StringType, StructField, StructType}

@@ -32,8 +32,16 @@ class WithDurationFromIdTest extends ArlasTest {
     .otherwise(lit(540l))
 
   val baseDF = cleanedDF
-    .enrichWithArlas(new FlowFragmentMapper(dataModel, spark, dataModel.idColumn, List("speed")))
-    .asArlasVisibleSequencesFromTimestamp(dataModel, visibilityTimeout)
+    .enrichWithArlas(
+      new FlowFragmentMapper(dataModel, spark, dataModel.idColumn, List("speed")),
+      new WithArlasVisibilityStateFromTimestamp(dataModel, visibilityTimeout),
+      new WithStateIdFromState(dataModel,
+                               arlasVisibilityStateColumn,
+                               arlasTimestampColumn,
+                               ArlasVisibilityStates.APPEAR.toString,
+                               arlasVisibleSequenceIdColumn)
+    )
+
   val expectedDF = baseDF
     .withColumn(
       "duration",

@@ -27,7 +27,8 @@ import io.arlas.data.transform.ArlasTransformerColumns._
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.functions.{col, udf}
 
-class WithArlasVisibil0ityStateFromTimestampTest extends ArlasTest {
+@Deprecated
+class WithArlasVisibilityStateFromTimestampTest extends ArlasTest {
 
   "WithArlasVisibilityStateFromTimestamp" should "generate visibility state against dataframe's timeseries" in {
 
