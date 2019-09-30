@@ -17,13 +17,14 @@
  * under the License.
  */
 
-package io.arlas.data.transform
+package io.arlas.data.transform.timeseries
 
-import org.apache.spark.sql.{Column, DataFrame, Dataset}
 import io.arlas.data.model.DataModel
+import io.arlas.data.transform.ArlasTransformer
 import org.apache.spark.sql.expressions.Window
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types.{StringType, StructField, StructType}
+import org.apache.spark.sql.{Column, DataFrame, Dataset}
 
 /**
   * Compute a state ID in targetIdColumn based on stateColumn.

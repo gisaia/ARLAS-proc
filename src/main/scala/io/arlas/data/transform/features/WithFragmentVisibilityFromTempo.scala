@@ -17,9 +17,10 @@
  * under the License.
  */
 
-package io.arlas.data.transform
+package io.arlas.data.transform.features
 
 import io.arlas.data.model.DataModel
+import io.arlas.data.transform.ArlasTransformer
 import io.arlas.data.transform.ArlasTransformerColumns._
 import io.arlas.data.transform.VisibilityChange._
 import org.apache.spark.sql.expressions.Window

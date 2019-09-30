@@ -17,12 +17,13 @@
  * under the License.
  */
 
-package io.arlas.data.transform
+package io.arlas.data.transform.timeseries
 
-import io.arlas.data.sql._
+import io.arlas.data.transform.ArlasTest
 import io.arlas.data.transform.ArlasTransformerColumns._
-import org.apache.spark.sql.functions._
 import org.apache.spark.sql.DataFrame
+import org.apache.spark.sql.functions._
+import io.arlas.data.sql._
 
 class WithStateIdOnStateChangeTest extends ArlasTest {
 
