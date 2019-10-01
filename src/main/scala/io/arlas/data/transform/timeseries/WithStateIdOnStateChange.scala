@@ -35,7 +35,6 @@ class WithStateIdOnStateChange(dataModel: DataModel,
                                targetIdColumn: String)
     extends WithStateId(
       dataModel,
-      stateColumn,
       orderColumn,
       targetIdColumn, {
         val window = Window.partitionBy(dataModel.idColumn).orderBy(orderColumn)
