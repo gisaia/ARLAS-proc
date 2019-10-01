@@ -65,44 +65,19 @@ object VisibilityChange {
   val APPEAR_DISAPPEAR = "appear_disappear"
 }
 
-/**
-  * APPEAR = first point of a visible sequence
-  * DISAPPEAR = last point of a visible sequence
-  * VISIBLE = other points of the sequence
-  * INVISIBLE = points that are not visible
-  */
-object ArlasVisibilityStates {
-  sealed abstract class ArlasVisibilityStatesVal(visibilityState: String) {
-    override def toString: String = visibilityState
-  }
-  case object APPEAR extends ArlasVisibilityStatesVal("APPEAR")
-  case object DISAPPEAR extends ArlasVisibilityStatesVal("DISAPPEAR")
-  case object VISIBLE extends ArlasVisibilityStatesVal("VISIBLE")
-  case object INVISIBLE extends ArlasVisibilityStatesVal("INVISIBLE")
-}
-
 object ArlasMovingStates {
-  sealed abstract class ArlasMovingStates(movingState: String) {
-    override def toString: String = movingState
-  }
-  case object STILL extends ArlasMovingStates("STILL")
-  case object MOVE extends ArlasMovingStates("MOVE")
-  case object MOVE_GAP extends ArlasMovingStates("MOVE_GAP")
+  val STILL = "STILL"
+  val MOVE = "MOVE"
+  val MOVE_GAP = "MOVE_GAP"
 }
 
 object ArlasCourseOrStop {
-  sealed abstract class ArlasCourseStates(courseState: String) {
-    override def toString: String = courseState
-  }
-  case object STOP extends ArlasCourseStates("STOP")
-  case object COURSE extends ArlasCourseStates("COURSE")
-  case object COURSE_GAP extends ArlasCourseStates("COURSE_GAP")
+  val STOP = "STOP"
+  val COURSE = "COURSE"
+  val COURSE_GAP = "COURSE_GAP"
 }
 
 object ArlasCourseStates {
-  sealed abstract class ArlasCourseStates(courseState: String) {
-    override def toString: String = courseState
-  }
-  case object MOTION extends ArlasCourseStates("MOTION")
-  case object PAUSE extends ArlasCourseStates("PAUSE")
+  val MOTION = "MOTION"
+  val PAUSE = "PAUSE"
 }
