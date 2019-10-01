@@ -39,7 +39,7 @@ class HmmProcessor(sourceColumn: String,
                    partitionColumn: String,
                    resultColumn: String,
                    hmmWindowSize: Int)
-    extends ArlasTransformer(Vector(partitionColumn)) {
+    extends ArlasTransformer(Vector(partitionColumn, arlasTimestampColumn)) {
 
   @transient lazy val logger = LoggerFactory.getLogger(this.getClass)
   val UNKNOWN_RESULT = "Unknown"

@@ -30,18 +30,16 @@ import org.apache.spark.sql.{Column, DataFrame, Dataset}
   * Compute a state ID in targetIdColumn based on stateColumn.
   * The generated ID looks like <object_id>_<first_timestamp>
   * @param dataModel
-  * @param stateColumn
   * @param targetIdColumn
   * @param isNewIdColumn should be 'true' for rows that start a new ID.
   * For example, if you expect the rows to have the same state_id for each consecutive row with the same state,
   * you should return a 'true' at each state change.
   */
 class WithStateId(dataModel: DataModel,
-                  stateColumn: String,
                   orderColumn: String,
                   targetIdColumn: String,
                   isNewIdColumn: Column)
-    extends ArlasTransformer(Vector(stateColumn, orderColumn, dataModel.idColumn)) {
+    extends ArlasTransformer(Vector(orderColumn, dataModel.idColumn)) {
 
   override def transform(dataset: Dataset[_]): DataFrame = {
 

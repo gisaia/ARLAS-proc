@@ -34,8 +34,4 @@ class WithStateIdFromState(dataModel: DataModel,
                            orderColumn: String,
                            fromState: String,
                            targetIdColumn: String)
-    extends WithStateId(dataModel,
-                        stateColumn,
-                        orderColumn,
-                        targetIdColumn,
-                        col(stateColumn).equalTo(fromState))
+    extends WithStateId(dataModel, orderColumn, targetIdColumn, col(stateColumn).equalTo(fromState))
