@@ -21,36 +21,34 @@ package io.arlas.data.transform.timeseries
 
 import io.arlas.data.transform.ArlasTest
 import io.arlas.data.transform.ArlasTransformerColumns._
-import org.apache.spark.sql.DataFrame
-import org.apache.spark.sql.functions._
 import io.arlas.data.sql._
+import org.apache.spark.sql.types.{LongType, StringType}
+import scala.collection.immutable.ListMap
 
 class WithStateIdOnStateChangeTest extends ArlasTest {
 
-  val stateCol =
-    when(col(arlasTimestampColumn).lt(lit(1527804601)), lit("state1")).otherwise(lit("state2"))
-  val baseDF = cleanedDF
-    .withColumn("state", stateCol)
-
-  val idObjectA = when(col(arlasTimestampColumn).lt(lit(1527804601)), lit("1527804000"))
-    .otherwise(lit("1527804601"))
-  val idObjectB = when(col(arlasTimestampColumn).lt(lit(1527804601)), lit("1527804000"))
-    .otherwise(lit("1527804451"))
-
-  val expectedDF = baseDF
-    .withColumn(
-      "state_id",
-      concat(col(dataModel.idColumn),
-             lit("#"),
-             when(col(dataModel.idColumn).equalTo("ObjectA"), idObjectA).otherwise(idObjectB)))
+  val testDF = createDataFrameWithTypes(
+    List(
+      Seq("id1", 0l, "state1", "id1#0"),
+      Seq("id1", 30l, "state3", "id1#30"),
+      Seq("id1", 10l, "state1", "id1#0"),
+      Seq("id1", 20l, "state2", "id1#20"),
+      Seq("id2", 0l, "state1", "id2#0"),
+      Seq("id2", 10l, "state1", "id2#0")
+    ),
+    ListMap(
+      "id" -> (StringType, true),
+      arlasTimestampColumn -> (LongType, true),
+      "state" -> (StringType, true),
+      "expected_state_id" -> (StringType, true)
+    )
+  )
 
   "WithStateIdOnStateChange transformation " should " fill/generate state id against dataframe's timeseries" in {
 
-    val transformedDF: DataFrame = baseDF
-      .withColumn("state", stateCol)
-      .enrichWithArlas(
-        new WithStateIdOnStateChange(dataModel, "state", arlasTimestampColumn, "state_id"))
+    val transformedDF = testDF.enrichWithArlas(
+      new WithStateIdOnStateChange(dataModel, "state", arlasTimestampColumn, "state_id"))
 
-    assertDataFrameEquality(transformedDF, expectedDF)
+    assertColumnsAreEqual(transformedDF, "state_id", "expected_state_id")
   }
 }

@@ -19,51 +19,35 @@
 
 package io.arlas.data.transform.timeseries
 
-import io.arlas.data.transform.{
-  ArlasTest,
-  ArlasVisibilityStates,
-  WithArlasVisibilityStateFromTimestamp
-}
+import io.arlas.data.transform.ArlasTest
 import io.arlas.data.transform.ArlasTransformerColumns._
-import org.apache.spark.sql.DataFrame
-import org.apache.spark.sql.functions._
 import io.arlas.data.sql._
+import org.apache.spark.sql.types.{IntegerType, StringType}
+import scala.collection.immutable.ListMap
 
 class WithDurationFromIdTest extends ArlasTest {
 
-  val durationObjA = when(col(arlasTimestampColumn).lt(lit(1527804601)), lit(291l))
-    .otherwise(lit(480l))
-  val durationObjB = when(col(arlasTimestampColumn).lt(lit(1527804451)), lit(60l))
-    .otherwise(lit(540l))
-
-  val baseDF = cleanedDF
-    .enrichWithArlas(
-      new FlowFragmentMapper(dataModel, spark, dataModel.idColumn, List("speed")),
-      new WithArlasVisibilityStateFromTimestamp(dataModel, visibilityTimeout),
-      new WithStateIdFromState(dataModel,
-                               arlasVisibilityStateColumn,
-                               arlasTimestampColumn,
-                               ArlasVisibilityStates.APPEAR.toString,
-                               arlasVisibleSequenceIdColumn)
+  val testDF = createDataFrameWithTypes(
+    List(
+      Seq("id1", 0, 10, 100),
+      Seq("id1", 90, 100, 100),
+      Seq("id2", 0, 50, 50),
+      Seq("id3", 10, 20, 20),
+      Seq("id3", 0, 10, 20)
+    ),
+    ListMap(
+      "id" -> (StringType, true),
+      arlasTrackTimestampStart -> (IntegerType, true),
+      arlasTrackTimestampEnd -> (IntegerType, true),
+      "expected_duration" -> (IntegerType, true)
     )
-
-  val expectedDF = baseDF
-    .withColumn(
-      "duration",
-      when(col(dataModel.idColumn).equalTo("ObjectA"), durationObjA).otherwise(durationObjB))
-    .withColumn("duration", when(col("duration").isNotNull, col("duration")).otherwise(lit(null)))
+  )
 
   "WithDurationFromId transformation " should " compute duration of visibility sequences" in {
 
-    val transformedDF: DataFrame = baseDF
-      .enrichWithArlas(
-        new WithDurationFromId(arlasVisibleSequenceIdColumn, "duration")
-      )
+    val transformedDF = testDF.enrichWithArlas(new WithDurationFromId("id", "duration"))
 
-    assertDataFrameEquality(
-      transformedDF.select(dataModel.idColumn, "duration", arlasVisibleSequenceIdColumn),
-      expectedDF.select(dataModel.idColumn, "duration", arlasVisibleSequenceIdColumn)
-    )
+    assertColumnsAreEqual(transformedDF, "duration", "expected_duration")
   }
 
 }
