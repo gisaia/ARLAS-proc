@@ -19,276 +19,142 @@
 
 package io.arlas.data.transform.ml
 
-import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
-import io.arlas.data.model.MLModelLocal
 import io.arlas.data.sql._
+import io.arlas.data.model.MLModelLocal
+import io.arlas.data.transform.ArlasTest
 import io.arlas.data.transform.ArlasTransformerColumns._
-import io.arlas.data.transform.{ArlasMovingStates, ArlasTest}
 import org.apache.spark.sql.functions._
-import org.apache.spark.sql.types._
 
 class HmmProcessorTest extends ArlasTest {
 
-  import spark.implicits._
-
-  val expectedData = Seq(
-    //Object A
-    ("ObjectA", "01/06/2018 00:00:00+02:00", 0.280577132616533, ArlasMovingStates.STILL.toString),
-    ("ObjectA", "01/06/2018 00:00:10+02:00", 0.032068662532024, ArlasMovingStates.STILL.toString),
-    ("ObjectA", "01/06/2018 00:00:31+02:00", 0.178408676103601, ArlasMovingStates.STILL.toString),
-    ("ObjectA", "01/06/2018 00:00:40+02:00", 0.180505395097491, ArlasMovingStates.STILL.toString),
-    ("ObjectA", "01/06/2018 00:00:59+02:00", 18.3267208898955, ArlasMovingStates.STILL.toString),
-    ("ObjectA", "01/06/2018 00:01:19+02:00", 25.3224385919895, ArlasMovingStates.MOVE.toString),
-    ("ObjectA", "01/06/2018 00:01:40+02:00", 33.3774309272405, ArlasMovingStates.MOVE.toString),
-    ("ObjectA", "01/06/2018 00:01:49+02:00", 22.276237318997, ArlasMovingStates.MOVE.toString),
-    ("ObjectA", "01/06/2018 00:01:59+02:00", 20.4161902434555, ArlasMovingStates.MOVE.toString),
-    ("ObjectA", "01/06/2018 00:02:00+02:00", 20.4670321139802, ArlasMovingStates.MOVE.toString),
-    ("ObjectA", "01/06/2018 00:02:19+02:00", 20.3483994565575, ArlasMovingStates.MOVE.toString),
-    ("ObjectA", "01/06/2018 00:02:20+02:00", 30.4938344029634, ArlasMovingStates.MOVE.toString),
-    ("ObjectA", "01/06/2018 00:02:31+02:00", 30.3776738025963, ArlasMovingStates.MOVE.toString),
-    ("ObjectA", "01/06/2018 00:02:40+02:00", 30.0678204838492, ArlasMovingStates.MOVE.toString),
-    ("ObjectA", "01/06/2018 00:02:51+02:00", 30.1765108328227, ArlasMovingStates.MOVE.toString),
-    ("ObjectA", "01/06/2018 00:02:59+02:00", 30.3668360449314, ArlasMovingStates.MOVE.toString),
-    ("ObjectA", "01/06/2018 00:03:00+02:00", 30.0231635627232, ArlasMovingStates.MOVE.toString),
-    ("ObjectA", "01/06/2018 00:03:10+02:00", 8.56836840558571, ArlasMovingStates.MOVE.toString),
-    ("ObjectA", "01/06/2018 00:03:19+02:00", 2.45593324496988, ArlasMovingStates.MOVE.toString),
-    ("ObjectA", "01/06/2018 00:03:20+02:00", 6.75165074981546, ArlasMovingStates.MOVE.toString),
-    ("ObjectA", "01/06/2018 00:03:31+02:00", 18.3267208898955, ArlasMovingStates.MOVE.toString),
-    ("ObjectA", "01/06/2018 00:03:51+02:00", 5.32243859198952, ArlasMovingStates.MOVE.toString),
-    ("ObjectA", "01/06/2018 00:04:00+02:00", 3.37743092724052, ArlasMovingStates.MOVE.toString),
-    ("ObjectA", "01/06/2018 00:04:10+02:00", 12.276237318997, ArlasMovingStates.MOVE.toString),
-    ("ObjectA", "01/06/2018 00:04:19+02:00", 10.7522265887458, ArlasMovingStates.MOVE.toString),
-    ("ObjectA", "01/06/2018 00:04:31+02:00", 0.01784086761036, ArlasMovingStates.STILL.toString),
-    ("ObjectA", "01/06/2018 00:04:40+02:00", 0.021282527439162, ArlasMovingStates.STILL.toString),
-    ("ObjectA", "01/06/2018 00:04:51+02:00", 0.028057713261653, ArlasMovingStates.STILL.toString),
-    ("ObjectA", "01/06/2018 00:10:01+02:00", 0.315663876001882, ArlasMovingStates.STILL.toString),
-    ("ObjectA", "01/06/2018 00:10:11+02:00", 0.456108807052109, ArlasMovingStates.STILL.toString),
-    ("ObjectA", "01/06/2018 00:10:21+02:00", 0.228462068370223, ArlasMovingStates.STILL.toString),
-    ("ObjectA", "01/06/2018 00:10:30+02:00", 0.467020766459182, ArlasMovingStates.STILL.toString),
-    ("ObjectA", "01/06/2018 00:10:41+02:00", 0.483341900268076, ArlasMovingStates.STILL.toString),
-    ("ObjectA", "01/06/2018 00:10:51+02:00", 8.81283283812886, ArlasMovingStates.STILL.toString),
-    ("ObjectA", "01/06/2018 00:11:01+02:00", 15.9843172672194, ArlasMovingStates.STILL.toString),
-    ("ObjectA", "01/06/2018 00:11:11+02:00", 0.205582240119662, ArlasMovingStates.STILL.toString),
-    ("ObjectA", "01/06/2018 00:11:19+02:00", 0.181221811179837, ArlasMovingStates.STILL.toString),
-    ("ObjectA", "01/06/2018 00:11:30+02:00", 0.389421933375371, ArlasMovingStates.STILL.toString),
-    ("ObjectA", "01/06/2018 00:11:39+02:00", 0.350440829164028, ArlasMovingStates.STILL.toString),
-    ("ObjectA", "01/06/2018 00:11:51+02:00", 0.465420115412907, ArlasMovingStates.STILL.toString),
-    ("ObjectA", "01/06/2018 00:12:01+02:00", 0.493559686120728, ArlasMovingStates.STILL.toString),
-    ("ObjectA", "01/06/2018 00:12:11+02:00", 8.02481006722881, ArlasMovingStates.MOVE.toString),
-    ("ObjectA", "01/06/2018 00:12:19+02:00", 8.81283283812886, ArlasMovingStates.MOVE.toString),
-    ("ObjectA", "01/06/2018 00:12:30+02:00", 13.9539835805817, ArlasMovingStates.MOVE.toString),
-    ("ObjectA", "01/06/2018 00:12:39+02:00", 15.9843172672194, ArlasMovingStates.MOVE.toString),
-    ("ObjectA", "01/06/2018 00:12:51+02:00", 10.0170687089863, ArlasMovingStates.MOVE.toString),
-    //Object B
-    ("ObjectB", "01/06/2018 00:00:00+02:00", 7.40493227823278, ArlasMovingStates.MOVE.toString),
-    ("ObjectB", "01/06/2018 00:00:10+02:00", 9.05637224437842, ArlasMovingStates.MOVE.toString),
-    ("ObjectB", "01/06/2018 00:00:21+02:00", 8.46042615525682, ArlasMovingStates.MOVE.toString),
-    ("ObjectB", "01/06/2018 00:00:29+02:00", 0.351557093086739, ArlasMovingStates.STILL.toString),
-    ("ObjectB", "01/06/2018 00:00:40+02:00", 0.440739581348716, ArlasMovingStates.STILL.toString),
-    ("ObjectB", "01/06/2018 00:00:50+02:00", 0.444570858095414, ArlasMovingStates.STILL.toString),
-    ("ObjectB", "01/06/2018 00:01:00+02:00", 0.221747356810941, ArlasMovingStates.STILL.toString),
-    ("ObjectB", "01/06/2018 00:07:31+02:00", 0.124387757577155, ArlasMovingStates.STILL.toString),
-    ("ObjectB", "01/06/2018 00:07:41+02:00", 0.181239176204038, ArlasMovingStates.STILL.toString),
-    ("ObjectB", "01/06/2018 00:07:50+02:00", 0.309184859549785, ArlasMovingStates.STILL.toString),
-    ("ObjectB", "01/06/2018 00:08:00+02:00", 0.405071433266632, ArlasMovingStates.STILL.toString),
-    ("ObjectB", "01/06/2018 00:08:10+02:00", 0.099140439262067, ArlasMovingStates.STILL.toString),
-    ("ObjectB", "01/06/2018 00:08:21+02:00", 0.473493901701287, ArlasMovingStates.STILL.toString),
-    ("ObjectB", "01/06/2018 00:08:31+02:00", 0.195232493568888, ArlasMovingStates.STILL.toString),
-    ("ObjectB", "01/06/2018 00:08:41+02:00", 0.273669959210024, ArlasMovingStates.STILL.toString),
-    ("ObjectB", "01/06/2018 00:08:50+02:00", 0.139048843309677, ArlasMovingStates.STILL.toString),
-    ("ObjectB", "01/06/2018 00:09:00+02:00", 0.491463951082084, ArlasMovingStates.STILL.toString),
-    ("ObjectB", "01/06/2018 00:09:11+02:00", 0.296330460155968, ArlasMovingStates.STILL.toString),
-    ("ObjectB", "01/06/2018 00:09:21+02:00", 18.716745664061, ArlasMovingStates.STILL.toString),
-    ("ObjectB", "01/06/2018 00:09:31+02:00", 17.1281210029655, ArlasMovingStates.MOVE.toString),
-    ("ObjectB", "01/06/2018 00:09:41+02:00", 16.5994315098718, ArlasMovingStates.MOVE.toString),
-    ("ObjectB", "01/06/2018 00:09:50+02:00", 5.11729658662259, ArlasMovingStates.MOVE.toString),
-    ("ObjectB", "01/06/2018 00:10:00+02:00", 7.289531322081, ArlasMovingStates.MOVE.toString)
-  )
-
-  val expectedSchema = StructType(
-    List(
-      StructField("id", StringType, true),
-      StructField("timestamp", StringType, true),
-      StructField("speed", DoubleType, true),
-      StructField(arlasMovingStateColumn, StringType, true)
-    ))
-
-  val expectedDf = spark.createDataFrame(
-    expectedData.toDF("id", "timestamp", "speed", arlasMovingStateColumn).rdd,
-    expectedSchema)
-
   val movingStateModel = MLModelLocal(spark, "src/test/resources/hmm_stillmove_model.json")
+  private val partitionColumn = "id"
+  private val expectedMovingStateColumn = "expected_moving_state"
+
+  val testDF = arlasTestDF
+    .withColumn(
+      expectedMovingStateColumn,
+      when(
+        (col(partitionColumn)
+          .equalTo("ObjectA")
+          .and(
+            col(arlasTimestampColumn)
+              .leq(1527804059)
+              .or(col(arlasTimestampColumn)
+                .geq(1527804271)
+                .and(col(arlasTimestampColumn).leq(1527804721)))))
+          .or(
+            col(partitionColumn)
+              .equalTo("ObjectB")
+              .and(col(arlasTimestampColumn)
+                .geq(1527804029)
+                .and(col(arlasTimestampColumn).leq(1527804561)))),
+        lit("STILL")
+        //using `otherwise(lit(null))` in an impossible case makes thee column nullable
+      ).otherwise(when(lit(true), lit("MOVE")).otherwise(lit(null)))
+    )
 
   "HmmProcessor " should " have unknown result with not existing source column" in {
 
-    val transformedDf = visibleSequencesDF
+    val transformedDF = testDF
+      .drop(expectedMovingStateColumn)
       .enrichWithArlas(
-        new HmmProcessor("notExisting",
-                         MLModelLocal(spark, "src/test/resources/hmm_stillmove_model.json"),
-                         arlasVisibleSequenceIdColumn,
-                         "result",
-                         5000)
+        new HmmProcessor("notExisting", movingStateModel, partitionColumn, "result", 5000)
       )
+      .withColumn("expected_result", lit("Unknown"))
 
-    val expectedDf = visibleSequencesDF.withColumn("result", lit("Unknown"))
-
-    assertDataFrameEquality(transformedDf, expectedDf)
+    assertColumnsAreEqual(transformedDF, "result", "expected_result")
   }
 
   "HmmProcessor " should " have unknown result with not existing model" in {
 
-    val transformedDf = visibleSequencesDF
+    val transformedDF = testDF
+      .drop(expectedMovingStateColumn)
       .enrichWithArlas(
-        new HmmProcessor("speed",
+        new HmmProcessor(speedColumn,
                          MLModelLocal(spark, "src/test/resources/not_existing.json"),
-                         arlasVisibleSequenceIdColumn,
+                         partitionColumn,
                          "result",
                          5000)
       )
+      .withColumn("expected_result", lit("Unknown"))
 
-    val expectedDf = visibleSequencesDF.withColumn("result", lit("Unknown"))
-
-    assertDataFrameEquality(transformedDf, expectedDf)
+    assertColumnsAreEqual(transformedDF, "result", "expected_result")
   }
 
-  "HmmProcessor transformation" should " not break using a window" in {
+  "HmmProcessor transformation" should " not break using a window shorter than input dataframe" in {
 
-    val transformedDf = visibleSequencesDF
+    testDF
       .enrichWithArlas(
-        new HmmProcessor("speed",
-                         MLModelLocal(spark, "src/test/resources/hmm_stillmove_model.json"),
-                         arlasVisibleSequenceIdColumn,
-                         arlasMovingStateColumn,
-                         10))
+        new HmmProcessor(speedColumn, movingStateModel, partitionColumn, "result", 10)
+      )
       .count()
   }
 
-  "WithArlasMovingState transformation" should " compute the moving state of a dataframe's timeseries" in {
+  "HmmProcessor transformation" should " compute the moving state of a dataframe's timeseries" in {
 
-    val transformedDf = visibleSequencesDF
+    val transformedDF = testDF
     //avoid natural ordering to ensure that hmm doesn't depend on initial order
-      .sort(dataModel.latColumn, dataModel.lonColumn)
+      .sort(speedColumn)
       .enrichWithArlas(
         new HmmProcessor(speedColumn,
                          movingStateModel,
-                         dataModel.idColumn,
+                         partitionColumn,
                          arlasMovingStateColumn,
                          5000))
-      .drop(dataModel.latColumn,
-            dataModel.lonColumn,
-            arlasPartitionColumn,
-            arlasTimestampColumn,
-            arlasVisibleSequenceIdColumn,
-            arlasVisibilityStateColumn)
 
-    assertDataFrameEquality(transformedDf, expectedDf)
+    assertColumnsAreEqual(transformedDF, arlasMovingStateColumn, expectedMovingStateColumn)
   }
 
   //we use a quite big window, the longest partition is 29 points ; because with too few points the results are bad
   //in a real environment, window size shoud be equal to some thousends
-  "WithArlasMovingState transformation" should " compute the moving state of a dataframe's timeseries using windowing" in {
+  "HmmProcessor transformation" should " compute the moving state of a dataframe's timeseries using windowing" in {
 
-    val transformedDf = visibleSequencesDF
+    val transformedDF = testDF
       .enrichWithArlas(
         new HmmProcessor(speedColumn,
                          movingStateModel,
-                         dataModel.idColumn,
+                         partitionColumn,
                          arlasMovingStateColumn,
                          30))
-      .drop(dataModel.latColumn,
-            dataModel.lonColumn,
-            arlasPartitionColumn,
-            arlasTimestampColumn,
-            arlasVisibleSequenceIdColumn,
-            arlasVisibilityStateColumn)
 
-    assertDataFrameEquality(transformedDf, expectedDf)
+    assertColumnsAreEqual(transformedDF, arlasMovingStateColumn, expectedMovingStateColumn)
   }
 
-  "WithArlasMovingState transformation" should " compute the moving state from an ArrayTyped field" in {
+  "HmmProcessor transformation" should " compute the moving state from an ArrayTyped field" in {
 
-    val transformedDf = visibleSequencesDF
-      .withColumn("speed", array(col("speed")))
+    val transformedDF = testDF
+      .withColumn(speedColumn, array(col(speedColumn)))
       .enrichWithArlas(
         new HmmProcessor(speedColumn,
                          movingStateModel,
-                         dataModel.idColumn,
+                         partitionColumn,
                          arlasMovingStateColumn,
                          30))
-      .drop(dataModel.latColumn,
-            dataModel.lonColumn,
-            arlasPartitionColumn,
-            arlasTimestampColumn,
-            arlasVisibleSequenceIdColumn,
-            arlasVisibilityStateColumn)
 
-    assertDataFrameEquality(transformedDf, expectedDf.withColumn("speed", array(col("speed"))))
+    assertColumnsAreEqual(transformedDF, arlasMovingStateColumn, expectedMovingStateColumn)
   }
 
-  "WithArlasMovingState transformation" should " compute the moving state from an ArrayTyped field with several values" in {
+  "HmmProcessor transformation" should " compute the moving state from an ArrayTyped field with several values" in {
 
-    //new visible sequences DF appending a new entry with multiple speed values
-    val timeFormatter = DateTimeFormatter.ofPattern(dataModel.timeFormat)
-    val timestamp = ZonedDateTime.parse("01/06/2018 00:10:00+02:00", timeFormatter).toEpochSecond
-    val sourceData =
-      visibleSequencesData.map(e => (e._1, e._2, e._3, e._4, Seq(e._5), e._6, e._7, e._8, e._9)) :+ ("ObjectB",
-      "01/06/2018 00:10:00+02:00",
-      56.58330,
-      11.830706,
-      Seq(5.1, 5.1),
-      20180601,
-      timestamp,
-      "ObjectB#1527804451",
-      "VISIBLE")
-    val sourceSchema = StructType(
-      List(
-        StructField("id", StringType, true),
-        StructField("timestamp", StringType, true),
-        StructField("lat", DoubleType, true),
-        StructField("lon", DoubleType, true),
-        StructField("speed", ArrayType(DoubleType, true), false)
+    val transformedDF = testDF
+    //replace a single row with multiple speed values
+      .withColumn(
+        speedColumn,
+        when(col(partitionColumn)
+               .equalTo("ObjectB")
+               .and(col("timestamp").equalTo("01/06/2018 00:10:00+02:00")),
+             lit(Array(5.1, 5.1)))
+          .otherwise(array(col(speedColumn)))
       )
-    ).add(StructField(arlasPartitionColumn, IntegerType, false))
-      .add(StructField(arlasTimestampColumn, LongType, false))
-      .add(StructField(arlasVisibleSequenceIdColumn, StringType, true))
-      .add(StructField(arlasVisibilityStateColumn, StringType, true))
-    val sourceDF = spark.createDataFrame(
-      sourceData.toDF.rdd,
-      sourceSchema
-    )
-
-    //get moving states
-    val transformedDf = sourceDF
       .enrichWithArlas(
         new HmmProcessor(speedColumn,
                          movingStateModel,
-                         dataModel.idColumn,
+                         partitionColumn,
                          arlasMovingStateColumn,
                          30))
-      .drop(dataModel.latColumn,
-            dataModel.lonColumn,
-            arlasPartitionColumn,
-            arlasTimestampColumn,
-            arlasVisibleSequenceIdColumn,
-            arlasVisibilityStateColumn)
 
-    //build expected data by adding a new entry
-    val newExpectedData = expectedData.map(e => (e._1, e._2, Seq(e._3), e._4)) :+ ("ObjectB", "01/06/2018 00:10:00+02:00", Seq(
-      5.1,
-      5.1), "MOVE")
-    val newExpectedSchema = StructType(
-      List(
-        StructField("id", StringType, true),
-        StructField("timestamp", StringType, true),
-        StructField("speed", ArrayType(DoubleType, true), false),
-        StructField(arlasMovingStateColumn, StringType, true)
-      ))
-    val newExpectedDf = spark.createDataFrame(
-      newExpectedData.toDF("id", "timestamp", "speed", arlasMovingStateColumn).rdd,
-      newExpectedSchema)
-
-    assertDataFrameEquality(transformedDf, newExpectedDf)
+    assertColumnsAreEqual(transformedDF, arlasMovingStateColumn, expectedMovingStateColumn)
   }
 
 }
