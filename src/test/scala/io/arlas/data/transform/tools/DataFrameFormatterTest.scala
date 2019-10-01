@@ -17,24 +17,38 @@
  * under the License.
  */
 
-package io.arlas.data.transform
+package io.arlas.data.transform.tools
 
 import io.arlas.data.sql._
-import io.arlas.data.transform.tools.DataFrameFormatter
+import io.arlas.data.transform.{ArlasTest, DataFrameException}
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types._
 
+import scala.collection.immutable.ListMap
+
 class DataFrameFormatterTest extends ArlasTest {
+
+  val testDF = createDataFrameWithTypes(
+    List(
+      Seq("id1", "01/06/2018 00:00:00+02:00", 55.921028, 17.320418)
+    ),
+    ListMap(
+      "id" -> (StringType, true),
+      "timestamp" -> (StringType, true),
+      "lat" -> (DoubleType, true),
+      "lon" -> (DoubleType, true)
+    )
+  )
 
   "DataFrameFormatter " should " fix invalid column names" in {
 
-    val sourceDF = rawDF
+    val sourceDF = testDF
       .withColumn("white space", lit(0).cast(IntegerType))
       .withColumn("special:*$char/;?", lit(1).cast(IntegerType))
       .withColumn("_start_with_underscore", lit(2).cast(IntegerType))
 
-    val expectedDF = rawDF
+    val expectedDF = testDF
       .withColumn("white_space", lit(0).cast(IntegerType))
       .withColumn("specialchar", lit(1).cast(IntegerType))
       .withColumn("start_with_underscore", lit(2).cast(IntegerType))
@@ -47,7 +61,7 @@ class DataFrameFormatterTest extends ArlasTest {
 
   "DataFrameFormatter " should " fail with missing DataModel columns" in {
 
-    val sourceDF = rawDF
+    val sourceDF = testDF
       .drop(dataModel.latColumn)
 
     val thrown = intercept[DataFrameException] {
@@ -55,26 +69,25 @@ class DataFrameFormatterTest extends ArlasTest {
         .enrichWithArlas(new DataFrameFormatter(dataModel))
     }
     assert(
-      thrown.getMessage === "The lat columns are not included in the DataFrame with the following columns: id, timestamp, lon, speed")
+      thrown.getMessage === "The lat columns are not included in the DataFrame with the following columns: id, timestamp, lon")
   }
 
   "DataFrameFormatter " should " fail with missing double columns" in {
 
     val thrown = intercept[DataFrameException] {
-      rawDF
-        .enrichWithArlas(new DataFrameFormatter(dataModel, Vector("notExistingCol")))
+      testDF.enrichWithArlas(new DataFrameFormatter(dataModel, Vector("notExistingCol")))
     }
     assert(
-      thrown.getMessage === "The notExistingCol columns are not included in the DataFrame with the following columns: id, timestamp, lat, lon, speed")
+      thrown.getMessage === "The notExistingCol columns are not included in the DataFrame with the following columns: id, timestamp, lat, lon")
   }
 
   "DataFrameFormatter " should " cast double columns" in {
 
-    val sourceDF = rawDF
+    val sourceDF = testDF
       .withColumn("stringdouble", lit("000.5"))
       .withColumn("stringeuropeandouble", lit("000,5"))
 
-    val expectedDF = rawDF
+    val expectedDF = testDF
     //using when/otherwise to make column nullable
       .withColumn("stringdouble", when(lit(true), lit(0.5)).otherwise(null))
       .withColumn("stringeuropeandouble", when(lit(true), lit(0.5)).otherwise(null))

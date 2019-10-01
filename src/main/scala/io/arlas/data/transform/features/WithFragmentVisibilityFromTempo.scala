@@ -66,7 +66,7 @@ class WithFragmentVisibilityFromTempo(dataModel: DataModel,
 
   override def transformSchema(schema: StructType): StructType = {
     checkSchema(schema)
-      .add(StructField(arlasTrackVisibilityProportion, DoubleType, true))
+      .add(StructField(arlasTrackVisibilityProportion, DoubleType, false))
       .add(StructField(arlasTrackVisibilityChange, StringType, true))
   }
 

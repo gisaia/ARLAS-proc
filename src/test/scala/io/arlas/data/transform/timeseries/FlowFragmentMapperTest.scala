@@ -31,7 +31,7 @@ class FlowFragmentMapperTest extends ArlasTest {
 
   val averagedColumn = "speed"
 
-  val expectedSchema = cleanedSchema
+  val expectedSchema = arlasTestDF.schema
     .add(StructField(arlasTrackId, StringType, true))
     .add(StructField(arlasTrackNbGeopoints, IntegerType, true))
     .add(StructField(arlasTrackTrail, StringType, true))
@@ -43,7 +43,7 @@ class FlowFragmentMapperTest extends ArlasTest {
     .add(StructField(arlasTrackLocationLon, DoubleType, true))
     .add(StructField(arlasTrackPrefix + averagedColumn, DoubleType, true))
 
-  val expectedData = cleanedDF
+  val expectedData = arlasTestDF
     .collect()
     .groupBy(_.getAs[String](dataModel.idColumn))
     .flatMap {
@@ -87,9 +87,7 @@ class FlowFragmentMapperTest extends ArlasTest {
 
   "FlowFragmentMapper transformation" should "fill the arlas_track* columns against dataframe's timeseries" in {
 
-    val sourceDF = cleanedDF
-
-    val transformedDF: DataFrame = sourceDF
+    val transformedDF: DataFrame = arlasTestDF
       .enrichWithArlas(
         new FlowFragmentMapper(dataModel, spark, dataModel.idColumn, List(averagedColumn)))
 
