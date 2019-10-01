@@ -47,6 +47,27 @@ trait DataFrameTester {
     }
   }
 
+  /**
+    * In a single Dataframe, it checks that 2 columns are equal
+    * If not, in the error message, the related column is the first to be displayed
+    * @param df
+    * @param actualCol
+    * @param expectedCol
+    */
+  def assertColumnsAreEqual(df: DataFrame, actualCol: String, expectedCol: String) = {
+
+    val s = defaultSortAndColsOrder(df)
+    val otherCols = df.schema.fields.map(_.name).filter(n => n != actualCol && n != expectedCol)
+    val aElements = s.select(actualCol, otherCols: _*).collect()
+    val eElements = s.select(expectedCol, otherCols: _*).collect()
+
+    if (!aElements.sameElements(eElements)) {
+      throw DataFrameMismatchException(
+        contentMismatchMessage(aElements, eElements)
+      )
+    }
+  }
+
   def defaultSortAndColsOrder(ds: DataFrame): DataFrame = {
     val colNames = ds.columns.sorted
     val cols = colNames.map(col)
