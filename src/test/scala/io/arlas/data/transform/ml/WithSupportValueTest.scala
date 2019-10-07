@@ -44,14 +44,17 @@ class WithSupportValueTest extends ArlasTest {
     )
   )
 
+  val baseDF = testDF.drop("expected" + speedColumn + "_array")
+
   "WithSupportValues " should "add a column with a list of support column's value" in {
 
-    val transformedDF = testDF.enrichWithArlas(
+    val expectedDF =
+      testDF.withColumnRenamed("expected" + speedColumn + "_array", speedColumn + "_array")
+
+    val transformedDF = baseDF.enrichWithArlas(
       new WithSupportValues(speedColumn, 5, 8, "tempo_irregular", "distance"))
 
-    assertColumnsAreEqual(transformedDF,
-                          speedColumn + "_array",
-                          "expected" + speedColumn + "_array")
+    assertDataFrameEquality(transformedDF, expectedDF)
   }
 
 }

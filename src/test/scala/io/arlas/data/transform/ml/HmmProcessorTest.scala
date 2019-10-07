@@ -54,48 +54,53 @@ class HmmProcessorTest extends ArlasTest {
       ).otherwise(when(lit(true), lit("MOVE")).otherwise(lit(null)))
     )
 
+  val baseDF = arlasTestDF
+
   "HmmProcessor " should " have unknown result with not existing source column" in {
 
-    val transformedDF = testDF
-      .drop(expectedMovingStateColumn)
+    val expectedDF = baseDF.withColumn(arlasMovingStateColumn, lit("Unknown"))
+    val transformedDF = baseDF
       .enrichWithArlas(
-        new HmmProcessor("notExisting", movingStateModel, partitionColumn, "result", 5000)
+        new HmmProcessor("notExisting",
+                         movingStateModel,
+                         partitionColumn,
+                         arlasMovingStateColumn,
+                         5000)
       )
-      .withColumn("expected_result", lit("Unknown"))
-
-    assertColumnsAreEqual(transformedDF, "result", "expected_result")
+    assertDataFrameEquality(transformedDF, expectedDF)
   }
 
   "HmmProcessor " should " have unknown result with not existing model" in {
 
-    val transformedDF = testDF
-      .drop(expectedMovingStateColumn)
+    val expectedDF = baseDF.withColumn(arlasMovingStateColumn, lit("Unknown"))
+    val transformedDF = baseDF
       .enrichWithArlas(
         new HmmProcessor(speedColumn,
                          MLModelLocal(spark, "src/test/resources/not_existing.json"),
                          partitionColumn,
-                         "result",
+                         arlasMovingStateColumn,
                          5000)
       )
-      .withColumn("expected_result", lit("Unknown"))
 
-    assertColumnsAreEqual(transformedDF, "result", "expected_result")
+    assertDataFrameEquality(transformedDF, expectedDF)
   }
 
   "HmmProcessor transformation" should " not break using a window shorter than input dataframe" in {
 
-    testDF
+    baseDF
       .enrichWithArlas(
-        new HmmProcessor(speedColumn, movingStateModel, partitionColumn, "result", 10)
+        new HmmProcessor(speedColumn, movingStateModel, partitionColumn, arlasMovingStateColumn, 10)
       )
       .count()
   }
 
   "HmmProcessor transformation" should " compute the moving state of a dataframe's timeseries" in {
 
-    val transformedDF = testDF
+    val expectedDF = testDF.withColumnRenamed(expectedMovingStateColumn, arlasMovingStateColumn)
+
+    val transformedDF = baseDF
     //avoid natural ordering to ensure that hmm doesn't depend on initial order
-      .sort(speedColumn)
+      .sort(dataModel.latColumn, dataModel.lonColumn)
       .enrichWithArlas(
         new HmmProcessor(speedColumn,
                          movingStateModel,
@@ -103,14 +108,16 @@ class HmmProcessorTest extends ArlasTest {
                          arlasMovingStateColumn,
                          5000))
 
-    assertColumnsAreEqual(transformedDF, arlasMovingStateColumn, expectedMovingStateColumn)
+    assertDataFrameEquality(transformedDF, expectedDF)
   }
 
   //we use a quite big window, the longest partition is 29 points ; because with too few points the results are bad
   //in a real environment, window size shoud be equal to some thousends
   "HmmProcessor transformation" should " compute the moving state of a dataframe's timeseries using windowing" in {
 
-    val transformedDF = testDF
+    val expectedDF = testDF.withColumnRenamed(expectedMovingStateColumn, arlasMovingStateColumn)
+
+    val transformedDF = baseDF
       .enrichWithArlas(
         new HmmProcessor(speedColumn,
                          movingStateModel,
@@ -118,12 +125,14 @@ class HmmProcessorTest extends ArlasTest {
                          arlasMovingStateColumn,
                          30))
 
-    assertColumnsAreEqual(transformedDF, arlasMovingStateColumn, expectedMovingStateColumn)
+    assertDataFrameEquality(transformedDF, expectedDF)
   }
 
   "HmmProcessor transformation" should " compute the moving state from an ArrayTyped field" in {
 
-    val transformedDF = testDF
+    val expectedDF = testDF.withColumnRenamed(expectedMovingStateColumn, arlasMovingStateColumn)
+
+    val transformedDF = baseDF
       .withColumn(speedColumn, array(col(speedColumn)))
       .enrichWithArlas(
         new HmmProcessor(speedColumn,
@@ -132,12 +141,15 @@ class HmmProcessorTest extends ArlasTest {
                          arlasMovingStateColumn,
                          30))
 
-    assertColumnsAreEqual(transformedDF, arlasMovingStateColumn, expectedMovingStateColumn)
+    //not compare speedColumn that is either a Double or Array[Double]
+    assertDataFrameEquality(transformedDF.drop(speedColumn), expectedDF.drop(speedColumn))
   }
 
   "HmmProcessor transformation" should " compute the moving state from an ArrayTyped field with several values" in {
 
-    val transformedDF = testDF
+    val expectedDF = testDF.withColumnRenamed(expectedMovingStateColumn, arlasMovingStateColumn)
+
+    val transformedDF = baseDF
     //replace a single row with multiple speed values
       .withColumn(
         speedColumn,
@@ -154,7 +166,8 @@ class HmmProcessorTest extends ArlasTest {
                          arlasMovingStateColumn,
                          30))
 
-    assertColumnsAreEqual(transformedDF, arlasMovingStateColumn, expectedMovingStateColumn)
+    //not compare speedColumn that is either a Double or Array[Double]
+    assertDataFrameEquality(transformedDF.drop(speedColumn), expectedDF.drop(speedColumn))
   }
 
 }

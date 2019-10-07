@@ -43,7 +43,7 @@ class DataFrameFormatterTest extends ArlasTest {
 
   "DataFrameFormatter " should " fix invalid column names" in {
 
-    val sourceDF = testDF
+    val baseDF = testDF
       .withColumn("white space", lit(0).cast(IntegerType))
       .withColumn("special:*$char/;?", lit(1).cast(IntegerType))
       .withColumn("_start_with_underscore", lit(2).cast(IntegerType))
@@ -53,7 +53,7 @@ class DataFrameFormatterTest extends ArlasTest {
       .withColumn("specialchar", lit(1).cast(IntegerType))
       .withColumn("start_with_underscore", lit(2).cast(IntegerType))
 
-    val transformedDF: DataFrame = sourceDF
+    val transformedDF: DataFrame = baseDF
       .enrichWithArlas(new DataFrameFormatter(dataModel))
 
     assertDataFrameEquality(transformedDF, expectedDF)
@@ -61,11 +61,11 @@ class DataFrameFormatterTest extends ArlasTest {
 
   "DataFrameFormatter " should " fail with missing DataModel columns" in {
 
-    val sourceDF = testDF
+    val baseDF = testDF
       .drop(dataModel.latColumn)
 
     val thrown = intercept[DataFrameException] {
-      sourceDF
+      baseDF
         .enrichWithArlas(new DataFrameFormatter(dataModel))
     }
     assert(
@@ -83,7 +83,7 @@ class DataFrameFormatterTest extends ArlasTest {
 
   "DataFrameFormatter " should " cast double columns" in {
 
-    val sourceDF = testDF
+    val baseDF = testDF
       .withColumn("stringdouble", lit("000.5"))
       .withColumn("stringeuropeandouble", lit("000,5"))
 
@@ -92,7 +92,7 @@ class DataFrameFormatterTest extends ArlasTest {
       .withColumn("stringdouble", when(lit(true), lit(0.5)).otherwise(null))
       .withColumn("stringeuropeandouble", when(lit(true), lit(0.5)).otherwise(null))
 
-    val transformedDF: DataFrame = sourceDF
+    val transformedDF: DataFrame = baseDF
       .enrichWithArlas(
         new DataFrameFormatter(dataModel, Vector("stringdouble", "stringeuropeandouble")))
 

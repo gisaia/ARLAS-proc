@@ -53,16 +53,19 @@ class WithFragmentVisibilityFromTempoTest extends ArlasTest {
     )
   )
 
+  val baseDF =
+    testDF.drop("expected_track_visibility_proportion", "expected_track_visibility_change")
+
   "WithFragmentVisibilityFromTempo " should "add visibility proportion and change relying to tempo" in {
 
-    val transformedDF =
-      testDF.enrichWithArlas(new WithFragmentVisibilityFromTempo(dataModel, spark, "irregular"))
+    val expectedDF = testDF
+      .withColumnRenamed("expected_track_visibility_proportion", arlasTrackVisibilityProportion)
+      .withColumnRenamed("expected_track_visibility_change", arlasTrackVisibilityChange)
 
-    assertColumnsAreEqual(transformedDF,
-                          arlasTrackVisibilityProportion,
-                          "expected_track_visibility_proportion")
-    assertColumnsAreEqual(transformedDF,
-                          arlasTrackVisibilityChange,
-                          "expected_track_visibility_change")
+    val transformedDF =
+      baseDF.enrichWithArlas(new WithFragmentVisibilityFromTempo(dataModel, spark, "irregular"))
+
+    assertDataFrameEquality(transformedDF, expectedDF)
+
   }
 }

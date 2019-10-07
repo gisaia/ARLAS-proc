@@ -48,11 +48,14 @@ class IdUpdaterTest extends ArlasTest {
     )
   )
 
+  val baseDF = testDF.drop("expected_new_seq_id")
+
   "IdUpdater transformation " should " update idColumn as objectid#start_end" in {
 
-    val transformedDF = testDF.enrichWithArlas(new IdUpdater(DataModel(), "seq_id"))
+    val expectedDF = testDF.drop("seq_id").withColumnRenamed("expected_new_seq_id", "seq_id")
+    val transformedDF = baseDF.enrichWithArlas(new IdUpdater(DataModel(), "seq_id"))
 
-    assertColumnsAreEqual(transformedDF, "seq_id", "expected_new_seq_id")
+    assertDataFrameEquality(transformedDF, expectedDF)
   }
 
 }
