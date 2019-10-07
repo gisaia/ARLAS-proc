@@ -47,45 +47,51 @@ class WithStateIdFromStateTest extends ArlasTest {
             "expected_state_id" -> (StringType, true))
   )
 
+  val baseDF = testDF.drop("expected_state_id")
+
   "WithStateIdFromState transformation " should " fill/generate state id against dataframe's timeseries" in {
 
-    val transformedDF = testDF
+    val expectedDF = testDF.withColumnRenamed("expected_state_id", "state_id")
+
+    val transformedDF = baseDF
       .enrichWithArlas(
         new WithStateIdFromState(
           DataModel(),
           "state",
           "timestamp",
           "new",
-          "result_state_id"
+          "state_id"
         ))
 
-    assertColumnsAreEqual(transformedDF, "result_state_id", "expected_state_id")
+    assertDataFrameEquality(transformedDF, expectedDF)
   }
 
   "WithStateIdFromState transformation " should " resume state id when adding a warm up period" in {
 
-    val transformedDF = testDF
+    val expectedDF = testDF.withColumnRenamed("expected_state_id", "state_id")
+
+    val transformedDF = baseDF
       .enrichWithArlas(
         new WithStateIdFromState(
           DataModel(),
           "state",
           "timestamp",
           "new",
-          "result_state_id"
+          "state_id"
         ))
-      .withColumn("result_state_id",
+      .withColumn("state_id",
                   when(col("id").equalTo("id1").and(col("timestamp").lt(5)), lit(null))
-                    .otherwise(col("result_state_id")))
+                    .otherwise(col("state_id")))
       .enrichWithArlas(
         new WithStateIdFromState(
           DataModel(),
           "state",
           "timestamp",
           "new",
-          "result_state_id"
+          "state_id"
         ))
 
-    assertColumnsAreEqual(transformedDF, "result_state_id", "expected_state_id")
+    assertDataFrameEquality(transformedDF, expectedDF)
   }
 
 }

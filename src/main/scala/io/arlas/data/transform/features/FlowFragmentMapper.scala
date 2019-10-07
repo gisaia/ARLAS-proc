@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package io.arlas.data.transform.timeseries
+package io.arlas.data.transform.features
 
 import io.arlas.data.model.DataModel
 import io.arlas.data.transform.ArlasTransformer

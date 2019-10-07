@@ -44,11 +44,15 @@ class WithStateIdOnStateChangeTest extends ArlasTest {
     )
   )
 
+  val baseDF = testDF.drop("expected_state_id")
+
   "WithStateIdOnStateChange transformation " should " fill/generate state id against dataframe's timeseries" in {
 
-    val transformedDF = testDF.enrichWithArlas(
+    val expectedDF = testDF.withColumnRenamed("expected_state_id", "state_id")
+
+    val transformedDF = baseDF.enrichWithArlas(
       new WithStateIdOnStateChange(dataModel, "state", arlasTimestampColumn, "state_id"))
 
-    assertColumnsAreEqual(transformedDF, "state_id", "expected_state_id")
+    assertDataFrameEquality(transformedDF, expectedDF)
   }
 }

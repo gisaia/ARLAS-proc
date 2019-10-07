@@ -17,12 +17,13 @@
  * under the License.
  */
 
-package io.arlas.data.transform.timeseries
+package io.arlas.data.transform.features
 
+import io.arlas.data.sql._
 import io.arlas.data.transform.ArlasTest
 import io.arlas.data.transform.ArlasTransformerColumns._
-import io.arlas.data.sql._
 import org.apache.spark.sql.types.{IntegerType, StringType}
+
 import scala.collection.immutable.ListMap
 
 class WithDurationFromIdTest extends ArlasTest {
@@ -43,11 +44,14 @@ class WithDurationFromIdTest extends ArlasTest {
     )
   )
 
+  val baseDF = testDF.drop("expected_duration")
+
   "WithDurationFromId transformation " should " compute duration of visibility sequences" in {
 
-    val transformedDF = testDF.enrichWithArlas(new WithDurationFromId("id", "duration"))
+    val expectedDF = testDF.withColumnRenamed("expected_duration", "duration")
+    val transformedDF = baseDF.enrichWithArlas(new WithDurationFromId("id", "duration"))
 
-    assertColumnsAreEqual(transformedDF, "duration", "expected_duration")
+    assertDataFrameEquality(transformedDF, expectedDF)
   }
 
 }
