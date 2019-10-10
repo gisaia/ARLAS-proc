@@ -23,7 +23,9 @@ case class MotionConfiguration(
     movingStateModel: MLModel = null,
     movingStateHmmWindowSize: Int = 5000,
     supportPointsConfiguration: SupportPointsConfiguration = new SupportPointsConfiguration(),
-    tempoConfiguration: TempoConfiguration = new TempoConfiguration()
+    tempoConfiguration: TempoConfiguration = new TempoConfiguration(),
+    moveGapMinDuration: Int = 5400,
+    moveGapMinDistance: Int = 100
 )
 
 case class SupportPointsConfiguration(
