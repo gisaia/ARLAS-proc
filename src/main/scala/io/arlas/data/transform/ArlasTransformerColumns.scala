@@ -87,6 +87,7 @@ object ArlasMovingStates {
   }
   case object STILL extends ArlasMovingStates("STILL")
   case object MOVE extends ArlasMovingStates("MOVE")
+  case object MOVE_GAP extends ArlasMovingStates("MOVE_GAP")
 }
 
 object ArlasCourseOrStop {
@@ -95,6 +96,7 @@ object ArlasCourseOrStop {
   }
   case object STOP extends ArlasCourseStates("STOP")
   case object COURSE extends ArlasCourseStates("COURSE")
+  case object COURSE_GAP extends ArlasCourseStates("COURSE_GAP")
 }
 
 object ArlasCourseStates {
