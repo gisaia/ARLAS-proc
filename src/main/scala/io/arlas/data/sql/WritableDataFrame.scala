@@ -21,7 +21,6 @@ package io.arlas.data.sql
 
 import io.arlas.data.model.DataModel
 import io.arlas.data.transform.ArlasTransformerColumns._
-import io.arlas.data.transform.{WithArlasGeopoint, WithArlasId}
 import io.arlas.data.utils.CassandraTool
 import org.apache.spark.sql.functions.{col, concat, lit, struct}
 import org.apache.spark.sql.{Column, DataFrame, SaveMode, SparkSession}
@@ -54,7 +53,10 @@ class WritableDataFrame(df: DataFrame) extends TransformableDataFrame(df) with C
   }
 
   def asArlasEsData(dataModel: DataModel): DataFrame = {
-    doPipelineTransform(df, new WithArlasGeopoint(dataModel), new WithArlasId(dataModel))
+    df.withColumn(arlasGeoPointColumn,
+                  concat(col(dataModel.latColumn), lit(","), col(dataModel.lonColumn)))
+      .withColumn(arlasIdColumn,
+                  concat(col(dataModel.idColumn), lit("#"), col(arlasTimestampColumn)))
   }
 
   def writeToElasticsearch(spark: SparkSession, dataModel: DataModel, target: String): Unit = {
