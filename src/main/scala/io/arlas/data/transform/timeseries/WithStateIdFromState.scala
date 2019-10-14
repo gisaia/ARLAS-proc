@@ -17,10 +17,21 @@
  * under the License.
  */
 
-package io.arlas.data.model
+package io.arlas.data.transform.timeseries
 
-case class DataModel(idColumn: String = "id",
-                     timestampColumn: String = "timestamp",
-                     timeFormat: String = "yyyy-MM-dd'T'HH:mm:ssZ",
-                     latColumn: String = "lat",
-                     lonColumn: String = "lon")
+import io.arlas.data.model.DataModel
+import org.apache.spark.sql.functions._
+
+/**
+  * Compute ID column, the same ID is set for all consecutive rows between 2 occurences of fromState, for a same object
+  * @param dataModel
+  * @param stateColumn
+  * @param fromState
+  * @param targetIdColumn
+  */
+class WithStateIdFromState(dataModel: DataModel,
+                           stateColumn: String,
+                           orderColumn: String,
+                           fromState: String,
+                           targetIdColumn: String)
+    extends WithStateId(dataModel, orderColumn, targetIdColumn, col(stateColumn).equalTo(fromState))
