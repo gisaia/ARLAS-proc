@@ -52,6 +52,15 @@ object ArlasTransformerColumns {
   val arlasTrackLocationLon = arlasTrackPrefix + "location_lon"
   val arlasTrackVisibilityProportion = arlasTrackPrefix + "visibility_proportion"
   val arlasTrackVisibilityChange = arlasTrackPrefix + "visibility_change"
+  val arlasTrackLocationPrecisionValueLon = arlasTrackPrefix + "location_precision_value_lon"
+  val arlasTrackLocationPrecisionValueLat = arlasTrackPrefix + "location_precision_value_lat"
+  val arlasTrackLocationPrecisionGeometry = arlasTrackPrefix + "location_precision_geometry"
+  val arlasTrackDistanceGpsTravelledM = arlasTrackPrefix + "distance_gps_travelled_m"
+  val arlasTrackDistanceGpsStraigthLineM = arlasTrackPrefix + "distance_gps_straigth_line_m"
+  val arlasTrackDistanceGpsStraigthness = arlasTrackPrefix + "distance_gps_straigthness"
+  val arlasTrackDynamicsGpsSpeedKmh = arlasTrackPrefix + "dynamics_gps_speed_kmh"
+  val arlasTrackDynamicsGpsBearing = arlasTrackPrefix + "dynamics_gps_bearing"
+
 }
 
 /**
