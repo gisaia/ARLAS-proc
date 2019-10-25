@@ -4,12 +4,13 @@ import io.arlas.data.transform.{ArlasTest, DataFrameException}
 import io.arlas.data.transform.ArlasTransformerColumns.arlasTimestampColumn
 import org.apache.spark.sql.types.{DoubleType, LongType, StringType}
 import org.apache.spark.sql.functions._
-
+import io.arlas.data.transform.ArlasTestHelper._
 import scala.collection.immutable.ListMap
 
 class WritableDataFrameTest extends ArlasTest {
 
   val testDF = createDataFrameWithTypes(
+    spark,
     List(
       Seq("id1", 0l, 0.123, "toulouse"),
       Seq("id1", 30l, 1.234, "blagnac")

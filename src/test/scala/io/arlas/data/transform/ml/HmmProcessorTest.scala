@@ -24,6 +24,7 @@ import io.arlas.data.model.MLModelLocal
 import io.arlas.data.transform.ArlasTest
 import io.arlas.data.transform.ArlasTransformerColumns._
 import org.apache.spark.sql.functions._
+import io.arlas.data.transform.ArlasTestHelper._
 
 class HmmProcessorTest extends ArlasTest {
 
@@ -31,7 +32,7 @@ class HmmProcessorTest extends ArlasTest {
   private val partitionColumn = "id"
   private val expectedMovingStateColumn = "expected_moving_state"
 
-  val testDF = arlasTestDF
+  val testDF = baseTestDF
     .withColumn(
       expectedMovingStateColumn,
       when(
@@ -54,7 +55,7 @@ class HmmProcessorTest extends ArlasTest {
       ).otherwise(when(lit(true), lit("MOVE")).otherwise(lit(null)))
     )
 
-  val baseDF = arlasTestDF
+  val baseDF = baseTestDF
 
   "HmmProcessor " should " have unknown result with not existing source column" in {
 

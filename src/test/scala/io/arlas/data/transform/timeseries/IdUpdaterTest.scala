@@ -24,12 +24,14 @@ import io.arlas.data.sql._
 import io.arlas.data.transform.ArlasTransformerColumns._
 import io.arlas.data.transform.timeseries._
 import org.apache.spark.sql.types.{IntegerType, StringType}
+import io.arlas.data.transform.ArlasTestHelper._
 
 import scala.collection.immutable.ListMap
 
 class IdUpdaterTest extends ArlasTest {
 
   val testDF = createDataFrameWithTypes(
+    spark,
     List(
       Seq("id1", "1#0", 1, 10, "id1#1_100"),
       Seq("id1", "1#0", 10, 20, "id1#1_100"),

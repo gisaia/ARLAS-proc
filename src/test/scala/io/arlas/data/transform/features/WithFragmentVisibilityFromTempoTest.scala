@@ -24,10 +24,12 @@ import io.arlas.data.transform.{ArlasTest, VisibilityChange}
 import io.arlas.data.transform.ArlasTransformerColumns._
 import org.apache.spark.sql.types.{DoubleType, LongType, StringType}
 import scala.collection.immutable.ListMap
+import io.arlas.data.transform.ArlasTestHelper._
 
 class WithFragmentVisibilityFromTempoTest extends ArlasTest {
 
   val testDF = createDataFrameWithTypes(
+    spark,
     List(
       //id1
       Seq("id1", 0l, "irregular", 0.0, null),

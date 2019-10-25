@@ -23,12 +23,13 @@ import io.arlas.data.sql._
 import io.arlas.data.transform.ArlasTest
 import io.arlas.data.transform.ArlasTransformerColumns._
 import org.apache.spark.sql.types._
-
+import io.arlas.data.transform.ArlasTestHelper._
 import scala.collection.immutable.ListMap
 
 class WithSupportValueTest extends ArlasTest {
 
   val testDF = createDataFrameWithTypes(
+    spark,
     List(
       Seq(10l, 4.0d, 0.1d, "tempo_other", Seq(0.1d)),
       Seq(10l, 4.0d, 0.2d, "tempo_irregular", Seq(0.4d, 0.4d)),

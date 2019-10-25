@@ -5,11 +5,13 @@ import org.apache.spark.sql.types.{DoubleType, StringType}
 import io.arlas.data.sql._
 import org.apache.spark.sql.functions._
 import scala.collection.immutable.ListMap
+import io.arlas.data.transform.ArlasTestHelper._
 
 class WithGeoDataTest extends ArlasTest {
 
   val testDF =
     createDataFrameWithTypes(
+      spark,
       List(
         Seq("id1",
             43.636883,
