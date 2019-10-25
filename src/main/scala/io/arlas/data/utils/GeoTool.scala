@@ -3,12 +3,14 @@ package io.arlas.data.utils
 import org.geotools.referencing.GeodeticCalculator
 import org.geotools.referencing.datum.DefaultEllipsoid
 import org.locationtech.jts.geom.{Coordinate, Geometry, GeometryFactory, PrecisionModel}
-import org.locationtech.jts.io.WKTWriter
+import org.locationtech.jts.io.{WKTReader, WKTWriter}
+
 import scala.collection.immutable
 
 object GeoTool {
 
   val LOCATION_DIGITS = 6 //required for coordinates with meter precision
+  val LOCATION_PRECISION_DIGITS = 12
   val ELLIPSIS_DEFAULT_STANDARD_DEVIATION = Math.pow(10.0, -4.0)
 
   /**
@@ -71,6 +73,15 @@ object GeoTool {
     geodesicCalculator.setStartingGeographicPoint(prevLon, prevLat)
     geodesicCalculator.setDestinationGeographicPoint(lon, lat)
     Some(geodesicCalculator.getOrthodromicDistance)
+  }
+
+  def getStraightLineDistanceFromTrails(trails: Array[String]): Option[Double] = {
+    val nonNullTrails = trails.filterNot(_ == null)
+    val reader = new WKTReader()
+    val geometries: Seq[Coordinate] = nonNullTrails.flatMap(reader.read(_).getCoordinates)
+    if (geometries.size > 1) {
+      getDistanceBetween(geometries.head.y, geometries.head.x, geometries.last.y, geometries.last.x)
+    } else Some(0.0)
   }
 
   private def getTrailGeometryBetween(prevLat: Double,
