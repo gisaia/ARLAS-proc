@@ -119,7 +119,7 @@ class FlowFragmentMapper(dataModel: DataModel,
         ))
       )
       .withColumn( //track_distance_travelled_m = distance between previous and current point
-        arlasTrackDistanceGpsTravelledM,
+        arlasTrackDistanceGpsTravelled,
         whenPreviousPointExists(callUDF(
           "getDistanceTravelled",
           lag(dataModel.latColumn, 1).over(window),
@@ -129,8 +129,8 @@ class FlowFragmentMapper(dataModel: DataModel,
         ))
       )
       .withColumn( // track_distance_straigth_line_m = track_distance_travelled_m
-        arlasTrackDistanceGpsStraigthLineM,
-        whenPreviousPointExists(col(arlasTrackDistanceGpsTravelledM))
+        arlasTrackDistanceGpsStraigthLine,
+        whenPreviousPointExists(col(arlasTrackDistanceGpsTravelled))
       )
       .withColumn( // track_distance_straigthness = 1
                   arlasTrackDistanceGpsStraigthness,
@@ -138,7 +138,7 @@ class FlowFragmentMapper(dataModel: DataModel,
       .withColumn( // track_dynamics_gps_speed_kmh = track_distance_travelled_m / arlas_track_duration_s / 1000 * 3600
         arlasTrackDynamicsGpsSpeedKmh,
         whenPreviousPointExists(
-          (col(arlasTrackDistanceGpsTravelledM) / col(arlasTrackDuration)) / lit(1000) * lit(3600))
+          (col(arlasTrackDistanceGpsTravelled) / col(arlasTrackDuration)) / lit(1000) * lit(3600))
       )
       .withColumn( // track_dynamics_gps_bearing = getGPSBearing previous_point current_point
         arlasTrackDynamicsGpsBearing,
@@ -199,8 +199,8 @@ class FlowFragmentMapper(dataModel: DataModel,
       .add(StructField(arlasTrackLocationPrecisionValueLon, DoubleType, true))
       .add(StructField(arlasTrackLocationPrecisionValueLat, DoubleType, true))
       .add(StructField(arlasTrackLocationPrecisionGeometry, StringType, true))
-      .add(StructField(arlasTrackDistanceGpsTravelledM, DoubleType, true))
-      .add(StructField(arlasTrackDistanceGpsStraigthLineM, DoubleType, true))
+      .add(StructField(arlasTrackDistanceGpsTravelled, DoubleType, true))
+      .add(StructField(arlasTrackDistanceGpsStraigthLine, DoubleType, true))
       .add(StructField(arlasTrackDistanceGpsStraigthness, DoubleType, true))
       .add(StructField(arlasTrackDynamicsGpsSpeedKmh, DoubleType, true))
       .add(StructField(arlasTrackDynamicsGpsBearing, DoubleType, true))
