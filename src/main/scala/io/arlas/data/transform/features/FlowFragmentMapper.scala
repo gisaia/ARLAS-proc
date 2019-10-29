@@ -85,8 +85,8 @@ class FlowFragmentMapper(dataModel: DataModel,
                   arlasTrackTimestampStart,
                   whenPreviousPointExists(lag(arlasTimestampColumn, 1).over(window)))
       .withColumn( // track_timestamps_end = ts(end)
-                  arlasTrackTimestampEnd,
-                  col(arlasTimestampColumn))
+        arlasTrackTimestampEnd,
+        when(lit(true), col(arlasTimestampColumn))) //when(lit(true), ...) makes column nullable
       .withColumn( // track_timestamps_center = mean(timestamp start, timestamp end)
         arlasTrackTimestampCenter,
         whenPreviousPointExists(
@@ -192,7 +192,7 @@ class FlowFragmentMapper(dataModel: DataModel,
       .add(StructField(arlasTrackTrail, StringType, true))
       .add(StructField(arlasTrackDuration, LongType, true))
       .add(StructField(arlasTrackTimestampStart, LongType, true))
-      .add(StructField(arlasTrackTimestampEnd, LongType, false))
+      .add(StructField(arlasTrackTimestampEnd, LongType, true))
       .add(StructField(arlasTrackTimestampCenter, LongType, true))
       .add(StructField(arlasTrackLocationLat, DoubleType, true))
       .add(StructField(arlasTrackLocationLon, DoubleType, true))

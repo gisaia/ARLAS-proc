@@ -41,7 +41,7 @@ class FlowFragmentMapperTest extends ArlasTest {
     .add(StructField(arlasTrackTrail, StringType, true))
     .add(StructField(arlasTrackDuration, LongType, true))
     .add(StructField(arlasTrackTimestampStart, LongType, true))
-    .add(StructField(arlasTrackTimestampEnd, LongType, false))
+    .add(StructField(arlasTrackTimestampEnd, LongType, true))
     .add(StructField(arlasTrackTimestampCenter, LongType, true))
     .add(StructField(arlasTrackLocationLat, DoubleType, true))
     .add(StructField(arlasTrackLocationLon, DoubleType, true))
