@@ -27,7 +27,7 @@ import io.arlas.data.transform.ArlasTransformerColumns._
 import org.apache.spark.sql.{Column, DataFrame}
 import org.apache.spark.sql.functions.{col, struct}
 
-import scala.collection.mutable
+import scala.collection.immutable.ListMap
 
 package object sql extends DataFrameReader {
 
@@ -71,10 +71,9 @@ package object sql extends DataFrameReader {
   sealed trait ColumnGroupingElement
   implicit class ImplicitColumnName(val v: String) extends ColumnGroupingElement
   implicit class ImplicitColumnObj(val c: Column) extends ColumnGroupingElement
-  class ColumnGroup(elems: Tuple2[String, ColumnGroupingElement]*)
-      extends mutable.HashMap[String, ColumnGroupingElement]
-      with ColumnGroupingElement {
-    this ++= elems
+  class ColumnGroup(groupingElements: Tuple2[String, ColumnGroupingElement]*)
+      extends ColumnGroupingElement {
+    val elements: ListMap[String, ColumnGroupingElement] = ListMap() ++ groupingElements
   }
 
   object ImplicitColumnName {
