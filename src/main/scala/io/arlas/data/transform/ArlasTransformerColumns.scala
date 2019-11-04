@@ -46,6 +46,7 @@ object ArlasTransformerColumns {
   val arlasTrackId = arlasTrackPrefix + "id"
   val arlasTrackNbGeopoints = arlasTrackPrefix + "nb_geopoints"
   val arlasTrackTrail = arlasTrackPrefix + "trail"
+  val arlasTrackTrailGeohashes = arlasTrackPrefix + "trail_geohashes"
   val arlasTrackDuration = arlasTrackPrefix + "duration_s"
   val arlasTrackTimestampStart = arlasTrackPrefix + "timestamp_start"
   val arlasTrackTimestampEnd = arlasTrackPrefix + "timestamp_end"

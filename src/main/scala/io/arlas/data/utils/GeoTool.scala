@@ -13,6 +13,11 @@ object GeoTool {
   val LOCATION_PRECISION_DIGITS = 12
   val ELLIPSIS_DEFAULT_STANDARD_DEVIATION = Math.pow(10.0, -4.0)
 
+  private val GEOHASH_BITS = Array(16, 8, 4, 2, 1)
+  private val GEOHASH_BASE_32 =
+    Array('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'j',
+      'k', 'm', 'n', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z') //note: this is sorted
+
   /**
     * Compute track geometry WKT between 2 geopoints (LineString)
     */
@@ -84,7 +89,7 @@ object GeoTool {
     } else Some(0.0)
   }
 
-  def wktToGeometry(wkt: String) = {
+  def wktToGeometry(wkt: String): Array[(Double, Double)] = {
 
     if (wkt == null || wkt.isEmpty) {
       Array()
@@ -104,6 +109,52 @@ object GeoTool {
         getNewGeometryFactory().createLineString(coords.map(c => new Coordinate(c._1, c._2)))
       Some(new WKTWriter().write(geometry))
     }
+  }
+
+  /**
+    * This is the spatial4j implementation (apache 2.0 licence), translated to Scala
+    * @param latitude
+    * @param longitude
+    * @param precision
+    * @return
+    */
+  def getGeohashFrom(latitude: Double, longitude: Double, precision: Int) = {
+    val latInterval = Array(-90.0, 90.0)
+    val lngInterval = Array(-180.0, 180.0)
+
+    val geohash = new StringBuilder(precision)
+    var isEven = true
+
+    var bit = 0
+    var ch = 0
+
+    while ({
+      geohash.length < precision
+    }) {
+      var mid = 0.0
+      if (isEven) {
+        mid = (lngInterval(0) + lngInterval(1)) / 2D
+        if (longitude > mid) {
+          ch |= GEOHASH_BITS(bit)
+          lngInterval(0) = mid
+        } else lngInterval(1) = mid
+      } else {
+        mid = (latInterval(0) + latInterval(1)) / 2D
+        if (latitude > mid) {
+          ch |= GEOHASH_BITS(bit)
+          latInterval(0) = mid
+        } else latInterval(1) = mid
+      }
+      isEven = !isEven
+      if (bit < 4) bit += 1
+      else {
+        geohash.append(GEOHASH_BASE_32(ch))
+        bit = 0
+        ch = 0
+      }
+    }
+
+    geohash.toString
   }
 
   private def getTrailGeometryBetween(prevLat: Double,
