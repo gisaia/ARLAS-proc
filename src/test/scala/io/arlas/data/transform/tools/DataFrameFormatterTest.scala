@@ -24,12 +24,13 @@ import io.arlas.data.transform.{ArlasTest, DataFrameException}
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types._
-
+import io.arlas.data.transform.ArlasTestHelper._
 import scala.collection.immutable.ListMap
 
 class DataFrameFormatterTest extends ArlasTest {
 
   val testDF = createDataFrameWithTypes(
+    spark,
     List(
       Seq("id1", "01/06/2018 00:00:00+02:00", 55.921028, 17.320418)
     ),

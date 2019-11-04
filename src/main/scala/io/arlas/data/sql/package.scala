@@ -24,8 +24,10 @@ import java.time.format.DateTimeFormatter
 
 import io.arlas.data.model._
 import io.arlas.data.transform.ArlasTransformerColumns._
-import org.apache.spark.sql.DataFrame
+import org.apache.spark.sql.{Column, DataFrame}
 import org.apache.spark.sql.functions.{col, struct}
+
+import scala.collection.immutable.ListMap
 
 package object sql extends DataFrameReader {
 
@@ -65,4 +67,25 @@ package object sql extends DataFrameReader {
       }
     }
   }
+
+  sealed trait ColumnGroupingElement
+  implicit class ImplicitColumnName(val v: String) extends ColumnGroupingElement
+  implicit class ImplicitColumnObj(val c: Column) extends ColumnGroupingElement
+  class ColumnGroup(groupingElements: Tuple2[String, ColumnGroupingElement]*)
+      extends ColumnGroupingElement {
+    val elements: ListMap[String, ColumnGroupingElement] = ListMap() ++ groupingElements
+  }
+
+  object ImplicitColumnName {
+    def unapply(arg: ImplicitColumnName): Option[String] = Some(arg.v)
+  }
+
+  object ImplicitColumnObj {
+    def unapply(arg: ImplicitColumnObj): Option[Column] = Some(arg.c)
+  }
+
+  object ColumnGroup {
+    def apply(entries: (String, ColumnGroupingElement)*): ColumnGroup = new ColumnGroup(entries: _*)
+  }
+
 }

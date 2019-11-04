@@ -17,22 +17,22 @@
  * under the License.
  */
 
-package io.arlas.data.transform.features
+package io.arlas.data.transform.timeseries
 
 import io.arlas.data.model.DataModel
 import io.arlas.data.transform.ArlasTransformer
 import io.arlas.data.transform.ArlasTransformerColumns._
+import io.arlas.data.utils.GeoTool
 import org.apache.spark.sql.expressions.Window
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types._
 import org.apache.spark.sql.{Column, DataFrame, Dataset, SparkSession}
-import org.locationtech.jts.geom.{Coordinate, Geometry, GeometryFactory}
-import org.locationtech.jts.io.WKTWriter
 
 class FlowFragmentMapper(dataModel: DataModel,
                          spark: SparkSession,
                          aggregationColumnName: String,
-                         averageColumns: List[String] = Nil)
+                         averageColumns: List[String] = Nil,
+                         standardDeviationEllipsisNbPoints: Int = 12)
     extends ArlasTransformer(Vector(arlasTimestampColumn,
                                     aggregationColumnName,
                                     dataModel.latColumn,
@@ -40,39 +40,7 @@ class FlowFragmentMapper(dataModel: DataModel,
 
   override def transform(dataset: Dataset[_]): DataFrame = {
 
-    def getTrailGeometry(lat: Double, lon: Double, prevLat: Double, prevLon: Double): Geometry = {
-      val start = new Coordinate(lon, lat)
-      val end = new Coordinate(prevLon, prevLat)
-      if (start.equals2D(end)) {
-        new GeometryFactory().createPoint(start)
-      } else {
-        new GeometryFactory().createLineString(Array(start, end))
-      }
-    }
-
-    // Track geometry WKT (LineString)
-    def getTrail(lat: Double, lon: Double, prevLat: Double, prevLon: Double): Option[String] = {
-      Some((new WKTWriter()).write(getTrailGeometry(lat, lon, prevLat, prevLon)))
-    }
-    spark.udf.register("getTrail", getTrail _)
-
-    // Track centroid latitude
-    def getCentroidLat(lat: Double,
-                       lon: Double,
-                       prevLat: Double,
-                       prevLon: Double): Option[Double] = {
-      Some(getTrailGeometry(lat, lon, prevLat, prevLon).getCentroid.getCoordinate.y)
-    }
-    spark.udf.register("getCentroidLat", getCentroidLat _)
-
-    // Track centroid longitude
-    def getCentroidLon(lat: Double,
-                       lon: Double,
-                       prevLat: Double,
-                       prevLon: Double): Option[Double] = {
-      Some(getTrailGeometry(lat, lon, prevLat, prevLon).getCentroid.getCoordinate.x)
-    }
-    spark.udf.register("getCentroidLon", getCentroidLon _)
+    registerUDF()
 
     // spark window
     val window = Window
@@ -117,31 +85,73 @@ class FlowFragmentMapper(dataModel: DataModel,
                   arlasTrackTimestampStart,
                   whenPreviousPointExists(lag(arlasTimestampColumn, 1).over(window)))
       .withColumn( // track_timestamps_end = ts(end)
-                  arlasTrackTimestampEnd,
-                  col(arlasTimestampColumn))
-      .withColumn( // track_timestamps_center = ts(start) + ts(end) / 2
+        arlasTrackTimestampEnd,
+        when(lit(true), col(arlasTimestampColumn))) //when(lit(true), ...) makes column nullable
+      .withColumn( // track_timestamps_center = mean(timestamp start, timestamp end)
         arlasTrackTimestampCenter,
         whenPreviousPointExists(
-          ((col(arlasTimestampColumn) + lag(arlasTimestampColumn, 1).over(window)) / lit(2))
-            .cast(LongType))
+          mean(arlasTimestampColumn).over(window.rowsBetween(-1, 0)).cast(LongType))
       )
-      .withColumn( // track_location_lat = trail centroid latitude
+      .withColumn( // track_location_lat = mean(latitude start, latitude end)
         arlasTrackLocationLat,
-        whenPreviousPointExists(
-          callUDF("getCentroidLat",
-                  lag(dataModel.latColumn, 1).over(window),
-                  lag(dataModel.lonColumn, 1).over(window),
-                  col(dataModel.latColumn),
-                  col(dataModel.lonColumn)))
+        whenPreviousPointExists(round(mean(dataModel.latColumn).over(window.rowsBetween(-1, 0)),
+                                      GeoTool.coordinatesDecimalPrecision))
       )
-      .withColumn( // track_location_lat = trail centroid latitude
+      .withColumn( // track_location_lon = mean(longitude start, longitude end)
         arlasTrackLocationLon,
+        whenPreviousPointExists(round(mean(dataModel.lonColumn).over(window.rowsBetween(-1, 0)),
+                                      GeoTool.coordinatesDecimalPrecision))
+      )
+      .withColumn( // track_location_precision_value_lat = standard deviation of latitude
+        arlasTrackLocationPrecisionValueLat,
+        whenPreviousPointExists(stddev_pop(dataModel.latColumn).over(window.rowsBetween(-1, 0)))
+      )
+      .withColumn( // track_location_precision_value_lon = standard deviation of longitude
+        arlasTrackLocationPrecisionValueLon,
+        whenPreviousPointExists(stddev_pop(dataModel.lonColumn).over(window.rowsBetween(-1, 0)))
+      )
+      .withColumn( // track_location_precision_geometry = ellipsis of standard deviation around the geocenter
+        arlasTrackLocationPrecisionGeometry,
+        whenPreviousPointExists(callUDF(
+          "getStandardDeviationEllipsis",
+          col(arlasTrackLocationLat),
+          col(arlasTrackLocationLon),
+          col(arlasTrackLocationPrecisionValueLat),
+          col(arlasTrackLocationPrecisionValueLon)
+        ))
+      )
+      .withColumn( //track_distance_travelled_m = distance between previous and current point
+        arlasTrackDistanceGpsTravelled,
+        whenPreviousPointExists(callUDF(
+          "getDistanceTravelled",
+          lag(dataModel.latColumn, 1).over(window),
+          lag(dataModel.lonColumn, 1).over(window),
+          col(dataModel.latColumn),
+          col(dataModel.lonColumn)
+        ))
+      )
+      .withColumn( // track_distance_straigth_line_m = track_distance_travelled_m
+        arlasTrackDistanceGpsStraigthLine,
+        whenPreviousPointExists(col(arlasTrackDistanceGpsTravelled))
+      )
+      .withColumn( // track_distance_straigthness = 1
+                  arlasTrackDistanceGpsStraigthness,
+                  whenPreviousPointExists(lit(1.0)))
+      .withColumn( // track_dynamics_gps_speed_kmh = track_distance_travelled_m / arlas_track_duration_s / 1000 * 3600
+        arlasTrackDynamicsGpsSpeedKmh,
         whenPreviousPointExists(
-          callUDF("getCentroidLon",
-                  lag(dataModel.latColumn, 1).over(window),
-                  lag(dataModel.lonColumn, 1).over(window),
-                  col(dataModel.latColumn),
-                  col(dataModel.lonColumn)))
+          (col(arlasTrackDistanceGpsTravelled) / col(arlasTrackDuration)) / lit(1000) * lit(3600))
+      )
+      .withColumn( // track_dynamics_gps_bearing = getGPSBearing previous_point current_point
+        arlasTrackDynamicsGpsBearing,
+        whenPreviousPointExists(
+          callUDF(
+            "getGPSBearing",
+            lag(dataModel.latColumn, 1).over(window),
+            lag(dataModel.lonColumn, 1).over(window),
+            col(dataModel.latColumn),
+            col(dataModel.lonColumn)
+          ))
       )
 
     // Averaged track columns addition
@@ -149,14 +159,32 @@ class FlowFragmentMapper(dataModel: DataModel,
       {
         dataframe.withColumn(
           arlasTrackPrefix + columnName,
-          whenPreviousPointExists(
-            (lag(columnName, 1).over(window).cast(DoubleType) + col(columnName)
-              .cast(DoubleType)) / lit(2).cast(DoubleType))
+          whenPreviousPointExists(mean(columnName).over(window.rowsBetween(-1, 0)))
         )
       }
     }
 
     trackDFWithAveragedColumns.filter(col(arlasTrackId).isNotNull) // remove first points that are not considered as fragment
+  }
+
+  private def registerUDF() = {
+
+    spark.udf.register("getTrail", GeoTool.getTrailBetween _)
+    spark.udf.register("getDistanceTravelled", GeoTool.getDistanceBetween _)
+    spark.udf.register("getGPSBearing", GeoTool.getBearingBetween _)
+
+    def getStandardDeviationEllipsis(latCenter: Double,
+                                     lonCenter: Double,
+                                     latStd: Double,
+                                     lonStd: Double) = {
+      GeoTool.getStandardDeviationEllipsis(latCenter,
+                                           lonCenter,
+                                           latStd,
+                                           lonStd,
+                                           standardDeviationEllipsisNbPoints)
+    }
+    spark.udf.register("getStandardDeviationEllipsis", getStandardDeviationEllipsis _)
+
   }
 
   override def transformSchema(schema: StructType): StructType = {
@@ -166,10 +194,18 @@ class FlowFragmentMapper(dataModel: DataModel,
       .add(StructField(arlasTrackTrail, StringType, true))
       .add(StructField(arlasTrackDuration, LongType, true))
       .add(StructField(arlasTrackTimestampStart, LongType, true))
-      .add(StructField(arlasTrackTimestampEnd, LongType, false))
+      .add(StructField(arlasTrackTimestampEnd, LongType, true))
       .add(StructField(arlasTrackTimestampCenter, LongType, true))
       .add(StructField(arlasTrackLocationLat, DoubleType, true))
       .add(StructField(arlasTrackLocationLon, DoubleType, true))
+      .add(StructField(arlasTrackLocationPrecisionValueLon, DoubleType, true))
+      .add(StructField(arlasTrackLocationPrecisionValueLat, DoubleType, true))
+      .add(StructField(arlasTrackLocationPrecisionGeometry, StringType, true))
+      .add(StructField(arlasTrackDistanceGpsTravelled, DoubleType, true))
+      .add(StructField(arlasTrackDistanceGpsStraigthLine, DoubleType, true))
+      .add(StructField(arlasTrackDistanceGpsStraigthness, DoubleType, true))
+      .add(StructField(arlasTrackDynamicsGpsSpeedKmh, DoubleType, true))
+      .add(StructField(arlasTrackDynamicsGpsBearing, DoubleType, true))
     averageColumns.foldLeft(s) { (currentSchema, columnName) =>
       {
         currentSchema.add(StructField(arlasTrackPrefix + columnName, DoubleType, true))

@@ -74,8 +74,6 @@ trait BasicApp[R <: RunOptions] {
 
   def main(args: Array[String]): Unit = {
 
-    val (sourcePath, targetPath, startStr, stopStr) =
-      (args(0), args(1), args(2), args(3))
     if (args.length == 0) println(usage)
     val arglist = args.toList
     val options = getArgs(Map(), arglist)

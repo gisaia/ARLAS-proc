@@ -21,6 +21,7 @@ package io.arlas.data.sql
 
 import io.arlas.data.model.DataModel
 import io.arlas.data.transform.ArlasTransformerColumns._
+import io.arlas.data.transform.DataFrameException
 import io.arlas.data.utils.CassandraTool
 import org.apache.spark.sql.functions.{col, concat, lit, struct}
 import org.apache.spark.sql.{Column, DataFrame, SaveMode, SparkSession}
@@ -31,6 +32,37 @@ class WritableDataFrame(df: DataFrame) extends TransformableDataFrame(df) with C
   val PARQUET_BLOCK_SIZE: Int = 256 * 1024 * 1024
   val arlasElasticsearchIdColumn = "arlas_es_id"
 
+  def withColumnsNested(s: Map[String, ColumnGroup]): DataFrame = {
+
+    //first, check no column exists with expected structures names
+    s.keys
+      .filter(df.columns.contains(_))
+      .foreach(
+        d =>
+          throw new DataFrameException(
+            s"ColumnGroup ${d} cannot be created because a column already exists with this" +
+              s" name"))
+
+    //recursively create a column or a structure
+    def recursiveStructure(s: ColumnGroupingElement): Column = {
+      s match {
+        case ImplicitColumnName(v) => col(v)
+        case ImplicitColumnObj(c)  => c
+        case v: ColumnGroup => {
+          struct(v.elements.map(m => recursiveStructure(m._2).as(m._1)).toSeq: _*)
+        }
+        case _ => lit(null)
+      }
+    }
+
+    s.flatMap {
+        case (c: String, v: ColumnGroup) => Seq((c, recursiveStructure(v)))
+      }
+      .foldLeft(df) { (accDF, c) =>
+        accDF.withColumn(c._1, c._2)
+      }
+  }
+
   def writeToParquet(spark: SparkSession, target: String): Unit = {
     df.repartition(col(arlasPartitionColumn))
       .write
@@ -39,17 +71,6 @@ class WritableDataFrame(df: DataFrame) extends TransformableDataFrame(df) with C
       .mode(SaveMode.Append)
       .partitionBy(arlasPartitionColumn)
       .parquet(target)
-  }
-
-  /**
-    * Move multiple columns in a struct.
-    * @param structureName final name of the structure
-    * @param cols Map whose * key is the source column name * value is the column name within the structure
-    * @return
-    */
-  def groupColumnsInStructure(structureName: String, cols: Map[String, String]): DataFrame = {
-    df.withColumn(structureName, struct(cols.map(c => col(c._1).as(c._2)).toSeq: _*))
-      .drop(cols.map(_._1).toSeq: _*)
   }
 
   def asArlasEsData(dataModel: DataModel): DataFrame = {
@@ -100,4 +121,5 @@ class WritableDataFrame(df: DataFrame) extends TransformableDataFrame(df) with C
       .mode(SaveMode.Append)
       .save()
   }
+
 }

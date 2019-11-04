@@ -24,12 +24,13 @@ import io.arlas.data.sql._
 import io.arlas.data.transform.timeseries.WithStateIdFromState
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types.{IntegerType, StringType}
-
+import io.arlas.data.transform.ArlasTestHelper._
 import scala.collection.immutable.ListMap
 
 class WithStateIdFromStateTest extends ArlasTest {
 
   val testDF = createDataFrameWithTypes(
+    spark,
     List(
       Seq("id1", 1, "new", "id1#1"),
       Seq("id1", 2, "new", "id1#2"),

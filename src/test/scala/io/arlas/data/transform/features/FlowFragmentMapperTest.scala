@@ -17,79 +17,25 @@
  * under the License.
  */
 
-package io.arlas.data.transform.features
+package io.arlas.data.transform.timeseries
 
 import io.arlas.data.sql._
 import io.arlas.data.transform.ArlasTest
-import io.arlas.data.transform.ArlasTransformerColumns._
-import org.apache.spark.sql.types._
-import org.apache.spark.sql.{DataFrame, Row}
-import org.locationtech.jts.geom.{Coordinate, GeometryFactory}
-import org.locationtech.jts.io.WKTWriter
+import org.apache.spark.sql.DataFrame
 
 class FlowFragmentMapperTest extends ArlasTest {
 
-  val averagedColumn = "speed"
-
-  val expectedSchema = arlasTestDF.schema
-    .add(StructField(arlasTrackId, StringType, true))
-    .add(StructField(arlasTrackNbGeopoints, IntegerType, true))
-    .add(StructField(arlasTrackTrail, StringType, true))
-    .add(StructField(arlasTrackDuration, LongType, true))
-    .add(StructField(arlasTrackTimestampStart, LongType, true))
-    .add(StructField(arlasTrackTimestampEnd, LongType, false))
-    .add(StructField(arlasTrackTimestampCenter, LongType, true))
-    .add(StructField(arlasTrackLocationLat, DoubleType, true))
-    .add(StructField(arlasTrackLocationLon, DoubleType, true))
-    .add(StructField(arlasTrackPrefix + averagedColumn, DoubleType, true))
-
-  val expectedData = arlasTestDF
-    .collect()
-    .groupBy(_.getAs[String](dataModel.idColumn))
-    .flatMap {
-      case (id, rows) => {
-        rows
-          .sliding(2)
-          .map(window => {
-            val start = new Coordinate(window(0).getAs[Double](dataModel.lonColumn),
-                                       window(0).getAs[Double](dataModel.latColumn))
-            val end = new Coordinate(window(1).getAs[Double](dataModel.lonColumn),
-                                     window(1).getAs[Double](dataModel.latColumn))
-            val trail =
-              if (start.equals2D(end)) new GeometryFactory().createPoint(start)
-              else new GeometryFactory().createLineString(Array(start, end))
-
-            Row.fromSeq(window(1).toSeq ++ Array[Any](
-              s"""${id}#${window(0).getAs[Long](arlasTimestampColumn)}_${window(1).getAs[Long](
-                arlasTimestampColumn)}""",
-              2,
-              new WKTWriter().write(trail),
-              window(1).getAs[Long](arlasTimestampColumn) - window(0).getAs[Long](
-                arlasTimestampColumn),
-              window(0).getAs[Long](arlasTimestampColumn),
-              window(1).getAs[Long](arlasTimestampColumn),
-              (window(0).getAs[Long](arlasTimestampColumn) + window(1).getAs[Long](
-                arlasTimestampColumn)) / 2,
-              trail.getCentroid.getCoordinate.y,
-              trail.getCentroid.getCoordinate.x,
-              (window(0).getAs[Double](averagedColumn) + window(1)
-                .getAs[Double](averagedColumn)) / 2.0
-            ))
-          })
-      }
-    }
-    .toSeq
-
-  val expectedDF = spark.createDataFrame(
-    spark.sparkContext.parallelize(expectedData),
-    expectedSchema
-  )
-
   "FlowFragmentMapper transformation" should "fill the arlas_track* columns against dataframe's timeseries" in {
 
-    val transformedDF: DataFrame = arlasTestDF
+    val expectedDF = flowFragmentTestDF
+
+    val transformedDF: DataFrame = baseTestDF
       .enrichWithArlas(
-        new FlowFragmentMapper(dataModel, spark, dataModel.idColumn, List(averagedColumn)))
+        new FlowFragmentMapper(dataModel,
+                               spark,
+                               dataModel.idColumn,
+                               averagedColumns,
+                               standardDeviationEllipsisNbPoints))
 
     assertDataFrameEquality(transformedDF, expectedDF)
   }

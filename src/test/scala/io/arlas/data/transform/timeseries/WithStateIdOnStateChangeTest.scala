@@ -24,10 +24,12 @@ import io.arlas.data.transform.ArlasTransformerColumns._
 import io.arlas.data.sql._
 import org.apache.spark.sql.types.{LongType, StringType}
 import scala.collection.immutable.ListMap
+import io.arlas.data.transform.ArlasTestHelper._
 
 class WithStateIdOnStateChangeTest extends ArlasTest {
 
   val testDF = createDataFrameWithTypes(
+    spark,
     List(
       Seq("id1", 0l, "state1", "id1#0"),
       Seq("id1", 30l, "state3", "id1#30"),

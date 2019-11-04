@@ -20,7 +20,9 @@
 package io.arlas.data
 
 import org.apache.spark.sql.DataFrame
+import org.apache.spark.sql.catalyst.expressions.GenericRowWithSchema
 import org.apache.spark.sql.functions._
+import org.apache.spark.sql.types.StructField
 
 trait DataFrameTester {
 
@@ -42,7 +44,7 @@ trait DataFrameTester {
 
     if (!aElements.sameElements(eElements)) {
       throw DataFrameMismatchException(
-        contentMismatchMessage(aElements, eElements)
+        contentMismatchMessage(aElements, eElements, a.schema.fields)
       )
     }
   }
@@ -54,7 +56,9 @@ trait DataFrameTester {
       .select(cols: _*) //sort columns for a consistent schema
   }
 
-  private def contentMismatchMessage[Row](a: Array[Row], e: Array[Row]): String = {
+  private def contentMismatchMessage[Row](a: Array[Row],
+                                          e: Array[Row],
+                                          fields: Array[StructField]): String = {
     "DataFrame content mismatch [ actual rows | expected rows ]\n" + a
       .zip(e)
       .map {
@@ -65,7 +69,17 @@ trait DataFrameTester {
             s"# [ $r1 | $r2 ]"
           }
       }
-      .mkString("\n")
+      .mkString("\n") + s"\n\nTo be pasted into a CSV parser for debug\n'result',${fields.map(_.name).mkString("','")}' \n" + a
+      .zip(e)
+      .map {
+        case (r1: GenericRowWithSchema, r2: GenericRowWithSchema) =>
+          if (r1.equals(r2)) {
+            s"'','${r1.mkString("','")}' \n '=','${r2.mkString("','")}'\n"
+          } else {
+            s"'','${r1.mkString("','")}' \n '#','${r2.mkString("','")}'\n"
+          }
+      }
+      .mkString("\n") + """  """
   }
 
   private def schemeMismatchMessage(actualDF: DataFrame, expectedDF: DataFrame) = {
