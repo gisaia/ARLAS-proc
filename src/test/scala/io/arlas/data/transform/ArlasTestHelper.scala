@@ -32,4 +32,6 @@ object ArlasTestHelper {
 
   def stdDev[T: Numeric](xs: Iterable[T]): Double = math.sqrt(variance(xs))
 
+  def scaleDouble(double: Double, scale: Int) =
+    BigDecimal(double).setScale(scale, BigDecimal.RoundingMode.HALF_UP).toDouble
 }

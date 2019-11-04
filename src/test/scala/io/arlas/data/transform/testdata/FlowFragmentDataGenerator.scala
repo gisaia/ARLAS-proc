@@ -9,6 +9,7 @@ import org.geotools.referencing.GeodeticCalculator
 import org.geotools.referencing.datum.DefaultEllipsoid
 import org.locationtech.jts.geom.{Coordinate, GeometryFactory}
 import org.locationtech.jts.io.WKTWriter
+import io.arlas.data.transform.ArlasTestHelper._
 
 class FlowFragmentDataGenerator(
     spark: SparkSession,
@@ -47,8 +48,10 @@ class FlowFragmentDataGenerator(
               val prevTimestamp = window(0).getAs[Long](arlasTimestampColumn)
               val curTimestamp = window(1).getAs[Long](arlasTimestampColumn)
 
-              val latMean = mean(Seq(prevLat, curLat))
-              val lonMean = mean(Seq(prevLon, curLon))
+              val latMean =
+                scaleDouble(mean(Seq(prevLat, curLat)), GeoTool.coordinatesDecimalPrecision)
+              val lonMean =
+                scaleDouble(mean(Seq(prevLon, curLon)), GeoTool.coordinatesDecimalPrecision)
               val latStd = stdDev(Seq(prevLat, curLat))
               val lonStd = stdDev(Seq(prevLon, curLon))
 
