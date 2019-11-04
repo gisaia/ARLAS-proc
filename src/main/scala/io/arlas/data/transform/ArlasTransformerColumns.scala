@@ -64,6 +64,7 @@ object ArlasTransformerColumns {
   val arlasTrackDynamicsGpsBearing = arlasTrackPrefix + "dynamics_gps_bearing"
   val arlasTrackDistanceSensorTravelled = arlasTrackPrefix + "distance_sensor_travelled_m"
   val arlasTrackTempoEmissionIsMulti = arlasTrackPrefix + "tempo_emission_is_multi"
+
   val arlasTrackAddressPrefix = arlasTrackPrefix + "address_"
   val arlasTrackAddressState = arlasTrackAddressPrefix + WithGeoData.statePostfix
   val arlasTrackAddressPostcode = arlasTrackAddressPrefix + WithGeoData.postcodePostfix
@@ -71,6 +72,11 @@ object ArlasTransformerColumns {
   val arlasTrackAddressCountry = arlasTrackAddressPrefix + WithGeoData.countryPostfix
   val arlasTrackAddressCountryCode = arlasTrackAddressPrefix + WithGeoData.countryCodePostfix
   val arlasTrackAddressCity = arlasTrackAddressPrefix + WithGeoData.cityPostfix
+
+  val arlasTrackRoutingPrefix = arlasTrackPrefix + "routing_"
+  val arlasTrackRoutingTrailRefined = arlasTrackRoutingPrefix + "trail_refined"
+  val arlasTrackRoutingDistance = arlasTrackRoutingPrefix + "distance"
+  val arlasTrackRoutingDuration = arlasTrackRoutingPrefix + "duration"
 
 }
 

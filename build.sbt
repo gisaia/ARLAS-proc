@@ -43,6 +43,9 @@ lazy val arlasProc = (project in file("."))
 
     )
 
+//ensures a single instance of wiremock at a time, during tests
+Test / parallelExecution := false
+
 //publish to external repo
 ThisBuild / publishTo := { Some("Cloudsmith API" at "https://maven.cloudsmith.io/gisaia/private/") }
 ThisBuild / pomIncludeRepository := { x => false }
