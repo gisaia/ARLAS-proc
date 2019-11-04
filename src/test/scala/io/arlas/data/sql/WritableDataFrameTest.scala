@@ -47,7 +47,7 @@ class WritableDataFrameTest extends ArlasTest {
     val transformedDF =
       testDF.withColumnsNested(
         Map("cast" ->
-          ColumnGroup("casted_speed" -> castedSpeed, "speed_city" -> speedCityColumn)))
+          ColumnGroup("speed_city" -> speedCityColumn, "casted_speed" -> castedSpeed)))
 
     assertDataFrameEquality(transformedDF, expectedDF)
   }

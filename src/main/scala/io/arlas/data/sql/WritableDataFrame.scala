@@ -48,8 +48,9 @@ class WritableDataFrame(df: DataFrame) extends TransformableDataFrame(df) with C
       s match {
         case ImplicitColumnName(v) => col(v)
         case ImplicitColumnObj(c)  => c
-        case v: ColumnGroup =>
-          struct(v.map(m => recursiveStructure(m._2).as(m._1)).toSeq: _*)
+        case v: ColumnGroup => {
+          struct(v.elements.map(m => recursiveStructure(m._2).as(m._1)).toSeq: _*)
+        }
         case _ => lit(null)
       }
     }
