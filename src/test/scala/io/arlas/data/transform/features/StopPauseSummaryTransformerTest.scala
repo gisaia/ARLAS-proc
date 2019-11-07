@@ -8,6 +8,7 @@ class StopPauseSummaryTransformerTest extends ArlasTest {
   val transformedDF = getStopPauseSummaryBaseDF
     .enrichWithArlas(
       new StopPauseSummaryTransformer(
+        spark,
         dataModel,
         standardDeviationEllipsisNbPoints,
         tempoSalvo,

@@ -97,9 +97,9 @@ class FragmentSummaryDataGenerator(
       scaleDouble(stdDev(getWindowDoubles(arlasTrackLocationLon)),
                   GeoTool.LOCATION_PRECISION_DIGITS)
     val locationLat =
-      scaleDouble(mean(getWindowDoubles(arlasTrackLocationLat)), GeoTool.locationDigits)
+      scaleDouble(mean(getWindowDoubles(arlasTrackLocationLat)), GeoTool.LOCATION_DIGITS)
     val locationLon =
-      scaleDouble(mean(getWindowDoubles(arlasTrackLocationLon)), GeoTool.locationDigits)
+      scaleDouble(mean(getWindowDoubles(arlasTrackLocationLon)), GeoTool.LOCATION_DIGITS)
     val distanceSensorTravelled =
       getWindowDoubles(arlasTrackDistanceSensorTravelled).sum
 

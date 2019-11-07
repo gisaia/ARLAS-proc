@@ -28,7 +28,7 @@ import io.arlas.data.transform.tools.DataFrameFormatter
 import org.apache.spark.ml.Pipeline
 import org.apache.spark.sql.functions.{col, date_format, lit, struct, to_date}
 import org.apache.spark.sql.types.{DataType, IntegerType, StringType}
-import org.apache.spark.sql.DataFrame
+import org.apache.spark.sql.{DataFrame, SparkSession}
 
 class TransformableDataFrame(df: DataFrame) {
 
@@ -41,24 +41,24 @@ class TransformableDataFrame(df: DataFrame) {
                               "yyyyMMdd").cast(IntegerType))
   }
 
-  def asArlasCourseExtracted(dataModel: DataModel,
+  def asArlasCourseExtracted(spark: SparkSession,
+                             dataModel: DataModel,
                              standardDeviationEllipsisNbPoint: Int,
                              salvoTempo: String,
                              irregularTempo: String,
                              tempoProportionColumns: Map[String, String],
-                             weightAveragedColumns: Seq[String],
-                             propagatedColumns: Seq[String]): DataFrame = {
+                             weightAveragedColumns: Seq[String]): DataFrame = {
 
     val tmpStopPauseGetAddressColumn = "tmp_stoppause_get_address"
 
     df.enrichWithArlas(
-        new StopPauseSummaryTransformer(dataModel,
+        new StopPauseSummaryTransformer(spark,
+                                        dataModel,
                                         standardDeviationEllipsisNbPoint,
                                         salvoTempo,
                                         irregularTempo,
                                         tempoProportionColumns,
-                                        weightAveragedColumns,
-                                        propagatedColumns)
+                                        weightAveragedColumns)
       )
       .withColumn(tmpStopPauseGetAddressColumn,
                   when(col(arlasCourseOrStopColumn).equalTo(lit(ArlasCourseOrStop.STOP)),
