@@ -73,6 +73,7 @@ class WithGeoData(latColumn: String,
     }
     getGeoDataTry.toOption
   }
+
   val getGeoDataUDF = udf(getGeoData _)
 
   def whenConditionOtherwise(expr: Column, otherwise: Column = lit(null)) =
@@ -91,8 +92,11 @@ class WithGeoData(latColumn: String,
         }
 
     withAddressDF
-      .withColumn(tmpAddressColumn,
-                  whenConditionOtherwise(getGeoDataUDF(col(latColumn), col(lonColumn))))
+      .withColumn(
+        tmpAddressColumn,
+        //`explode(array(anUDF))` ensures that UDF is executed only once (see https://issues.apache.org/jira/browse/SPARK-17728)
+        explode(array(whenConditionOtherwise(getGeoDataUDF(col(latColumn), col(lonColumn)))))
+      )
       .withColumn(cityColumn,
                   whenConditionOtherwise(col(tmpAddressColumn + "." + tmpCityColumn),
                                          col(cityColumn)))
