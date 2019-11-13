@@ -1,13 +1,13 @@
 package io.arlas.data.transform.features
 
-import io.arlas.data.transform.ArlasTest
+import io.arlas.data.transform.{ArlasMockServer, ArlasTest}
 import org.apache.spark.sql.types.{DoubleType, StringType}
 import io.arlas.data.sql._
 import org.apache.spark.sql.functions._
 import scala.collection.immutable.ListMap
 import io.arlas.data.transform.ArlasTestHelper._
 
-class WithGeoDataTest extends ArlasTest {
+class WithGeoDataTest extends ArlasTest with ArlasMockServer {
 
   val testSchemaFields = ListMap(
     "id" -> (StringType, true),
@@ -43,7 +43,7 @@ class WithGeoDataTest extends ArlasTest {
             "France",
             "fr",
             "12320"),
-        Seq("id3", 41.270568, 6.6701225, null, null, null, null, null, null)
+        Seq("id3", 41.270568, 6.670123, null, null, null, null, null, null)
       ),
       testSchemaFields
     )
