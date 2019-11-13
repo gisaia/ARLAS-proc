@@ -3,11 +3,13 @@ package io.arlas.data.transform.features
 import com.fasterxml.jackson.annotation.{JsonIgnoreProperties, JsonProperty}
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
+import io.arlas.data.app.ArlasProcConfig
 import io.arlas.data.transform.ArlasTransformer
 import org.apache.spark.sql.{Column, DataFrame, Dataset}
 import org.apache.spark.sql.functions.{expr, _}
 import org.apache.spark.sql.types.{StringType, StructField, StructType}
 import org.slf4j.LoggerFactory
+
 import scala.util.Try
 
 /**
@@ -51,8 +53,7 @@ class WithGeoData(latColumn: String,
     val getGeoDataTry = Try {
 
       val response = scala.io.Source
-        .fromURL(
-          s"http://nominatim.services.arlas.io/reverse.php?format=json&lat=${lat}&lon=${lon}&zoom=${zoomLevel}")
+        .fromURL(ArlasProcConfig.getGeodataUrl(lat, lon, zoomLevel))
         .mkString
 
       val geoData = MAPPER.readValue(response, classOf[GeoData])

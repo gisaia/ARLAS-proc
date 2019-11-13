@@ -24,7 +24,6 @@ import io.arlas.data.model.MLModelLocal
 import io.arlas.data.transform.ArlasTest
 import io.arlas.data.transform.ArlasTransformerColumns._
 import org.apache.spark.sql.functions._
-import io.arlas.data.transform.ArlasTestHelper._
 
 class HmmProcessorTest extends ArlasTest {
 
