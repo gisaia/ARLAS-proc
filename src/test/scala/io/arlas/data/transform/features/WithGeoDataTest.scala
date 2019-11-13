@@ -9,6 +9,18 @@ import io.arlas.data.transform.ArlasTestHelper._
 
 class WithGeoDataTest extends ArlasTest {
 
+  val testSchemaFields = ListMap(
+    "id" -> (StringType, true),
+    "lat" -> (DoubleType, true),
+    "lon" -> (DoubleType, true),
+    "expected_city" -> (StringType, true),
+    "expected_county" -> (StringType, true),
+    "expected_state" -> (StringType, true),
+    "expected_country" -> (StringType, true),
+    "expected_country_code" -> (StringType, true),
+    "expected_postcode" -> (StringType, true)
+  )
+
   val testDF =
     createDataFrameWithTypes(
       spark,
@@ -33,17 +45,7 @@ class WithGeoDataTest extends ArlasTest {
             "12320"),
         Seq("id3", 41.270568, 6.6701225, null, null, null, null, null, null)
       ),
-      ListMap(
-        "id" -> (StringType, true),
-        "lat" -> (DoubleType, true),
-        "lon" -> (DoubleType, true),
-        "expected_city" -> (StringType, true),
-        "expected_county" -> (StringType, true),
-        "expected_state" -> (StringType, true),
-        "expected_country" -> (StringType, true),
-        "expected_country_code" -> (StringType, true),
-        "expected_postcode" -> (StringType, true)
-      )
+      testSchemaFields
     )
 
   val baseDF = testDF.drop("expected_city",
@@ -173,6 +175,27 @@ class WithGeoDataTest extends ArlasTest {
             "expected_postcode")
       .enrichWithArlas(new WithGeoData("lat", "lon", addressColumnsPrefix, Some("do_get_address")))
       .drop("do_get_address")
+    assertDataFrameEquality(transformedDF, expectedDF)
+  }
+
+  "WithGeoData" should "not stringify 0.000932 to 9.32E^4 and fail with bad coordinates" in {
+
+    val expectedDF = createDataFrameWithTypes(
+      spark,
+      List(
+        Seq("id1", 43.636883, 0.000932, "Tasque", "Mirande", "Occitanie", "France", "fr", "32160")),
+      testSchemaFields
+    )
+
+    val transformedDF = expectedDF
+      .drop("expected_city",
+            "expected_county",
+            "expected_state",
+            "expected_country",
+            "expected_country_code",
+            "expected_postcode")
+      .enrichWithArlas(new WithGeoData("lat", "lon", "expected_"))
+
     assertDataFrameEquality(transformedDF, expectedDF)
   }
 
