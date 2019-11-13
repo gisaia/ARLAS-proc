@@ -94,13 +94,13 @@ class FlowFragmentMapper(dataModel: DataModel,
       )
       .withColumn( // track_location_lat = mean(latitude start, latitude end)
         arlasTrackLocationLat,
-        whenPreviousPointExists(round(mean(dataModel.latColumn).over(window.rowsBetween(-1, 0)),
-                                      GeoTool.coordinatesDecimalPrecision))
+        whenPreviousPointExists(
+          round(mean(dataModel.latColumn).over(window.rowsBetween(-1, 0)), GeoTool.LOCATION_DIGITS))
       )
       .withColumn( // track_location_lon = mean(longitude start, longitude end)
         arlasTrackLocationLon,
-        whenPreviousPointExists(round(mean(dataModel.lonColumn).over(window.rowsBetween(-1, 0)),
-                                      GeoTool.coordinatesDecimalPrecision))
+        whenPreviousPointExists(
+          round(mean(dataModel.lonColumn).over(window.rowsBetween(-1, 0)), GeoTool.LOCATION_DIGITS))
       )
       .withColumn( // track_location_precision_value_lat = standard deviation of latitude
         arlasTrackLocationPrecisionValueLat,
