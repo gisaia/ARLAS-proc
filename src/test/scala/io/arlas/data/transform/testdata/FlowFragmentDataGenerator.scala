@@ -49,9 +49,9 @@ class FlowFragmentDataGenerator(
               val curTimestamp = window(1).getAs[Long](arlasTimestampColumn)
 
               val latMean =
-                scaleDouble(mean(Seq(prevLat, curLat)), GeoTool.coordinatesDecimalPrecision)
+                scaleDouble(mean(Seq(prevLat, curLat)), GeoTool.LOCATION_DIGITS)
               val lonMean =
-                scaleDouble(mean(Seq(prevLon, curLon)), GeoTool.coordinatesDecimalPrecision)
+                scaleDouble(mean(Seq(prevLon, curLon)), GeoTool.LOCATION_DIGITS)
               val latStd = stdDev(Seq(prevLat, curLat))
               val lonStd = stdDev(Seq(prevLon, curLon))
 
