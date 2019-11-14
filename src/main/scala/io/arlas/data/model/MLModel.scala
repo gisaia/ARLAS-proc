@@ -22,6 +22,7 @@ package io.arlas.data.model
 import java.security.InvalidParameterException
 
 import io.arlas.data.app.ArlasProcConfig
+import io.arlas.data.utils.RestTool
 import org.apache.spark.sql.SparkSession
 
 import scala.util.{Failure, Try}
@@ -52,21 +53,18 @@ case class MLModelHosted(spark: SparkSession,
     val cloudsmithRepo = Try(spark.conf.get(CLOUDSMITH_REPO_KEY)).toOption
 
     if (!cloudsmithToken.isDefined) {
-      new Failure(new InvalidParameterException(
+      Failure(new InvalidParameterException(
         s"${CLOUDSMITH_TOKEN_KEY} conf not set, cannot download ML Model ${modelName}:${version}/${project}"))
     } else if (!cloudsmithRepo.isDefined) {
-      new Failure(new InvalidParameterException(
+      Failure(new InvalidParameterException(
         s"${CLOUDSMITH_REPO_KEY} conf not set, cannot download ML Model ${modelName}:${version}/${project}"))
     } else {
-      Try(
-        scala.io.Source
-          .fromURL(
-            ArlasProcConfig.getCloudsmithModelUrl(cloudsmithToken.get,
-                                                  cloudsmithRepo.get,
-                                                  version,
-                                                  project,
-                                                  modelName))
-          .mkString)
+      RestTool.get(
+        ArlasProcConfig.getCloudsmithModelUrl(cloudsmithToken.get,
+                                              cloudsmithRepo.get,
+                                              version,
+                                              project,
+                                              modelName))
     }
 
   }
