@@ -1,0 +1,364 @@
+/*
+ * Licensed to Gisaïa under one or more contributor
+ * license agreements. See the NOTICE.txt file distributed with
+ * this work for additional information regarding copyright
+ * ownership. Gisaïa licenses this file to you under
+ * the Apache License, Version 2.0 (the "License"); you may
+ * not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+package io.arlas.data.transform.features
+
+import io.arlas.data.model.DataModel
+import io.arlas.data.transform.ArlasTransformer
+import io.arlas.data.transform.ArlasTransformerColumns.{arlasTrackTimestampStart, _}
+import io.arlas.data.utils.GeoTool
+import org.apache.spark.sql.catalyst.encoders.RowEncoder
+import org.apache.spark.sql.{Column, DataFrame, Dataset, Row, SparkSession}
+import org.apache.spark.sql.expressions.{Window, WindowSpec}
+import org.apache.spark.sql.functions._
+import org.apache.spark.sql.types._
+
+import scala.collection.immutable.ListMap
+
+/**
+  * This will summarize (i.a. aggregate) some fragments within the input dataframe.
+  * It means that, based on a condition, few rows will be aggregated into single rows
+  * (where other rows not matching the condition will stay the same).
+  * A prerequisite is a that input dataframe must be made of fragments.
+  * The consequence of summarization is that some existing (fragment-related) fields
+  * will be aggregated. For example, for 10 rows aggregated, the duration of the resulting
+  * row will be the sum of the 10 rows.
+  *
+  * The aggregations to apply can be extended in a child class.
+  *
+  * In order to aggregate only some rows, a simple `groupBy` cannot be used because it will aggregate all.
+  * The trick is to:
+  * - mark rows that match the condition ("rows to aggregate")
+  * - for each aggregation, mark the first row
+  * - use a window and summarize (apply all aggregations) on the first row
+  * - finally delete other rows.
+  *
+  * A a consequence, a problem is that not-aggregated fields keep their originating value, which is not reliable.
+  * Our solution is to set null to every columns, except columns that are aggregated + columns from the
+  * so-called "propagated columns"
+  *
+  * Another consequence is that we may aggregate a field into the first row, which is then used in another aggregation.
+  * (eg. if we aggregate the duration then use it for another aggregation, the value is unexpected). Our solution is
+  * to order the aggregations (with an integer).
+  *
+  * @param dataModel the input Datamodel
+  * @param standardDeviationEllipsisNbPoint number of points to compute the standard deviation ellipses
+  * @param salvoTempo value of the salvo tempo (i.a. close enough in time to be considered as "data burst")
+  * @param irregularTempo value of the irregular tempo (i.a. greater than defined tempos, so there were probably pauses)
+  * @param tempoProportionColumns Map of (tempo proportion column -> related tempo column)
+  * @param weightAveragedColumns columns to weight average over track duration, in aggregations
+  */
+abstract class FragmentSummaryTransformer(spark: SparkSession,
+                                          dataModel: DataModel,
+                                          standardDeviationEllipsisNbPoint: Int,
+                                          salvoTempo: String,
+                                          irregularTempo: String,
+                                          tempoProportionColumns: Map[String, String],
+                                          weightAveragedColumns: Seq[String])
+    extends ArlasTransformer(
+      Vector(
+        arlasTimestampColumn,
+        arlasTrackTimestampStart,
+        arlasTrackTimestampEnd,
+        arlasTrackDuration,
+        arlasTrackDynamicsGpsSpeedKmh,
+        arlasTrackDynamicsGpsBearing,
+        arlasTrackTrail,
+        arlasTrackDistanceGpsTravelled,
+        arlasTrackNbGeopoints,
+        arlasTrackLocationLat,
+        arlasTrackLocationLon,
+        arlasTrackDistanceSensorTravelled
+      ) ++ weightAveragedColumns ++ tempoProportionColumns.keys) {
+
+  val tmpAggRowOrder = "tmp_agg_row_order"
+
+  /**
+    * Return the column on which is done the `group by`
+    * @return
+    */
+  def getAggregationColumn(): String
+
+  /**
+    * Apply aggregation only on given rows that match this method returned value
+    * @return
+    */
+  def getAggregateCondition(): Column
+
+  /**
+    * To be overriden by child class to add columns to propagate
+    * Columns added in `afterAggregations` and `getAggregateCondition` should be declared here
+    * @return
+    */
+  def getPropagatedColumns(): Seq[String] = Seq()
+
+  /**
+    * To be overriden by child classes to add aggregations
+    * @param window
+    * @return a ListMap (target field -> aggregated value of the target field)
+    */
+  def getAggregations(window: WindowSpec): ListMap[String, Column] = ListMap()
+
+  /**
+    * To be overriden by child classes to add some processing after the aggregation
+    * @param df
+    * @return
+    */
+  def afterAggregations(df: DataFrame): DataFrame = df
+
+  /**
+    * To be overriden by child class to add some processing after the transformation
+    * (i.a. when aggregation is done)
+    * @param df
+    * @return
+    */
+  def afterTransform(df: DataFrame): DataFrame = df
+
+  /**
+    * Get the aggregations that are specific to fragment summarization
+    * @param window
+    * @return a ListMap (target field -> aggregated value of the target field)
+    */
+  private def getFragmentSummaryAggregations(window: WindowSpec): ListMap[String, Column] =
+    ListMap(
+      arlasTrackDistanceGpsStraigthLine -> getStraightLineDistanceUDF(
+        first(arlasTrackTrail).over(window),
+        last(arlasTrackTrail).over(window)),
+      arlasTrackDistanceGpsTravelled -> sum(arlasTrackDistanceGpsTravelled).over(window),
+      arlasTrackDistanceGpsStraigthness -> col(arlasTrackDistanceGpsStraigthLine) / col(
+        arlasTrackDistanceGpsTravelled),
+      arlasTrackNbGeopoints -> (sum(arlasTrackNbGeopoints).over(window) - count(lit(1))
+        .over(window) + lit(1)).cast(IntegerType),
+      arlasTrackTimestampStart -> min(arlasTrackTimestampStart).over(window),
+      arlasTimestampColumn -> col(arlasTrackTimestampStart),
+      arlasTrackTimestampEnd -> (max(arlasTrackTimestampEnd).over(window)).cast(LongType),
+      arlasTrackDuration -> sum(arlasTrackDuration).over(window),
+      arlasTrackLocationPrecisionValueLat -> round(stddev_pop(arlasTrackLocationLat).over(window),
+                                                   GeoTool.LOCATION_PRECISION_DIGITS),
+      arlasTrackLocationPrecisionValueLon -> round(stddev_pop(arlasTrackLocationLon).over(window),
+                                                   GeoTool.LOCATION_PRECISION_DIGITS),
+      arlasTrackLocationLat -> round(mean(arlasTrackLocationLat).over(window),
+                                     GeoTool.LOCATION_DIGITS),
+      arlasTrackLocationLon -> round(mean(arlasTrackLocationLon).over(window),
+                                     GeoTool.LOCATION_DIGITS),
+      arlasTrackDistanceSensorTravelled -> sum(arlasTrackDistanceSensorTravelled).over(window),
+      arlasTrackTimestampCenter -> ((col(arlasTrackTimestampStart) + col(arlasTrackTimestampEnd)) / 2)
+        .cast(LongType),
+      arlasTrackId -> concat(col(dataModel.idColumn),
+                             lit("#"),
+                             col(arlasTrackTimestampStart),
+                             lit("_"),
+                             col(arlasTrackTimestampEnd)),
+      arlasTrackLocationPrecisionGeometry -> getStandardDeviationEllipsis(
+        col(arlasTrackLocationLat),
+        col(arlasTrackLocationLon),
+        col(arlasTrackLocationPrecisionValueLat),
+        col(arlasTrackLocationPrecisionValueLon)),
+      arlasTrackTempoEmissionIsMulti ->
+        when(getNbTemposWithSignificantProportions(
+               tempoProportionColumns.filter(_._2 != irregularTempo).keys.toSeq,
+               lit(0))
+               .gt(1),
+             lit(true))
+          .otherwise(lit(false)),
+      arlasTempoColumn -> getMainTempo(tempoProportionColumns)
+    )
+
+  override def transformSchema(schema: StructType): StructType = {
+    checkRequiredColumns(
+      schema,
+      Vector(getAggregationColumn()) ++ getPropagatedColumns() ++ tempoProportionColumns.keys)
+
+    Seq(
+      (arlasTrackDistanceGpsStraigthLine, DoubleType),
+      (arlasTrackDistanceGpsStraigthness, DoubleType),
+      (arlasTrackLocationPrecisionValueLat, DoubleType),
+      (arlasTrackLocationPrecisionValueLon, DoubleType),
+      (arlasTrackId, StringType),
+      (arlasTrackLocationPrecisionGeometry, StringType),
+      (arlasTrackTempoEmissionIsMulti, BooleanType),
+      (arlasTempoColumn, StringType)
+    ).foldLeft(checkSchema(schema)) { (sc, c) =>
+      if (sc.fieldNames.contains(c._1)) sc
+      else sc.add(StructField(c._1, c._2, true))
+    }
+  }
+
+  override final def transform(dataset: Dataset[_]): DataFrame = {
+
+    val orderWindow = Window
+      .partitionBy(getAggregationColumn())
+      .orderBy(arlasTrackTimestampStart)
+
+    val window = Window
+      .partitionBy(getAggregationColumn())
+      .orderBy(tmpAggRowOrder)
+      //exclude the first element, i.a. with row order = 0
+      .rowsBetween(1, Window.unboundedFollowing)
+
+    // `tmpAggRowOrder` is null for non-aggregated rows.
+    // for aggregated rows, it starts from 1 to n.
+    // Later, for each aggregated rows, we will add a row with the results of the aggregations.
+    // We will set its `tmpAggRowOrder` to 0.
+    // Then using a window starting at element 1, we will process the aggregations without considering this additional row.
+    // At the end, only rows whose index is null or 0 will be kept.
+    val baseDF = dataset
+      .withColumn(tmpAggRowOrder, when(getAggregateCondition(), row_number().over(orderWindow)))
+
+    val allColsNullableSchema = baseDF.schema.fields.foldLeft(new StructType()) { (sc, c) =>
+      sc.add(StructField(c.name, c.dataType, true))
+    }
+
+    val aggKeepColumnsIndices =
+      (getPropagatedColumns :+ getAggregationColumn)
+        .map(baseDF.columns.indexOf(_))
+
+    val withAggResultRowDF = baseDF
+      .flatMap((r: Row) => {
+        // Duplicate the first row by keeping only some columns.
+        // This row will be the result of the aggregations.
+        if (r.getAs[Int](tmpAggRowOrder) == 1) {
+
+          val newRowSeq = r.toSeq.zipWithIndex.map {
+            case (a: Any, b: Int) => {
+
+              //in aggregation results rows, row number is 0. So this will be the first row considered by the rowNumberIndex
+              //and it will be excluded from computations as window.rowsBetween starts at 1
+              if (b == r.schema.fieldNames.indexOf(tmpAggRowOrder)) 0
+              else if (aggKeepColumnsIndices.contains(b)) a
+              else null
+            }
+          }
+          Seq(r, Row.fromSeq(newRowSeq))
+        } else Seq(r)
+      })(RowEncoder(allColsNullableSchema))
+
+    //weight average the columns by track_duration
+    val weightAveragedDF = weightAveragedColumns.foldLeft(withAggResultRowDF) { (df, spec) =>
+      df.withColumn(spec,
+                    whenAggregateAndKeep(
+                      (sum(col(spec) * col(arlasTrackDuration)).over(window) / sum(
+                        arlasTrackDuration).over(window)).as(spec)).otherwise(col(spec)))
+    }
+
+    //process tempo proportions columns
+    val tempoProportionsDF = tempoProportionColumns.keys.foldLeft(weightAveragedDF) { (df, spec) =>
+      df.withColumn(
+        spec,
+        whenAggregateAndKeep(
+          sum(col(spec) * col(arlasTrackDuration))
+            .over(window)
+            .divide(sum(arlasTrackDuration).over(window))
+            .as(spec)).otherwise(
+          col(spec)
+        )
+      )
+    }
+
+    val aggregateddDF =
+      (getFragmentSummaryAggregations(window) ++ getAggregations(window))
+        .foldLeft(tempoProportionsDF) { (df, spec) =>
+          df.withColumn(
+            spec._1,
+            whenAggregateAndKeep(spec._2).otherwise(
+              //for non aggregated rows, keep  existing value if exists, or null
+              if (df.columns.contains(spec._1))
+                col(spec._1)
+              //please note that the aggregated column becomes nullable, if it wasn't (so the dataframe schema may change)
+              else lit(null))
+          )
+        }
+
+    val afterAggregationsDF = afterAggregations(aggregateddDF)
+
+    //keep only one row for aggregations
+    val transformedDF = afterAggregationsDF
+      .filter(col(tmpAggRowOrder).isNull.or(col(tmpAggRowOrder).equalTo(lit(0))))
+      .drop(tmpAggRowOrder)
+
+    val afterTransformedDF = afterTransform(transformedDF)
+    //apply the origin schema with new columns, i.a. not with only nullable columns
+    spark.createDataFrame(afterTransformedDF.rdd, transformSchema(dataset.schema))
+  }
+
+  def whenAggregateAndKeep(expr: Column) = {
+    when(col(tmpAggRowOrder).equalTo(lit(0)), expr)
+  }
+
+  val getStandardDeviationEllipsis = udf(
+    (latCenter: Double, lonCenter: Double, latStd: Double, lonStd: Double) => {
+      GeoTool.getStandardDeviationEllipsis(latCenter,
+                                           lonCenter,
+                                           latStd,
+                                           lonStd,
+                                           standardDeviationEllipsisNbPoint)
+    })
+
+  val getStraightLineDistanceUDF = udf((firstTrail: String, lastTrail: String) =>
+    GeoTool.getStraightLineDistanceFromTrails(Array(firstTrail, lastTrail)))
+
+  /**
+    * compare recursively each tempo proportion column to the greatest proportion, to define which proportion is the highest,
+    * @param tempoProportionColumns
+    * @return
+    */
+  def getMainTempo(tempoProportionColumns: Map[String, String]): Column = {
+
+    val regularTempoColumns =
+      tempoProportionColumns.filter(_._2 != irregularTempo).keys.toSeq.map(col(_))
+
+    val greatestTempo =
+      if (regularTempoColumns.size > 1) greatest(regularTempoColumns: _*)
+      else if (regularTempoColumns.size == 1) regularTempoColumns(0)
+      else lit(0.0)
+
+    def recursivelyGetMainTempo(tempoProportionColumns: Map[String, String]): Column = {
+
+      if (tempoProportionColumns.size > 0) {
+        val firstTempo = tempoProportionColumns.head
+        //greatestTempo == 0.0 means only irregular
+        when(greatestTempo.notEqual(0.0).and(greatestTempo.equalTo(col(firstTempo._1))),
+             firstTempo._2)
+          .otherwise(recursivelyGetMainTempo(tempoProportionColumns.tail))
+      } else lit(irregularTempo)
+    }
+
+    recursivelyGetMainTempo(tempoProportionColumns)
+  }
+
+  /**
+    * For each tempo, check if it has a significant proportion
+    * @param tempoProportionsColumns
+    * @param baseValue
+    * @return
+    */
+  def getNbTemposWithSignificantProportions(tempoProportionsColumns: Seq[String],
+                                            baseValue: Column): Column = {
+
+    if (tempoProportionsColumns.size == 0) {
+      baseValue
+    } else {
+      val head = tempoProportionsColumns.head
+      getNbTemposWithSignificantProportions(
+        tempoProportionsColumns.tail,
+        baseValue + when(col(head).gt(lit(0.1)), 1).otherwise(0))
+    }
+  }
+
+}
