@@ -55,7 +55,7 @@ class WithGeoData(latColumn: String,
   val getGeoDataUDF = udf((lat: Double, lon: Double) => {
 
     RestTool
-      .get(ArlasProcConfig.getGeodataUrl(lat, lon, zoomLevel))
+      .getOrFailOnNotAvailable(ArlasProcConfig.getGeodataUrl(lat, lon, zoomLevel))
       .map(response => {
         val geoData = MAPPER.readValue(response, classOf[GeoData])
 

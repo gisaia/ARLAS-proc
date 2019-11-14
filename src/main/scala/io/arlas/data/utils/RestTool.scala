@@ -10,22 +10,17 @@ object RestTool {
 
   /**
     * Try to get a URL content.
-    * In case of error: if target URL cannot be reached, re-throw an exception (this is unexpected).
-    * Otherwise, simply return a Try instance.
     * @param url
     * @param connectTimeout
     * @param readTimeout
     * @param requestMethod
-    * @throws
     * @return
     */
-  @throws[Exception]
   def get(url: String,
           connectTimeout: Int = 60000,
           readTimeout: Int = 60000,
-          requestMethod: String = "GET") = {
-
-    val tryGetContent = Try {
+          requestMethod: String = "GET") =
+    Try {
 
       val connection = (new URL(url)).openConnection.asInstanceOf[HttpURLConnection]
       connection.setConnectTimeout(connectTimeout)
@@ -43,15 +38,33 @@ object RestTool {
       }
     }
 
+  /**
+    * Try to get a URL content.
+    * In case of error: if target URL cannot be reached, re-throw an exception (this is unexpected).
+    * Otherwise, simply return a Try instance.
+    * @param url
+    * @param connectTimeout
+    * @param readTimeout
+    * @param requestMethod
+    * @throws Exception if target URL is not found
+    * @return
+    */
+  @throws[Exception]
+  def getOrFailOnNotAvailable(url: String,
+                              connectTimeout: Int = 60000,
+                              readTimeout: Int = 60000,
+                              requestMethod: String = "GET") = {
+
+    val tryGetContent = get(url, connectTimeout, readTimeout, requestMethod)
+
     if (tryGetContent.isFailure &&
         (tryGetContent.failed.get.isInstanceOf[java.net.SocketTimeoutException]
         || tryGetContent.failed.get.isInstanceOf[UnknownHostException])) {
-      //not good scala, but the most proper way to stop the spark application
+//    not good scala, but the most proper way to stop the spark application
       throw new Exception(s"Cannot read WS at ${url}, stopping!")
     }
 
     tryGetContent
-
   }
 
 }
