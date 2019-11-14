@@ -59,12 +59,10 @@ class HmmProcessor(sourceColumn: String,
     val hmmModelContent = hmmModel.getModelString()
 
     if (!dataset.columns.contains(sourceColumn)) {
-      logger.error(s"Missing required column ${sourceColumn} to compute HMM")
-      dataset.withColumn(resultColumn, lit(UNKNOWN_RESULT))
+      throw new Exception(s"Missing required column ${sourceColumn} to compute HMM")
 
     } else if (hmmModelContent.isFailure) {
-      logger.error(s"HMM model not found: " + hmmModelContent.failed.get.getMessage)
-      dataset.withColumn(resultColumn, lit(UNKNOWN_RESULT))
+      throw new Exception(s"HMM model not found: " + hmmModelContent.failed.get.getMessage)
 
     } else {
       interpolateRows(dataset, hmmModelContent.get)
