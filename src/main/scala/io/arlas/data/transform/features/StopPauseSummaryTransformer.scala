@@ -31,9 +31,10 @@ class StopPauseSummaryTransformer(spark: SparkSession,
   override def getAggregateCondition(): Column =
     col(arlasMovingStateColumn).equalTo(ArlasMovingStates.STILL)
 
-  override def getAggregations(window: WindowSpec): ListMap[String, Column] = ListMap(
-    arlasTrackTrail -> col(arlasTrackLocationPrecisionGeometry)
-  )
+  override def getAggregatedRowsColumns(window: WindowSpec): ListMap[String, Column] =
+    ListMap(
+      arlasTrackTrail -> col(arlasTrackLocationPrecisionGeometry)
+    )
 
   override def getPropagatedColumns(): Seq[String] = {
     Seq(
