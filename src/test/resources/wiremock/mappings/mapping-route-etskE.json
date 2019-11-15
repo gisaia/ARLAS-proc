@@ -1,0 +1,21 @@
+{
+  "id" : "4c94f0f8-1214-3aea-83d9-76e85b5b072d",
+  "request" : {
+    "url" : "/route?point=42.099761,11.782009&point=42.099615,11.781858&point=42.100029,11.782359&vehicle=car&locale=en&calc_points=true&instructions=false&points_encoded=false&type=json",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "bodyFileName" : "body-route-etskE.json",
+    "headers" : {
+      "Date" : "Fri, 15 Nov 2019 11:48:55 GMT",
+      "Access-Control-Allow-Methods" : "GET, POST, HEAD, OPTIONS",
+      "Access-Control-Allow-Headers" : "Origin,Accept,X-Requested-With,Content-Type,Access-Control-Request-Method,Access-Control-Request-Headers",
+      "Access-Control-Allow-Origin" : "*",
+      "X-GH-Took" : "4",
+      "Content-Type" : "application/json",
+      "Vary" : "Accept-Encoding"
+    }
+  },
+  "uuid" : "4c94f0f8-1214-3aea-83d9-76e85b5b072d"
+}

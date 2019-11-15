@@ -10,8 +10,9 @@ trait ArlasMockServer extends BeforeAndAfterEach {
   this: Suite =>
 
   ArlasProcConfig.GEODATA_BASE_PATH = "http://localhost:8080"
+  ArlasProcConfig.REFINE_TRAIL_BASE_PATH = "http://localhost:8080"
 
-  private val wireMockServer = new WireMockServer(
+  private lazy val wireMockServer = new WireMockServer(
     options()
       .port(8080)
       .usingFilesUnderClasspath("wiremock"))

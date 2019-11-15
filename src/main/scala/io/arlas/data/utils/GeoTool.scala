@@ -84,6 +84,28 @@ object GeoTool {
     } else Some(0.0)
   }
 
+  def wktToGeometry(wkt: String) = {
+
+    if (wkt == null || wkt.isEmpty) {
+      Array()
+    } else {
+      val factory = getNewGeometryFactory
+      val reader = new WKTReader(factory)
+      val trailGeometry = reader.read(wkt)
+      trailGeometry.getCoordinates.map(c => (c.y, c.x))
+    }
+  }
+
+  def listOfCoordsToLineString(coords: Array[(Double, Double)]) = {
+    if (coords.isEmpty) {
+      None
+    } else {
+      val geometry =
+        getNewGeometryFactory().createLineString(coords.map(c => new Coordinate(c._1, c._2)))
+      Some(new WKTWriter().write(geometry))
+    }
+  }
+
   private def getTrailGeometryBetween(prevLat: Double,
                                       prevLon: Double,
                                       lat: Double,

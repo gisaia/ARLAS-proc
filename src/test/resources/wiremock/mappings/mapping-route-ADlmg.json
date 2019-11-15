@@ -1,0 +1,19 @@
+{
+  "id" : "dd2408dd-f105-3368-a195-56a4fa1a68bd",
+  "request" : {
+    "url" : "/route?point=11.782009,42.099761&point=11.781858,42.099615&point=11.782359,42.100029&vehicle=car&locale=en&calc_points=true&instructions=false&points_encoded=false&type=json",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 400,
+    "bodyFileName" : "body-route-ADlmg.json",
+    "headers" : {
+      "Date" : "Fri, 15 Nov 2019 11:49:23 GMT",
+      "Access-Control-Allow-Methods" : "GET, POST, HEAD, OPTIONS",
+      "Access-Control-Allow-Headers" : "Origin,Accept,X-Requested-With,Content-Type,Access-Control-Request-Method,Access-Control-Request-Headers",
+      "Access-Control-Allow-Origin" : "*",
+      "Content-Type" : "application/json"
+    }
+  },
+  "uuid" : "dd2408dd-f105-3368-a195-56a4fa1a68bd"
+}

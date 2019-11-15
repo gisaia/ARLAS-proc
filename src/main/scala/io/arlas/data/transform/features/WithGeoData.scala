@@ -1,7 +1,5 @@
 package io.arlas.data.transform.features
 
-import java.net.{SocketTimeoutException, UnknownHostException}
-
 import com.fasterxml.jackson.annotation.{JsonIgnoreProperties, JsonProperty}
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
@@ -11,9 +9,6 @@ import io.arlas.data.utils.RestTool
 import org.apache.spark.sql.{Column, DataFrame, Dataset}
 import org.apache.spark.sql.functions.{expr, _}
 import org.apache.spark.sql.types.{StringType, StructField, StructType}
-import org.slf4j.LoggerFactory
-
-import scala.util.{Failure, Try}
 
 /**
   * Get geo data (address data) from geopoints.
@@ -34,7 +29,6 @@ class WithGeoData(latColumn: String,
                   zoomLevel: Int = 10)
     extends ArlasTransformer(Vector(lonColumn, latColumn)) {
 
-  @transient lazy val logger = LoggerFactory.getLogger(this.getClass)
   @transient lazy val MAPPER = new ObjectMapper().registerModule(DefaultScalaModule)
 
   val tmpCityColumn = "tmp_city"
