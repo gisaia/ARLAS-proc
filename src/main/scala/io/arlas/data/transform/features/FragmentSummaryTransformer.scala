@@ -46,16 +46,12 @@ import scala.collection.immutable.ListMap
   * The trick is to:
   * - mark rows that match the condition ("rows to aggregate")
   * - for each aggregation, mark the first row
-  * - use a window and summarize (apply all aggregations) on the first row
+  * - duplicate its first row (these will be the aggregation result rows)
+  * - use a window excluding this new row, and summarize (apply all aggregations) on it
   * - finally delete other rows.
   *
-  * A a consequence, a problem is that not-aggregated fields keep their originating value, which is not reliable.
-  * Our solution is to set null to every columns, except columns that are aggregated + columns from the
-  * so-called "propagated columns"
-  *
-  * Another consequence is that we may aggregate a field into the first row, which is then used in another aggregation.
-  * (eg. if we aggregate the duration then use it for another aggregation, the value is unexpected). Our solution is
-  * to order the aggregations (with an integer).
+  * A a consequence, a problem with the duplicated row is that not-aggregated fields keep their originating value, which is not reliable.
+  * Our solution is to set null to every columns, except columns that are aggregated + columns from the so-called "propagated columns"
   *
   * @param dataModel the input Datamodel
   * @param standardDeviationEllipsisNbPoint number of points to compute the standard deviation ellipses
@@ -109,18 +105,12 @@ abstract class FragmentSummaryTransformer(spark: SparkSession,
   def getPropagatedColumns(): Seq[String] = Seq()
 
   /**
-    * To be overriden by child classes to add aggregations
+    * To be overriden by child classes to add or replace columns, in aggregation results rows only.
+    * These columns may be computed over a window, or not.
     * @param window
-    * @return a ListMap (target field -> aggregated value of the target field)
+    * @return a ListMap (target field -> related Column instance)
     */
-  def getAggregations(window: WindowSpec): ListMap[String, Column] = ListMap()
-
-  /**
-    * To be overriden by child classes to add some processing after the aggregation
-    * @param df
-    * @return
-    */
-  def afterAggregations(df: DataFrame): DataFrame = df
+  def getAggregatedRowsColumns(window: WindowSpec): ListMap[String, Column] = ListMap()
 
   /**
     * To be overriden by child class to add some processing after the transformation
@@ -131,11 +121,11 @@ abstract class FragmentSummaryTransformer(spark: SparkSession,
   def afterTransform(df: DataFrame): DataFrame = df
 
   /**
-    * Get the aggregations that are specific to fragment summarization
+    * Get the columns that are specific to fragment summarization, to add or remplace in aggregation results only.
     * @param window
-    * @return a ListMap (target field -> aggregated value of the target field)
+    * @return a ListMap (target field -> related Column instance)
     */
-  private def getFragmentSummaryAggregations(window: WindowSpec): ListMap[String, Column] =
+  private def getFragmentAggregatedRowsColumns(window: WindowSpec): ListMap[String, Column] =
     ListMap(
       arlasTrackDistanceGpsStraigthLine -> getStraightLineDistanceUDF(
         first(arlasTrackTrail).over(window),
@@ -235,13 +225,14 @@ abstract class FragmentSummaryTransformer(spark: SparkSession,
         // This row will be the result of the aggregations.
         if (r.getAs[Int](tmpAggRowOrder) == 1) {
 
-          val newRowSeq = r.toSeq.zipWithIndex.map {
-            case (a: Any, b: Int) => {
-
+          val rSeq = r.toSeq
+          val newRowSeq = rSeq.zipWithIndex.map {
+            //pattern matching with _ instead of AnyVal also matches null values
+            case (_, b: Int) => {
               //in aggregation results rows, row number is 0. So this will be the first row considered by the rowNumberIndex
               //and it will be excluded from computations as window.rowsBetween starts at 1
               if (b == r.schema.fieldNames.indexOf(tmpAggRowOrder)) 0
-              else if (aggKeepColumnsIndices.contains(b)) a
+              else if (aggKeepColumnsIndices.contains(b)) rSeq(b)
               else null
             }
           }
@@ -271,13 +262,13 @@ abstract class FragmentSummaryTransformer(spark: SparkSession,
       )
     }
 
-    val aggregateddDF =
-      (getFragmentSummaryAggregations(window) ++ getAggregations(window))
+    val aggregatedDF =
+      (getFragmentAggregatedRowsColumns(window) ++ getAggregatedRowsColumns(window))
         .foldLeft(tempoProportionsDF) { (df, spec) =>
           df.withColumn(
             spec._1,
             whenAggregateAndKeep(spec._2).otherwise(
-              //for non aggregated rows, keep  existing value if exists, or null
+              //for non aggregated rows, keep existing value if it exists, or null
               if (df.columns.contains(spec._1))
                 col(spec._1)
               //please note that the aggregated column becomes nullable, if it wasn't (so the dataframe schema may change)
@@ -285,16 +276,24 @@ abstract class FragmentSummaryTransformer(spark: SparkSession,
           )
         }
 
-    val afterAggregationsDF = afterAggregations(aggregateddDF)
-
-    //keep only one row for aggregations
-    val transformedDF = afterAggregationsDF
+    //keep only one result row for aggregations
+    val transformedDF = aggregatedDF
       .filter(col(tmpAggRowOrder).isNull.or(col(tmpAggRowOrder).equalTo(lit(0))))
       .drop(tmpAggRowOrder)
 
     val afterTransformedDF = afterTransform(transformedDF)
+
     //apply the origin schema with new columns, i.a. not with only nullable columns
-    spark.createDataFrame(afterTransformedDF.rdd, transformSchema(dataset.schema))
+    // First, use the same column order (otherwise we should define the same order in
+    //`transformSchema` as the new added columns, which is restrictive)
+    val transformedSortedSchema =
+      transformSchema(dataset.schema).fields.sortBy(_.name).foldLeft(new StructType()) {
+        case (s, f) => s.add(f)
+      }
+    val originFields = afterTransformedDF.schema.fieldNames.sorted
+
+    spark.createDataFrame(afterTransformedDF.select(originFields.head, originFields.tail: _*).rdd,
+                          transformedSortedSchema)
   }
 
   def whenAggregateAndKeep(expr: Column) = {
