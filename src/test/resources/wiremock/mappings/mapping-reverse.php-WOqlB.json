@@ -1,0 +1,24 @@
+{
+  "id" : "18a04d1b-2bda-30b1-8a5b-1640dde422c5",
+  "request" : {
+    "url" : "/reverse.php?format=json&lat=44.636883&lon=2.373484&zoom=10",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "bodyFileName" : "body-reverse.php-WOqlB.json",
+    "headers" : {
+      "Date" : "Wed, 13 Nov 2019 14:59:29 GMT",
+      "Server" : "Apache/2.4.29 (Ubuntu)",
+      "Access-Control-Allow-Origin" : "*",
+      "Access-Control-Allow-Methods" : "OPTIONS,GET",
+      "Strict-Transport-Security" : "max-age=31536000; includeSubDomains; preload",
+      "Expect-CT" : "max-age=0, report-uri=\"https://openstreetmap.report-uri.com/r/d/ct/reportOnly\"",
+      "Upgrade" : "h2",
+      "Connection" : "Upgrade, close",
+      "Transfer-Encoding" : "chunked",
+      "Content-Type" : "application/json; charset=UTF-8"
+    }
+  },
+  "uuid" : "18a04d1b-2bda-30b1-8a5b-1640dde422c5"
+}

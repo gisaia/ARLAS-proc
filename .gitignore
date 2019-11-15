@@ -11,3 +11,4 @@ target
 *.log
 *.old
 tmp/
+wiremock-standalone*.jar
