@@ -12,7 +12,6 @@ import scala.collection.immutable.ListMap
 class StopPauseSummaryTransformer(spark: SparkSession,
                                   dataModel: DataModel,
                                   standardDeviationEllipsisNbPoint: Int,
-                                  salvoTempo: String,
                                   irregularTempo: String,
                                   tempoPropotionColumns: Map[String, String],
                                   weightAveragedColumns: Seq[String])
@@ -20,7 +19,6 @@ class StopPauseSummaryTransformer(spark: SparkSession,
       spark,
       dataModel,
       standardDeviationEllipsisNbPoint,
-      salvoTempo,
       irregularTempo,
       tempoPropotionColumns,
       weightAveragedColumns

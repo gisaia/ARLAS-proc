@@ -10,7 +10,6 @@ class CourseExtractorTransformerTest extends ArlasTest {
       new CourseExtractorTransformer(spark,
                                      dataModel,
                                      standardDeviationEllipsisNbPoints,
-                                     tempoSalvo,
                                      tempoIrregular,
                                      tempoProportionsColumns,
                                      averagedColumns))
