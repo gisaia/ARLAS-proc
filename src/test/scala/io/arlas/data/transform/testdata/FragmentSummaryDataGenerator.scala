@@ -151,7 +151,7 @@ class FragmentSummaryDataGenerator(
       dataModel.latColumn -> null,
       dataModel.lonColumn -> null,
       speedColumn -> weightAveragedSpeed,
-      arlasTimestampColumn -> timestampStart,
+      arlasTimestampColumn -> timestampCenter,
       arlasTrackId -> trackId,
       arlasTrackNbGeopoints -> nbPoints,
       arlasTrackTrail -> null,

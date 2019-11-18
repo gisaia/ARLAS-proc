@@ -45,8 +45,9 @@ class FlowFragmentDataGenerator(
               val prevLon = window(0).getAs[Double](dataModel.lonColumn)
               val curLat = window(1).getAs[Double](dataModel.latColumn)
               val curLon = window(1).getAs[Double](dataModel.lonColumn)
-              val prevTimestamp = window(0).getAs[Long](arlasTimestampColumn)
-              val curTimestamp = window(1).getAs[Long](arlasTimestampColumn)
+              val timestampStart = window(0).getAs[Long](arlasTimestampColumn)
+              val timestampEnd = window(1).getAs[Long](arlasTimestampColumn)
+              val timestampCenter = (timestampStart + timestampEnd) / 2
 
               val latMean =
                 scaleDouble(mean(Seq(prevLat, curLat)), GeoTool.LOCATION_DIGITS)
@@ -65,7 +66,7 @@ class FlowFragmentDataGenerator(
               geodesicCalculator.setStartingGeographicPoint(prevLon, prevLat)
               geodesicCalculator.setDestinationGeographicPoint(curLon, curLat)
 
-              val duration = curTimestamp - prevTimestamp
+              val duration = timestampEnd - timestampStart
 
               val azimuth = geodesicCalculator.getAzimuth
               val bearing = ((azimuth % 360) + 360) % 360
@@ -74,14 +75,19 @@ class FlowFragmentDataGenerator(
                 (window(0).getAs[Double](averagedColumn) + window(1)
                   .getAs[Double](averagedColumn)) / 2.0)
 
-              Row.fromSeq(window(1).toSeq ++ Array[Any](
-                s"""${id}#${prevTimestamp}_${curTimestamp}""",
+              val rowWithTimestamp = window(1).toSeq.zipWithIndex.map {
+                case (v, i) =>
+                  if (i == window(1).fieldIndex(arlasTimestampColumn)) timestampCenter else v
+              }
+
+              Row.fromSeq(rowWithTimestamp ++ Array[Any](
+                s"""${id}#${timestampStart}_${timestampEnd}""",
                 2,
                 new WKTWriter().write(trail),
                 duration,
-                prevTimestamp,
-                curTimestamp,
-                (prevTimestamp + curTimestamp) / 2,
+                timestampStart,
+                timestampEnd,
+                timestampCenter,
                 latMean,
                 lonMean,
                 latStd,
