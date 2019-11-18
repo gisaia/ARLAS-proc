@@ -3,12 +3,15 @@ package io.arlas.data.utils
 import org.geotools.referencing.GeodeticCalculator
 import org.geotools.referencing.datum.DefaultEllipsoid
 import org.locationtech.jts.geom.{Coordinate, Geometry, GeometryFactory, PrecisionModel}
-import org.locationtech.jts.io.WKTWriter
+import org.locationtech.jts.io.{WKTReader, WKTWriter}
+
 import scala.collection.immutable
 
 object GeoTool {
 
-  val coordinatesDecimalPrecision = 6 //required for coordinates with meter precision
+  val LOCATION_DIGITS = 6 //required for coordinates with meter precision
+  val LOCATION_PRECISION_DIGITS = 12
+  val ELLIPSIS_DEFAULT_STANDARD_DEVIATION = Math.pow(10.0, -4.0)
 
   /**
     * Compute track geometry WKT between 2 geopoints (LineString)
@@ -48,8 +51,8 @@ object GeoTool {
     val deltaTeta = 2 * Math.PI / nbPoints
 
     //avoid an ellipsis with all points at same position
-    val latStdNotNull = if (latStd == 0) 1 else latStd
-    val lonStdNotNull = if (lonStd == 0) 1 else lonStd
+    val latStdNotNull = if (latStd == 0) ELLIPSIS_DEFAULT_STANDARD_DEVIATION else latStd
+    val lonStdNotNull = if (lonStd == 0) ELLIPSIS_DEFAULT_STANDARD_DEVIATION else lonStd
 
     val coords: immutable.Seq[Coordinate] =
       (0 to (nbPoints - 1)).map(i => {
@@ -72,6 +75,37 @@ object GeoTool {
     Some(geodesicCalculator.getOrthodromicDistance)
   }
 
+  def getStraightLineDistanceFromTrails(trails: Array[String]): Option[Double] = {
+    val nonNullTrails = trails.filterNot(_ == null)
+    val reader = new WKTReader()
+    val geometries: Seq[Coordinate] = nonNullTrails.flatMap(reader.read(_).getCoordinates)
+    if (geometries.size > 1) {
+      getDistanceBetween(geometries.head.y, geometries.head.x, geometries.last.y, geometries.last.x)
+    } else Some(0.0)
+  }
+
+  def wktToGeometry(wkt: String) = {
+
+    if (wkt == null || wkt.isEmpty) {
+      Array()
+    } else {
+      val factory = getNewGeometryFactory
+      val reader = new WKTReader(factory)
+      val trailGeometry = reader.read(wkt)
+      trailGeometry.getCoordinates.map(c => (c.y, c.x))
+    }
+  }
+
+  def listOfCoordsToLineString(coords: Array[(Double, Double)]) = {
+    if (coords.isEmpty) {
+      None
+    } else {
+      val geometry =
+        getNewGeometryFactory().createLineString(coords.map(c => new Coordinate(c._1, c._2)))
+      Some(new WKTWriter().write(geometry))
+    }
+  }
+
   private def getTrailGeometryBetween(prevLat: Double,
                                       prevLon: Double,
                                       lat: Double,
@@ -86,6 +120,6 @@ object GeoTool {
   }
 
   private def getNewGeometryFactory() =
-    new GeometryFactory(new PrecisionModel(Math.pow(10, coordinatesDecimalPrecision)), 4326)
+    new GeometryFactory(new PrecisionModel(Math.pow(10, LOCATION_DIGITS)), 4326)
 
 }

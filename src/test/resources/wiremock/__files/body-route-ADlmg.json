@@ -1,0 +1,1 @@
+{"message":"Point 0 is out of bounds: 11.782009,42.099761","hints":[{"message":"Point 0 is out of bounds: 11.782009,42.099761","details":"com.graphhopper.util.exceptions.PointOutOfBoundsException","point_index":0}]}

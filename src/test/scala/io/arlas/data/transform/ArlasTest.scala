@@ -21,21 +21,40 @@ package io.arlas.data.transform
 
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
-import org.apache.spark.sql.functions.{col, udf}
+
+import org.apache.spark.sql.functions._
 import io.arlas.data.model.DataModel
+import io.arlas.data.sql._
 import io.arlas.data.transform.ArlasTransformerColumns._
+import io.arlas.data.transform.features._
+import io.arlas.data.transform.timeseries._
 import io.arlas.data.{DataFrameTester, TestSparkSession}
 import org.apache.spark.sql.types._
 import org.scalatest.{FlatSpec, Matchers}
 import scala.collection.immutable.ListMap
 import ArlasTestHelper._
-import io.arlas.data.transform.testdata.FlowFragmentDataGenerator
+import io.arlas.data.transform.testdata._
 
 trait ArlasTest extends FlatSpec with Matchers with TestSparkSession with DataFrameTester {
 
   val dataModel = DataModel(timeFormat = "dd/MM/yyyy HH:mm:ssXXX")
   val speedColumn = "speed"
   val standardDeviationEllipsisNbPoints = 12
+  val tempo10s = "tempo_10s"
+  val tempo20s = "tempo_20s"
+  val tempoSalvo = "tempo_salvo"
+  val tempoIrregular = "tempo_irregular"
+  val tempoProportion10s = "tempo_proportion_10s"
+  val tempoProportion20s = "tempo_proportion_20s"
+  val tempoProportionSalvo = "tempo_proportion_salvo"
+  val tempoProportionIrregular = "tempo_proportion_irregular"
+  val tempoProportionsColumns = Map(
+    tempoProportion10s -> tempo10s,
+    tempoProportion20s -> tempo20s,
+    tempoProportionSalvo -> tempoSalvo,
+    tempoProportionIrregular -> tempoIrregular
+  )
+
   val averagedColumns = List(speedColumn)
 
   val baseTestDF = {
@@ -134,5 +153,63 @@ trait ArlasTest extends FlatSpec with Matchers with TestSparkSession with DataFr
                                   dataModel,
                                   averagedColumns,
                                   standardDeviationEllipsisNbPoints).get()
+
+  val getStopPauseSummaryBaseDF =
+    flowFragmentTestDF
+      .withColumn(arlasTrackDistanceSensorTravelled, col(arlasTrackDistanceGpsTravelled) + 5)
+      .withColumn(
+        arlasMovingStateColumn,
+        when(col(arlasTrackDistanceGpsStraigthLine).lt(50.0), lit(ArlasMovingStates.STILL))
+          .otherwise(lit(ArlasMovingStates.MOVE))
+      )
+      //make tempo columns nullable with `when(lit(true)`
+      .withColumn(tempoProportion10s,
+                  when(lit(true),
+                       when(col(arlasTrackDuration).between(5, 10), lit(1.0)).otherwise(0.0)))
+      .withColumn(tempoProportion20s,
+                  when(lit(true),
+                       when(col(arlasTrackDuration).between(11, 20), lit(1.0)).otherwise(0.0)))
+      .withColumn(tempoProportionSalvo,
+                  when(lit(true),
+                       when(col(arlasTrackDuration).between(0, 4), lit(1.0)).otherwise(0.0)))
+      .withColumn(tempoProportionIrregular,
+                  when(lit(true), when(col(arlasTrackDuration).geq(21), lit(1.0)).otherwise(0.0)))
+      .withColumn(
+        arlasCourseOrStopColumn,
+        when(lit(true),
+             when(col(arlasTrackDistanceGpsStraigthLine).equalTo(0), lit(ArlasCourseOrStop.STOP))
+               .otherwise(lit(ArlasCourseOrStop.COURSE)))
+      )
+      .withColumn(
+        arlasCourseStateColumn,
+        when(
+          lit(true),
+          when(col(arlasMovingStateColumn).equalTo(lit(ArlasMovingStates.STILL)),
+               lit(ArlasCourseStates.PAUSE))
+            .otherwise(lit(ArlasCourseStates.MOTION))
+        )
+      )
+      .enrichWithArlas(
+        new WithStateIdOnStateChange(dataModel,
+                                     arlasMovingStateColumn,
+                                     arlasTrackTimestampStart,
+                                     arlasMotionIdColumn),
+        new WithDurationFromId(arlasMotionIdColumn, arlasMotionDurationColumn),
+        new WithStateIdOnStateChange(dataModel,
+                                     arlasCourseOrStopColumn,
+                                     arlasTrackTimestampStart,
+                                     arlasCourseIdColumn),
+        new WithDurationFromId(arlasCourseIdColumn, arlasCourseDurationColumn)
+      )
+
+  val stopPauseSummaryDF = new StopPauseSummaryDataGenerator(
+    spark,
+    getStopPauseSummaryBaseDF,
+    dataModel,
+    speedColumn,
+    tempoProportionsColumns,
+    tempoIrregular,
+    standardDeviationEllipsisNbPoints
+  ).get()
 
 }

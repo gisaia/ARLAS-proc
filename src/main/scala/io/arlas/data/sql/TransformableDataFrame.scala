@@ -22,22 +22,54 @@ package io.arlas.data.sql
 import io.arlas.data.model.DataModel
 import io.arlas.data.transform._
 import io.arlas.data.transform.ArlasTransformerColumns._
-import io.arlas.data.transform.features.WithArlasTimestamp
-import io.arlas.data.transform.timeseries.WithStateIdFromState
+import io.arlas.data.transform.features._
+import org.apache.spark.sql.functions._
 import io.arlas.data.transform.tools.DataFrameFormatter
 import org.apache.spark.ml.Pipeline
 import org.apache.spark.sql.functions.{col, date_format, lit, struct, to_date}
 import org.apache.spark.sql.types.{DataType, IntegerType, StringType}
-import org.apache.spark.sql.DataFrame
+import org.apache.spark.sql.{DataFrame, SparkSession}
 
 class TransformableDataFrame(df: DataFrame) {
 
   def asArlasFormattedData(dataModel: DataModel,
                            doubleColumns: Vector[String] = Vector()): DataFrame = {
-    df.enrichWithArlas(new DataFrameFormatter(dataModel, doubleColumns), new WithArlasTimestamp(dataModel))
+    df.enrichWithArlas(new DataFrameFormatter(dataModel, doubleColumns),
+                       new WithArlasTimestamp(dataModel))
       .withColumn(arlasPartitionColumn,
                   date_format(to_date(col(dataModel.timestampColumn), dataModel.timeFormat),
                               "yyyyMMdd").cast(IntegerType))
+  }
+
+  def asArlasCourseExtracted(spark: SparkSession,
+                             dataModel: DataModel,
+                             standardDeviationEllipsisNbPoint: Int,
+                             salvoTempo: String,
+                             irregularTempo: String,
+                             tempoProportionColumns: Map[String, String],
+                             weightAveragedColumns: Seq[String]): DataFrame = {
+
+    val tmpStopPauseGetAddressColumn = "tmp_stoppause_get_address"
+
+    df.enrichWithArlas(
+        new StopPauseSummaryTransformer(spark,
+                                        dataModel,
+                                        standardDeviationEllipsisNbPoint,
+                                        salvoTempo,
+                                        irregularTempo,
+                                        tempoProportionColumns,
+                                        weightAveragedColumns)
+      )
+      .withColumn(tmpStopPauseGetAddressColumn,
+                  when(col(arlasCourseOrStopColumn).equalTo(lit(ArlasCourseOrStop.STOP)),
+                       lit(true)))
+      .enrichWithArlas(
+        new WithGeoData(arlasTrackLocationLat,
+                        arlasTrackLocationLon,
+                        arlasTrackAddressPrefix,
+                        Some(tmpStopPauseGetAddressColumn)))
+      .drop(tmpStopPauseGetAddressColumn)
+
   }
 
   def enrichWithArlas(transformers: ArlasTransformer*): DataFrame = {

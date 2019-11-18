@@ -19,6 +19,8 @@
 
 package io.arlas.data.transform
 
+import io.arlas.data.transform.features.WithGeoData
+
 object ArlasTransformerColumns {
   val arlasTimestampColumn = "arlas_timestamp"
   val arlasPartitionColumn = "arlas_partition"
@@ -60,6 +62,21 @@ object ArlasTransformerColumns {
   val arlasTrackDistanceGpsStraigthness = arlasTrackPrefix + "distance_gps_straigthness"
   val arlasTrackDynamicsGpsSpeedKmh = arlasTrackPrefix + "dynamics_gps_speed_kmh"
   val arlasTrackDynamicsGpsBearing = arlasTrackPrefix + "dynamics_gps_bearing"
+  val arlasTrackDistanceSensorTravelled = arlasTrackPrefix + "distance_sensor_travelled_m"
+  val arlasTrackTempoEmissionIsMulti = arlasTrackPrefix + "tempo_emission_is_multi"
+
+  val arlasTrackAddressPrefix = arlasTrackPrefix + "address_"
+  val arlasTrackAddressState = arlasTrackAddressPrefix + WithGeoData.statePostfix
+  val arlasTrackAddressPostcode = arlasTrackAddressPrefix + WithGeoData.postcodePostfix
+  val arlasTrackAddressCounty = arlasTrackAddressPrefix + WithGeoData.countyPostfix
+  val arlasTrackAddressCountry = arlasTrackAddressPrefix + WithGeoData.countryPostfix
+  val arlasTrackAddressCountryCode = arlasTrackAddressPrefix + WithGeoData.countryCodePostfix
+  val arlasTrackAddressCity = arlasTrackAddressPrefix + WithGeoData.cityPostfix
+
+  val arlasTrackRoutingPrefix = arlasTrackPrefix + "routing_"
+  val arlasTrackRoutingTrailRefined = arlasTrackRoutingPrefix + "trail_refined"
+  val arlasTrackRoutingDistance = arlasTrackRoutingPrefix + "distance"
+  val arlasTrackRoutingDuration = arlasTrackRoutingPrefix + "duration"
 
 }
 

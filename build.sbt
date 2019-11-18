@@ -17,7 +17,9 @@ val sparkCassandraConnector = "com.datastax.spark" %% "spark-cassandra-connector
 
 val cassandra = Seq(sparkCassandraConnector)
 
-val scalaTest = "org.scalatest" %% "scalatest" % "2.2.5"
+val scalaTest = "org.scalatest" %% "scalatest" % "2.2.5" % Test
+val wiremockStandalone = "com.github.tomakehurst" % "wiremock-standalone" % "2.25.1" % Test
+val tests = Seq(scalaTest, wiremockStandalone)
 
 val elasticSearch = "org.elasticsearch" %% "elasticsearch-spark-20" % "6.4.0" % "provided"
 val elastic = Seq(elasticSearch)
@@ -37,9 +39,12 @@ lazy val arlasProc = (project in file("."))
     libraryDependencies ++= elastic,
     libraryDependencies ++= geotools,
     libraryDependencies ++= arlas,
-    libraryDependencies += scalaTest % Test
+    libraryDependencies ++= tests
 
     )
+
+//ensures a single instance of wiremock at a time, during tests
+Test / parallelExecution := false
 
 //publish to external repo
 ThisBuild / publishTo := { Some("Cloudsmith API" at "https://maven.cloudsmith.io/gisaia/private/") }

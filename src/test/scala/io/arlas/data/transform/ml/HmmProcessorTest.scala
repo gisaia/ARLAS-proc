@@ -24,7 +24,6 @@ import io.arlas.data.model.MLModelLocal
 import io.arlas.data.transform.ArlasTest
 import io.arlas.data.transform.ArlasTransformerColumns._
 import org.apache.spark.sql.functions._
-import io.arlas.data.transform.ArlasTestHelper._
 
 class HmmProcessorTest extends ArlasTest {
 
@@ -57,33 +56,39 @@ class HmmProcessorTest extends ArlasTest {
 
   val baseDF = baseTestDF
 
-  "HmmProcessor " should " have unknown result with not existing source column" in {
+  "HmmProcessor " should " fail with not existing source column" in {
 
-    val expectedDF = baseDF.withColumn(arlasMovingStateColumn, lit("Unknown"))
-    val transformedDF = baseDF
-      .enrichWithArlas(
-        new HmmProcessor("notExisting",
-                         movingStateModel,
-                         partitionColumn,
-                         arlasMovingStateColumn,
-                         5000)
-      )
-    assertDataFrameEquality(transformedDF, expectedDF)
+    val caught =
+      intercept[Exception] {
+        baseDF
+          .enrichWithArlas(
+            new HmmProcessor("notExisting",
+                             movingStateModel,
+                             partitionColumn,
+                             arlasMovingStateColumn,
+                             5000)
+          )
+      }
+
+    assert(caught.getMessage == "Missing required column notExisting to compute HMM")
   }
 
-  "HmmProcessor " should " have unknown result with not existing model" in {
+  "HmmProcessor " should " fail with not existing model" in {
 
-    val expectedDF = baseDF.withColumn(arlasMovingStateColumn, lit("Unknown"))
-    val transformedDF = baseDF
-      .enrichWithArlas(
-        new HmmProcessor(speedColumn,
-                         MLModelLocal(spark, "src/test/resources/not_existing.json"),
-                         partitionColumn,
-                         arlasMovingStateColumn,
-                         5000)
-      )
+    val caught =
+      intercept[Exception] {
+        baseDF
+          .enrichWithArlas(
+            new HmmProcessor(speedColumn,
+                             MLModelLocal(spark, "src/test/resources/not_existing.json"),
+                             partitionColumn,
+                             arlasMovingStateColumn,
+                             5000)
+          )
+      }
 
-    assertDataFrameEquality(transformedDF, expectedDF)
+    assert(caught.getMessage.startsWith("HMM model not found: Input path does not exist:"))
+    assert(caught.getMessage.endsWith("src/test/resources/not_existing.json"))
   }
 
   "HmmProcessor transformation" should " not break using a window shorter than input dataframe" in {

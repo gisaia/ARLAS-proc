@@ -28,6 +28,7 @@ trait TestSparkSession {
       .master("local")
       .appName("Arlas Spark Test")
       .config("spark.driver.memory", "512m")
+      .config("spark.sql.shuffle.partitions", "1")
       .getOrCreate()
   }
 }

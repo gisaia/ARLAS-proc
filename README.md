@@ -140,6 +140,37 @@ Paste (using `:paste`) the following code snippet :
     // then apply the transformers to test    
 ```
 
+## Unit tests with external API
+
+External APIs are mocked using Wiremock. Wiremock has 2 benefits:
+
+- using a JAR, we can capture every call to an API and save the results for further use
+- then from scala tests, we can start a wiremock server and get these results.
+
+### Capture external API 
+
+Download the standalone JAR from `http://repo1.maven.org/maven2/com/github/tomakehurst/wiremock-standalone/2.25.1/wiremock-standalone-2.25.1.jar` and save it into the `src/test/resources/wiremock` folder.
+
+Launch the JAR by replacing `https://external.api.com` with your own API: 
+
+```bash
+java -jar wiremock-standalone-2.25.1.jar --verbose --proxy-all="https://external.api.com" --record-mappings
+```
+
+Then in order to save the API results, change the API url to `http://localhost:8080` within the requests.
+
+For example, to save nominatim results, you can do:
+```bash
+java -jar wiremock-standalone-2.25.1.jar --verbose --proxy-all="http://nominatim.services.arlas.io" --record-mappings
+curl "http://localhost:8080/reverse.php?format=json&lat=41.270568&lon=6.6701225&zoom=10"
+```
+
+The results will be saved into the resources folder, which is used by scala tests.
+
+### Use mock server from scala tests
+
+A test class can extend the trait `ArlasMockServer`, which automatically starts and stops the mock server.
+
 # Contributing
 
 Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct, and the process for submitting us pull requests.

@@ -3,12 +3,12 @@ package io.arlas.data.transform.features
 import com.fasterxml.jackson.annotation.{JsonIgnoreProperties, JsonProperty}
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
+import io.arlas.data.app.ArlasProcConfig
 import io.arlas.data.transform.ArlasTransformer
+import io.arlas.data.utils.RestTool
 import org.apache.spark.sql.{Column, DataFrame, Dataset}
 import org.apache.spark.sql.functions.{expr, _}
 import org.apache.spark.sql.types.{StringType, StructField, StructType}
-import org.slf4j.LoggerFactory
-import scala.util.Try
 
 /**
   * Get geo data (address data) from geopoints.
@@ -29,7 +29,6 @@ class WithGeoData(latColumn: String,
                   zoomLevel: Int = 10)
     extends ArlasTransformer(Vector(lonColumn, latColumn)) {
 
-  @transient lazy val logger = LoggerFactory.getLogger(this.getClass)
   @transient lazy val MAPPER = new ObjectMapper().registerModule(DefaultScalaModule)
 
   val tmpCityColumn = "tmp_city"
@@ -47,33 +46,27 @@ class WithGeoData(latColumn: String,
   val postcodeColumn = addressColumnsPrefix + WithGeoData.postcodePostfix
   val stateColumn = addressColumnsPrefix + WithGeoData.statePostfix
 
-  def getGeoData(lat: Double, lon: Double) = {
-    val getGeoDataTry = Try {
+  val getGeoDataUDF = udf((lat: Double, lon: Double) => {
 
-      val response = scala.io.Source
-        .fromURL(
-          s"http://nominatim.services.arlas.io/reverse.php?format=json&lat=${lat}&lon=${lon}&zoom=${zoomLevel}")
-        .mkString
+    RestTool
+      .getOrFailOnNotAvailable(ArlasProcConfig.getGeodataUrl(lat, lon, zoomLevel))
+      .map(response => {
+        val geoData = MAPPER.readValue(response, classOf[GeoData])
 
-      val geoData = MAPPER.readValue(response, classOf[GeoData])
-      Option(geoData.address)
-        .map(address =>
-          Map(
-            tmpCityColumn -> address.city,
-            tmpCountryColumn -> address.country,
-            tmpStateColumn -> address.state,
-            tmpCountyColumn -> address.county,
-            tmpPostcodeColumn -> address.postcode,
-            tmpCountryCodeColumn -> address.country_code
-        ))
-        .getOrElse(Map())
-    }
-    if (getGeoDataTry.isFailure) {
-      logger.info(this.getClass + " failed with " + getGeoDataTry.failed.get.getMessage)
-    }
-    getGeoDataTry.toOption
-  }
-  val getGeoDataUDF = udf(getGeoData _)
+        Option(geoData.address)
+          .map(address =>
+            Map(
+              tmpCityColumn -> address.city,
+              tmpCountryColumn -> address.country,
+              tmpStateColumn -> address.state,
+              tmpCountyColumn -> address.county,
+              tmpPostcodeColumn -> address.postcode,
+              tmpCountryCodeColumn -> address.country_code
+          ))
+          .getOrElse(Map())
+      })
+      .toOption
+  })
 
   def whenConditionOtherwise(expr: Column, otherwise: Column = lit(null)) =
     if (conditionColumn.isDefined)
@@ -91,8 +84,11 @@ class WithGeoData(latColumn: String,
         }
 
     withAddressDF
-      .withColumn(tmpAddressColumn,
-                  whenConditionOtherwise(getGeoDataUDF(col(latColumn), col(lonColumn))))
+      .withColumn(
+        tmpAddressColumn,
+        //`explode(array(anUDF))` ensures that UDF is executed only once (see https://issues.apache.org/jira/browse/SPARK-17728)
+        explode(array(whenConditionOtherwise(getGeoDataUDF(col(latColumn), col(lonColumn)))))
+      )
       .withColumn(cityColumn,
                   whenConditionOtherwise(col(tmpAddressColumn + "." + tmpCityColumn),
                                          col(cityColumn)))
