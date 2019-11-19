@@ -92,6 +92,8 @@ class FlowFragmentMapper(dataModel: DataModel,
         whenPreviousPointExists(
           mean(arlasTimestampColumn).over(window.rowsBetween(-1, 0)).cast(LongType))
       )
+//    coalesce force field in schema to be not null
+      .withColumn(arlasTimestampColumn, coalesce(col(arlasTrackTimestampCenter), lit(0)))
       .withColumn( // track_location_lat = mean(latitude start, latitude end)
         arlasTrackLocationLat,
         whenPreviousPointExists(
