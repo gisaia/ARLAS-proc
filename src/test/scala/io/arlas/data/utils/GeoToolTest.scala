@@ -1,5 +1,6 @@
 package io.arlas.data.utils
 
+import org.locationtech.jts.geom.Coordinate
 import org.scalatest.FlatSpec
 
 class GeoToolTest extends FlatSpec {
@@ -40,6 +41,44 @@ LINESTRING (1.373584 43.636883, 1.3735806 43.6369089, 1.3735706 43.636933, 1.373
     val result = GeoTool.getBearingBetween(42.099639, 11.782073, 42.099761, 11.782009).get
 
     assert(result == expected)
+  }
+
+  "removeConsecutiveDuplicatesCoords" should "remove consecutive duplicated coordinates" in {
+    val coordinates = List(
+      new Coordinate(1.0, 1.0),
+      new Coordinate(2.0, 2.0),
+      new Coordinate(2.0, 2.0),
+      new Coordinate(3.0, 3.0),
+      new Coordinate(3.0, 3.0),
+      new Coordinate(5.0, 5.0),
+      new Coordinate(4.0, 4.0),
+      new Coordinate(3.0, 3.0),
+      new Coordinate(1.0, 1.0),
+      new Coordinate(1.0, 1.0)
+    )
+
+    val expected = List(
+      new Coordinate(1.0, 1.0),
+      new Coordinate(2.0, 2.0),
+      new Coordinate(3.0, 3.0),
+      new Coordinate(5.0, 5.0),
+      new Coordinate(4.0, 4.0),
+      new Coordinate(3.0, 3.0),
+      new Coordinate(1.0, 1.0)
+    )
+
+    assert(GeoTool.removeConsecutiveDuplicatesCoords(coordinates) == expected)
+  }
+
+  "groupConsecutiveValuesByCondition" should "group consecutive values based on a condition" in {
+    val values = Seq((1, "a"), (1, "b"), (2, "c"), (1, "d"), (1, "e"), (1, "f"), (2, "g"))
+
+    val expected = Seq(
+      Seq("a", "b"),
+      Seq("d", "e", "f")
+    )
+
+    assert(GeoTool.groupConsecutiveValuesByCondition(1, values) == expected)
   }
 
 }

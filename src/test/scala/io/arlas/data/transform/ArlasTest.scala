@@ -212,4 +212,33 @@ trait ArlasTest extends FlatSpec with Matchers with TestSparkSession with DataFr
     standardDeviationEllipsisNbPoints
   ).get()
 
+  val courseExtractorBaseDF = stopPauseSummaryDF
+    .withColumn(
+      arlasTrackVisibilityProportion,
+      when(lit(true),
+           when(col(tempoProportionIrregular).equalTo(1.0), lit(0.0)).otherwise(lit(1.0))))
+    .withColumn(arlasTrackAddressCity,
+                when(col(arlasMovingStateColumn).equalTo(ArlasMovingStates.STILL), lit("Blagnac")))
+    .withColumn(arlasTrackAddressCounty,
+                when(col(arlasMovingStateColumn).equalTo(ArlasMovingStates.STILL),
+                     lit("Haute-Garonne")))
+    .withColumn(arlasTrackAddressCountryCode,
+                when(col(arlasMovingStateColumn).equalTo(ArlasMovingStates.STILL), lit("FR")))
+    .withColumn(arlasTrackAddressCountry,
+                when(col(arlasMovingStateColumn).equalTo(ArlasMovingStates.STILL), lit("France")))
+    .withColumn(
+      arlasTrackAddressState,
+      when(col(arlasMovingStateColumn).equalTo(ArlasMovingStates.STILL), lit("Midi-Pyrénées")))
+    .withColumn(arlasTrackAddressPostcode,
+                when(col(arlasMovingStateColumn).equalTo(ArlasMovingStates.STILL), lit("31700")))
+
+  val courseExtractorDF = new CourseExtractorDataGenerator(
+    spark,
+    courseExtractorBaseDF,
+    dataModel,
+    speedColumn,
+    tempoProportionsColumns,
+    tempoIrregular,
+    standardDeviationEllipsisNbPoints
+  ).get()
 }

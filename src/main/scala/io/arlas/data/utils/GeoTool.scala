@@ -2,9 +2,10 @@ package io.arlas.data.utils
 
 import org.geotools.referencing.GeodeticCalculator
 import org.geotools.referencing.datum.DefaultEllipsoid
-import org.locationtech.jts.geom.{Coordinate, Geometry, GeometryFactory, PrecisionModel}
+import org.locationtech.jts.geom.{Coordinate, Geometry, GeometryFactory, LineString, PrecisionModel}
 import org.locationtech.jts.io.{WKTReader, WKTWriter}
 
+import org.slf4j.LoggerFactory
 import scala.collection.immutable
 
 object GeoTool {
@@ -170,7 +171,127 @@ object GeoTool {
     }
   }
 
+  def lineStringsToSingleMultiLineString(trails: Array[String]) = {
+    if (trails.isEmpty) {
+      None
+    } else {
+      val factory = getNewGeometryFactory
+      val reader = new WKTReader(factory)
+      val lineStrings: Seq[LineString] =
+        trails.map(reader.read(_).getCoordinates).map(factory.createLineString(_))
+      val multiLineString = factory.createMultiLineString(lineStrings.toArray)
+      Some(new WKTWriter().write(multiLineString))
+    }
+  }
+
+  def getTrailDataFromTrailsAndCoords(trails: Array[String],
+                                      latitudes: Array[Double],
+                                      longitudes: Array[Double],
+                                      useTrail: Array[Boolean]) = {
+
+    if (useTrail.size != trails.size || useTrail.size != latitudes.size || useTrail.size != longitudes.size) {
+      None
+    } else {
+      val factory = getNewGeometryFactory()
+      val reader = new WKTReader(factory)
+
+      val coordinates: Seq[Coordinate] = useTrail.zipWithIndex.flatMap {
+        case (state, index) => {
+          if (state == true) reader.read(trails(index)).getCoordinates.toSeq
+          //resume pauses to single points
+          else Seq(new Coordinate(longitudes(index), latitudes(index)))
+        }
+      }
+      val withoutConsecutiveDuplicates = removeConsecutiveDuplicatesCoords(coordinates.toList)
+
+      val geometry =
+        if (withoutConsecutiveDuplicates.size == 1)
+          factory.createPoint(withoutConsecutiveDuplicates(0))
+        else factory.createLineString(withoutConsecutiveDuplicates.toArray)
+
+      val trail = new WKTWriter().write(geometry)
+      val departure = geometry.getCoordinates().head
+      val arrival = geometry.getCoordinates().last
+
+      Some(
+        TrailData(
+          trail,
+          scaleDouble(departure.getY, LOCATION_DIGITS),
+          scaleDouble(departure.getX, LOCATION_DIGITS),
+          scaleDouble(arrival.getY, LOCATION_DIGITS),
+          scaleDouble(arrival.getX, LOCATION_DIGITS)
+        ))
+    }
+  }
+
+  def groupTrailsByConsecutiveValue[T](expectedValue: T,
+                                       values: Array[T],
+                                       trails: Array[String]) = {
+
+    if (values.size != trails.size) {
+      None
+    } else {
+
+      val groupedTrails =
+        groupConsecutiveValuesByCondition(expectedValue, Seq(values.zip(trails): _*))
+      if (groupedTrails.isEmpty) None
+      else {
+        val factory = getNewGeometryFactory()
+        val reader = new WKTReader(factory)
+
+        val lineStrings: Seq[LineString] = groupedTrails.map(g => {
+          val coordinates = g.seq.flatMap(reader.read(_).getCoordinates)
+          val withoutConsecutiveDuplicates = removeConsecutiveDuplicatesCoords(coordinates.toList)
+          factory.createLineString(
+            if (withoutConsecutiveDuplicates.size == 1) //if single point, create linestring with 2 times the same coordinates
+              Array(withoutConsecutiveDuplicates(0), withoutConsecutiveDuplicates(0))
+            else withoutConsecutiveDuplicates.toArray)
+        })
+        val multiLineString = factory.createMultiLineString(lineStrings.toArray)
+        Some(new WKTWriter().write(multiLineString))
+      }
+    }
+  }
+
+  def removeConsecutiveDuplicatesCoords(withDuplicatesList: List[Coordinate]): List[Coordinate] = {
+
+    withDuplicatesList match {
+      case head :: _ => {
+        val (_, remainlst) = withDuplicatesList.span(_.equals2D(head))
+        head :: removeConsecutiveDuplicatesCoords(remainlst)
+      }
+      case Nil => List()
+    }
+  }
+
+  def groupConsecutiveValuesByCondition[T, R](conditionalValue: T,
+                                              values: Seq[(T, R)],
+                                              acc: Seq[R] = Seq(),
+                                              result: Seq[Seq[R]] = Seq()): Seq[Seq[R]] = {
+
+    lazy val resultWithAcc = if (acc.nonEmpty) result :+ acc else result
+
+    values match {
+      case head :: tail =>
+        val (currentConditionValue, currentValue) = head
+        if (currentConditionValue == conditionalValue)
+          groupConsecutiveValuesByCondition(conditionalValue, tail, acc :+ currentValue, result)
+        else
+          groupConsecutiveValuesByCondition(conditionalValue, tail, List(), resultWithAcc)
+      case _ => resultWithAcc
+    }
+  }
+
   private def getNewGeometryFactory() =
     new GeometryFactory(new PrecisionModel(Math.pow(10, LOCATION_DIGITS)), 4326)
+
+  def scaleDouble(double: Double, scale: Int) =
+    BigDecimal(double).setScale(scale, BigDecimal.RoundingMode.HALF_UP).toDouble
+
+  case class TrailData(trail: String,
+                       departureLat: Double,
+                       departureLon: Double,
+                       arrivalLat: Double,
+                       arrivalLon: Double)
 
 }
