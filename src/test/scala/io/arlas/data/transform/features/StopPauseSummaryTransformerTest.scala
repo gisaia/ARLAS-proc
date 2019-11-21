@@ -11,7 +11,6 @@ class StopPauseSummaryTransformerTest extends ArlasTest {
         spark,
         dataModel,
         standardDeviationEllipsisNbPoints,
-        tempoSalvo,
         tempoIrregular,
         tempoProportionsColumns,
         averagedColumns

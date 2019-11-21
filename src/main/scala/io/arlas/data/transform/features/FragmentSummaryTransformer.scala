@@ -55,7 +55,6 @@ import scala.collection.immutable.ListMap
   *
   * @param dataModel the input Datamodel
   * @param standardDeviationEllipsisNbPoint number of points to compute the standard deviation ellipses
-  * @param salvoTempo value of the salvo tempo (i.a. close enough in time to be considered as "data burst")
   * @param irregularTempo value of the irregular tempo (i.a. greater than defined tempos, so there were probably pauses)
   * @param tempoProportionColumns Map of (tempo proportion column -> related tempo column)
   * @param weightAveragedColumns columns to weight average over track duration, in aggregations
@@ -63,7 +62,6 @@ import scala.collection.immutable.ListMap
 abstract class FragmentSummaryTransformer(spark: SparkSession,
                                           dataModel: DataModel,
                                           standardDeviationEllipsisNbPoint: Int,
-                                          salvoTempo: String,
                                           irregularTempo: String,
                                           tempoProportionColumns: Map[String, String],
                                           weightAveragedColumns: Seq[String])

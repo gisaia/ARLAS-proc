@@ -14,7 +14,6 @@ import scala.collection.immutable.ListMap
 class CourseExtractorTransformer(spark: SparkSession,
                                  dataModel: DataModel,
                                  standardDeviationEllipsisNbPoint: Int,
-                                 salvoTempo: String,
                                  irregularTempo: String,
                                  tempoColumns: Map[String, String],
                                  weightAveragedColumns: Seq[String])
@@ -22,7 +21,6 @@ class CourseExtractorTransformer(spark: SparkSession,
       spark,
       dataModel,
       standardDeviationEllipsisNbPoint,
-      salvoTempo,
       irregularTempo,
       tempoColumns,
       weightAveragedColumns

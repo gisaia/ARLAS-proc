@@ -175,7 +175,7 @@ class FragmentSummaryDataGenerator(
     ) ++ ListMap(
       tempoProportionsColumns
         .map(t => (t._1, tempoProportions.getOrElse(t._2, -1.0)))
-        .toList: _*) ++ ListMap(
+        .toSeq: _*) ++ ListMap(
       arlasCourseOrStopColumn -> sortedRows.head.getAs[String](arlasCourseOrStopColumn),
       arlasCourseStateColumn -> sortedRows.head.getAs[String](arlasCourseStateColumn),
       arlasMotionIdColumn -> null,
