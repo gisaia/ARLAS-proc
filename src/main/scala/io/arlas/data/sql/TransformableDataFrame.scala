@@ -41,37 +41,6 @@ class TransformableDataFrame(df: DataFrame) {
                               "yyyyMMdd").cast(IntegerType))
   }
 
-  def asArlasCourseExtracted(spark: SparkSession,
-                             dataModel: DataModel,
-                             standardDeviationEllipsisNbPoint: Int,
-                             salvoTempo: String,
-                             irregularTempo: String,
-                             tempoProportionColumns: Map[String, String],
-                             weightAveragedColumns: Seq[String]): DataFrame = {
-
-    val tmpStopPauseGetAddressColumn = "tmp_stoppause_get_address"
-
-    df.enrichWithArlas(
-        new StopPauseSummaryTransformer(spark,
-                                        dataModel,
-                                        standardDeviationEllipsisNbPoint,
-                                        salvoTempo,
-                                        irregularTempo,
-                                        tempoProportionColumns,
-                                        weightAveragedColumns)
-      )
-      .withColumn(tmpStopPauseGetAddressColumn,
-                  when(col(arlasCourseOrStopColumn).equalTo(lit(ArlasCourseOrStop.STOP)),
-                       lit(true)))
-      .enrichWithArlas(
-        new WithGeoData(arlasTrackLocationLat,
-                        arlasTrackLocationLon,
-                        arlasTrackAddressPrefix,
-                        Some(tmpStopPauseGetAddressColumn)))
-      .drop(tmpStopPauseGetAddressColumn)
-
-  }
-
   def enrichWithArlas(transformers: ArlasTransformer*): DataFrame = {
     doPipelineTransform(df, transformers: _*)
   }

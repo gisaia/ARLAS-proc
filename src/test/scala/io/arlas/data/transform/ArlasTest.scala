@@ -40,18 +40,18 @@ trait ArlasTest extends FlatSpec with Matchers with TestSparkSession with DataFr
   val dataModel = DataModel(timeFormat = "dd/MM/yyyy HH:mm:ssXXX")
   val speedColumn = "speed"
   val standardDeviationEllipsisNbPoints = 12
+  val tempo1s = "tempo_1s"
   val tempo10s = "tempo_10s"
   val tempo20s = "tempo_20s"
-  val tempoSalvo = "tempo_salvo"
   val tempoIrregular = "tempo_irregular"
+  val tempoProportion1s = "tempo_proportion_1s"
   val tempoProportion10s = "tempo_proportion_10s"
   val tempoProportion20s = "tempo_proportion_20s"
-  val tempoProportionSalvo = "tempo_proportion_salvo"
   val tempoProportionIrregular = "tempo_proportion_irregular"
   val tempoProportionsColumns = Map(
+    tempoProportion1s -> tempo1s,
     tempoProportion10s -> tempo10s,
     tempoProportion20s -> tempo20s,
-    tempoProportionSalvo -> tempoSalvo,
     tempoProportionIrregular -> tempoIrregular
   )
 
@@ -163,15 +163,15 @@ trait ArlasTest extends FlatSpec with Matchers with TestSparkSession with DataFr
           .otherwise(lit(ArlasMovingStates.MOVE))
       )
       //make tempo columns nullable with `when(lit(true)`
+      .withColumn(tempoProportion1s,
+                  when(lit(true),
+                       when(col(arlasTrackDuration).between(0, 4), lit(1.0)).otherwise(0.0)))
       .withColumn(tempoProportion10s,
                   when(lit(true),
                        when(col(arlasTrackDuration).between(5, 10), lit(1.0)).otherwise(0.0)))
       .withColumn(tempoProportion20s,
                   when(lit(true),
                        when(col(arlasTrackDuration).between(11, 20), lit(1.0)).otherwise(0.0)))
-      .withColumn(tempoProportionSalvo,
-                  when(lit(true),
-                       when(col(arlasTrackDuration).between(0, 4), lit(1.0)).otherwise(0.0)))
       .withColumn(tempoProportionIrregular,
                   when(lit(true), when(col(arlasTrackDuration).geq(21), lit(1.0)).otherwise(0.0)))
       .withColumn(
@@ -212,4 +212,33 @@ trait ArlasTest extends FlatSpec with Matchers with TestSparkSession with DataFr
     standardDeviationEllipsisNbPoints
   ).get()
 
+  val courseExtractorBaseDF = stopPauseSummaryDF
+    .withColumn(
+      arlasTrackVisibilityProportion,
+      when(lit(true),
+           when(col(tempoProportionIrregular).equalTo(1.0), lit(0.0)).otherwise(lit(1.0))))
+    .withColumn(arlasTrackAddressCity,
+                when(col(arlasMovingStateColumn).equalTo(ArlasMovingStates.STILL), lit("Blagnac")))
+    .withColumn(arlasTrackAddressCounty,
+                when(col(arlasMovingStateColumn).equalTo(ArlasMovingStates.STILL),
+                     lit("Haute-Garonne")))
+    .withColumn(arlasTrackAddressCountryCode,
+                when(col(arlasMovingStateColumn).equalTo(ArlasMovingStates.STILL), lit("FR")))
+    .withColumn(arlasTrackAddressCountry,
+                when(col(arlasMovingStateColumn).equalTo(ArlasMovingStates.STILL), lit("France")))
+    .withColumn(
+      arlasTrackAddressState,
+      when(col(arlasMovingStateColumn).equalTo(ArlasMovingStates.STILL), lit("Midi-Pyrénées")))
+    .withColumn(arlasTrackAddressPostcode,
+                when(col(arlasMovingStateColumn).equalTo(ArlasMovingStates.STILL), lit("31700")))
+
+  val courseExtractorDF = new CourseExtractorDataGenerator(
+    spark,
+    courseExtractorBaseDF,
+    dataModel,
+    speedColumn,
+    tempoProportionsColumns,
+    tempoIrregular,
+    standardDeviationEllipsisNbPoints
+  ).get()
 }

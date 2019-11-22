@@ -55,7 +55,6 @@ import scala.collection.immutable.ListMap
   *
   * @param dataModel the input Datamodel
   * @param standardDeviationEllipsisNbPoint number of points to compute the standard deviation ellipses
-  * @param salvoTempo value of the salvo tempo (i.a. close enough in time to be considered as "data burst")
   * @param irregularTempo value of the irregular tempo (i.a. greater than defined tempos, so there were probably pauses)
   * @param tempoProportionColumns Map of (tempo proportion column -> related tempo column)
   * @param weightAveragedColumns columns to weight average over track duration, in aggregations
@@ -63,7 +62,6 @@ import scala.collection.immutable.ListMap
 abstract class FragmentSummaryTransformer(spark: SparkSession,
                                           dataModel: DataModel,
                                           standardDeviationEllipsisNbPoint: Int,
-                                          salvoTempo: String,
                                           irregularTempo: String,
                                           tempoProportionColumns: Map[String, String],
                                           weightAveragedColumns: Seq[String])
@@ -136,7 +134,6 @@ abstract class FragmentSummaryTransformer(spark: SparkSession,
       arlasTrackNbGeopoints -> (sum(arlasTrackNbGeopoints).over(window) - count(lit(1))
         .over(window) + lit(1)).cast(IntegerType),
       arlasTrackTimestampStart -> min(arlasTrackTimestampStart).over(window),
-      arlasTimestampColumn -> col(arlasTrackTimestampStart),
       arlasTrackTimestampEnd -> (max(arlasTrackTimestampEnd).over(window)).cast(LongType),
       arlasTrackDuration -> sum(arlasTrackDuration).over(window),
       arlasTrackLocationPrecisionValueLat -> round(stddev_pop(arlasTrackLocationLat).over(window),
@@ -150,6 +147,7 @@ abstract class FragmentSummaryTransformer(spark: SparkSession,
       arlasTrackDistanceSensorTravelled -> sum(arlasTrackDistanceSensorTravelled).over(window),
       arlasTrackTimestampCenter -> ((col(arlasTrackTimestampStart) + col(arlasTrackTimestampEnd)) / 2)
         .cast(LongType),
+      arlasTimestampColumn -> col(arlasTrackTimestampCenter),
       arlasTrackId -> concat(col(dataModel.idColumn),
                              lit("#"),
                              col(arlasTrackTimestampStart),
