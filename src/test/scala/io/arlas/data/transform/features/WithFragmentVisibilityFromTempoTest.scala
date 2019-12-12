@@ -20,11 +20,12 @@
 package io.arlas.data.transform.features
 
 import io.arlas.data.sql._
-import io.arlas.data.transform.{ArlasTest, VisibilityChange}
-import io.arlas.data.transform.ArlasTransformerColumns._
-import org.apache.spark.sql.types.{DoubleType, LongType, StringType}
-import scala.collection.immutable.ListMap
 import io.arlas.data.transform.ArlasTestHelper._
+import io.arlas.data.transform.ArlasTransformerColumns._
+import io.arlas.data.transform.{ArlasTest, VisibilityChange}
+import org.apache.spark.sql.types.{DoubleType, LongType, StringType}
+
+import scala.collection.immutable.ListMap
 
 class WithFragmentVisibilityFromTempoTest extends ArlasTest {
 

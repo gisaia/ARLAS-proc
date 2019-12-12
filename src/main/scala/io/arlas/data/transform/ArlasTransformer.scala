@@ -24,8 +24,7 @@ import org.apache.spark.ml.util.Identifiable
 import org.apache.spark.ml.{Transformer => SparkTransformer}
 import org.apache.spark.sql.types.StructType
 
-abstract class ArlasTransformer(val requiredCols: Vector[String] = Vector.empty)
-    extends SparkTransformer {
+abstract class ArlasTransformer(val requiredCols: Vector[String] = Vector.empty) extends SparkTransformer {
 
   override def copy(extra: ParamMap): SparkTransformer = {
     defaultCopy(extra)

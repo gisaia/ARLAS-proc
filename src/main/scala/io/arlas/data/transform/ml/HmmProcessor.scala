@@ -34,11 +34,7 @@ import org.slf4j.LoggerFactory
 import scala.collection.mutable.ArrayBuffer
 import scala.util.{Failure, Success}
 
-class HmmProcessor(sourceColumn: String,
-                   hmmModel: MLModel,
-                   partitionColumn: String,
-                   resultColumn: String,
-                   hmmWindowSize: Int)
+class HmmProcessor(sourceColumn: String, hmmModel: MLModel, partitionColumn: String, resultColumn: String, hmmWindowSize: Int)
     extends ArlasTransformer(Vector(partitionColumn, arlasTimestampColumn)) {
 
   @transient lazy val logger = LoggerFactory.getLogger(this.getClass)
@@ -95,12 +91,8 @@ class HmmProcessor(sourceColumn: String,
     //row3: ROW_NUMBER_ON_PARTITION_COLUMN = 3, KEY_COLUMN = id1_2
     val windowedPartitionedDF = dataset
       .withColumn(ROW_NUMBER_ON_PARTITION_COLUMN, row_number().over(partitionWindow))
-      .withColumn(WINDOW_ID_COLUMN,
-                  concat(col(partitionColumn),
-                         lit("_"),
-                         floor(col(ROW_NUMBER_ON_PARTITION_COLUMN) / hmmWindowSize)))
-      .withColumn(UNIQUE_ID_COLUMN,
-                  concat(col(WINDOW_ID_COLUMN), lit("_"), row_number().over(keyWindow)))
+      .withColumn(WINDOW_ID_COLUMN, concat(col(partitionColumn), lit("_"), floor(col(ROW_NUMBER_ON_PARTITION_COLUMN) / hmmWindowSize)))
+      .withColumn(UNIQUE_ID_COLUMN, concat(col(WINDOW_ID_COLUMN), lit("_"), row_number().over(keyWindow)))
 
     //cast (and eventually explode) source column to DoubleType
     val sourceDataType =

@@ -28,9 +28,7 @@ import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types._
 import org.apache.spark.sql.{DataFrame, Dataset, SparkSession}
 
-class WithFragmentVisibilityFromTempo(dataModel: DataModel,
-                                      spark: SparkSession,
-                                      irregularTempo: String)
+class WithFragmentVisibilityFromTempo(dataModel: DataModel, spark: SparkSession, irregularTempo: String)
     extends ArlasTransformer(Vector(arlasTimestampColumn, arlasTempoColumn, dataModel.idColumn)) {
 
   override def transform(dataset: Dataset[_]): DataFrame = {
@@ -42,9 +40,7 @@ class WithFragmentVisibilityFromTempo(dataModel: DataModel,
 
     dataset
     // irregular tempo => visibility proportion = 0
-      .withColumn(
-        arlasTrackVisibilityProportion,
-        when(col(arlasTempoColumn).equalTo(irregularTempo), lit(0.0d)).otherwise(lit(1.0d)))
+      .withColumn(arlasTrackVisibilityProportion, when(col(arlasTempoColumn).equalTo(irregularTempo), lit(0.0d)).otherwise(lit(1.0d)))
 
       /*
        * APPEAR = first visible fragment after an invisible fragment
@@ -56,8 +52,7 @@ class WithFragmentVisibilityFromTempo(dataModel: DataModel,
         arlasTrackVisibilityChange,
         when(col(arlasTrackVisibilityProportion).equalTo(0), null)
           .otherwise(
-            when(previousVisibilityProportion.equalTo(0) && nextVisibilityProportion.equalTo(0),
-                 APPEAR_DISAPPEAR)
+            when(previousVisibilityProportion.equalTo(0) && nextVisibilityProportion.equalTo(0), APPEAR_DISAPPEAR)
               .when(previousVisibilityProportion.equalTo(0), APPEAR)
               .when(nextVisibilityProportion.equalTo(0), DISAPPEAR)
               .otherwise(null))

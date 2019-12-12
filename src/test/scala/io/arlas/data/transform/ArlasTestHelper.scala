@@ -1,15 +1,14 @@
 package io.arlas.data.transform
 
-import org.apache.spark.sql.{Row, SparkSession}
 import org.apache.spark.sql.types.{DataType, StructField, StructType}
-import Numeric.Implicits._
+import org.apache.spark.sql.{Row, SparkSession}
+
+import scala.Numeric.Implicits._
 import scala.collection.immutable.ListMap
 
 object ArlasTestHelper {
 
-  def createDataFrameWithTypes(spark: SparkSession,
-                               data: List[Seq[_]],
-                               types: ListMap[String, (DataType, Boolean)]) = {
+  def createDataFrameWithTypes(spark: SparkSession, data: List[Seq[_]], types: ListMap[String, (DataType, Boolean)]) = {
 
     import scala.collection.JavaConversions._
 

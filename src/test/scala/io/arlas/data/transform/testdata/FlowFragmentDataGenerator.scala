@@ -1,15 +1,14 @@
 package io.arlas.data.transform.testdata
 import io.arlas.data.model.DataModel
-import io.arlas.data.transform.ArlasTestHelper.{mean, stdDev}
+import io.arlas.data.transform.ArlasTestHelper.{mean, stdDev, _}
 import io.arlas.data.transform.ArlasTransformerColumns._
 import io.arlas.data.utils.GeoTool
-import org.apache.spark.sql.{DataFrame, Row, SparkSession}
 import org.apache.spark.sql.types._
+import org.apache.spark.sql.{DataFrame, Row, SparkSession}
 import org.geotools.referencing.GeodeticCalculator
 import org.geotools.referencing.datum.DefaultEllipsoid
 import org.locationtech.jts.geom.{Coordinate, GeometryFactory}
 import org.locationtech.jts.io.WKTWriter
-import io.arlas.data.transform.ArlasTestHelper._
 
 class FlowFragmentDataGenerator(
     spark: SparkSession,

@@ -22,18 +22,19 @@ package io.arlas.data.transform
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
-import org.apache.spark.sql.functions._
 import io.arlas.data.model.DataModel
 import io.arlas.data.sql._
+import io.arlas.data.transform.ArlasTestHelper._
 import io.arlas.data.transform.ArlasTransformerColumns._
 import io.arlas.data.transform.features._
+import io.arlas.data.transform.testdata._
 import io.arlas.data.transform.timeseries._
 import io.arlas.data.{DataFrameTester, TestSparkSession}
+import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types._
 import org.scalatest.{FlatSpec, Matchers}
+
 import scala.collection.immutable.ListMap
-import ArlasTestHelper._
-import io.arlas.data.transform.testdata._
 
 trait ArlasTest extends FlatSpec with Matchers with TestSparkSession with DataFrameTester {
 
@@ -58,8 +59,7 @@ trait ArlasTest extends FlatSpec with Matchers with TestSparkSession with DataFr
   val averagedColumns = List(speedColumn)
 
   val baseTestDF = {
-    val timestampUDF = udf((s: String) =>
-      ZonedDateTime.parse(s, DateTimeFormatter.ofPattern(dataModel.timeFormat)).toEpochSecond)
+    val timestampUDF = udf((s: String) => ZonedDateTime.parse(s, DateTimeFormatter.ofPattern(dataModel.timeFormat)).toEpochSecond)
 
     createDataFrameWithTypes(
       spark,
@@ -148,11 +148,7 @@ trait ArlasTest extends FlatSpec with Matchers with TestSparkSession with DataFr
   }
 
   val flowFragmentTestDF =
-    new FlowFragmentDataGenerator(spark,
-                                  baseTestDF,
-                                  dataModel,
-                                  averagedColumns,
-                                  standardDeviationEllipsisNbPoints).get()
+    new FlowFragmentDataGenerator(spark, baseTestDF, dataModel, averagedColumns, standardDeviationEllipsisNbPoints).get()
 
   val getStopPauseSummaryBaseDF =
     flowFragmentTestDF
@@ -163,17 +159,10 @@ trait ArlasTest extends FlatSpec with Matchers with TestSparkSession with DataFr
           .otherwise(lit(ArlasMovingStates.MOVE))
       )
       //make tempo columns nullable with `when(lit(true)`
-      .withColumn(tempoProportion1s,
-                  when(lit(true),
-                       when(col(arlasTrackDuration).between(0, 4), lit(1.0)).otherwise(0.0)))
-      .withColumn(tempoProportion10s,
-                  when(lit(true),
-                       when(col(arlasTrackDuration).between(5, 10), lit(1.0)).otherwise(0.0)))
-      .withColumn(tempoProportion20s,
-                  when(lit(true),
-                       when(col(arlasTrackDuration).between(11, 20), lit(1.0)).otherwise(0.0)))
-      .withColumn(tempoProportionIrregular,
-                  when(lit(true), when(col(arlasTrackDuration).geq(21), lit(1.0)).otherwise(0.0)))
+      .withColumn(tempoProportion1s, when(lit(true), when(col(arlasTrackDuration).between(0, 4), lit(1.0)).otherwise(0.0)))
+      .withColumn(tempoProportion10s, when(lit(true), when(col(arlasTrackDuration).between(5, 10), lit(1.0)).otherwise(0.0)))
+      .withColumn(tempoProportion20s, when(lit(true), when(col(arlasTrackDuration).between(11, 20), lit(1.0)).otherwise(0.0)))
+      .withColumn(tempoProportionIrregular, when(lit(true), when(col(arlasTrackDuration).geq(21), lit(1.0)).otherwise(0.0)))
       .withColumn(
         arlasCourseOrStopColumn,
         when(lit(true),
@@ -184,21 +173,14 @@ trait ArlasTest extends FlatSpec with Matchers with TestSparkSession with DataFr
         arlasCourseStateColumn,
         when(
           lit(true),
-          when(col(arlasMovingStateColumn).equalTo(lit(ArlasMovingStates.STILL)),
-               lit(ArlasCourseStates.PAUSE))
+          when(col(arlasMovingStateColumn).equalTo(lit(ArlasMovingStates.STILL)), lit(ArlasCourseStates.PAUSE))
             .otherwise(lit(ArlasCourseStates.MOTION))
         )
       )
       .enrichWithArlas(
-        new WithStateIdOnStateChange(dataModel,
-                                     arlasMovingStateColumn,
-                                     arlasTrackTimestampStart,
-                                     arlasMotionIdColumn),
+        new WithStateIdOnStateChange(dataModel, arlasMovingStateColumn, arlasTrackTimestampStart, arlasMotionIdColumn),
         new WithDurationFromId(arlasMotionIdColumn, arlasMotionDurationColumn),
-        new WithStateIdOnStateChange(dataModel,
-                                     arlasCourseOrStopColumn,
-                                     arlasTrackTimestampStart,
-                                     arlasCourseIdColumn),
+        new WithStateIdOnStateChange(dataModel, arlasCourseOrStopColumn, arlasTrackTimestampStart, arlasCourseIdColumn),
         new WithDurationFromId(arlasCourseIdColumn, arlasCourseDurationColumn)
       )
 
@@ -213,24 +195,14 @@ trait ArlasTest extends FlatSpec with Matchers with TestSparkSession with DataFr
   ).get()
 
   val courseExtractorBaseDF = stopPauseSummaryDF
-    .withColumn(
-      arlasTrackVisibilityProportion,
-      when(lit(true),
-           when(col(tempoProportionIrregular).equalTo(1.0), lit(0.0)).otherwise(lit(1.0))))
-    .withColumn(arlasTrackAddressCity,
-                when(col(arlasMovingStateColumn).equalTo(ArlasMovingStates.STILL), lit("Blagnac")))
-    .withColumn(arlasTrackAddressCounty,
-                when(col(arlasMovingStateColumn).equalTo(ArlasMovingStates.STILL),
-                     lit("Haute-Garonne")))
-    .withColumn(arlasTrackAddressCountryCode,
-                when(col(arlasMovingStateColumn).equalTo(ArlasMovingStates.STILL), lit("FR")))
-    .withColumn(arlasTrackAddressCountry,
-                when(col(arlasMovingStateColumn).equalTo(ArlasMovingStates.STILL), lit("France")))
-    .withColumn(
-      arlasTrackAddressState,
-      when(col(arlasMovingStateColumn).equalTo(ArlasMovingStates.STILL), lit("Midi-Pyrénées")))
-    .withColumn(arlasTrackAddressPostcode,
-                when(col(arlasMovingStateColumn).equalTo(ArlasMovingStates.STILL), lit("31700")))
+    .withColumn(arlasTrackVisibilityProportion,
+                when(lit(true), when(col(tempoProportionIrregular).equalTo(1.0), lit(0.0)).otherwise(lit(1.0))))
+    .withColumn(arlasTrackAddressCity, when(col(arlasMovingStateColumn).equalTo(ArlasMovingStates.STILL), lit("Blagnac")))
+    .withColumn(arlasTrackAddressCounty, when(col(arlasMovingStateColumn).equalTo(ArlasMovingStates.STILL), lit("Haute-Garonne")))
+    .withColumn(arlasTrackAddressCountryCode, when(col(arlasMovingStateColumn).equalTo(ArlasMovingStates.STILL), lit("FR")))
+    .withColumn(arlasTrackAddressCountry, when(col(arlasMovingStateColumn).equalTo(ArlasMovingStates.STILL), lit("France")))
+    .withColumn(arlasTrackAddressState, when(col(arlasMovingStateColumn).equalTo(ArlasMovingStates.STILL), lit("Midi-Pyrénées")))
+    .withColumn(arlasTrackAddressPostcode, when(col(arlasMovingStateColumn).equalTo(ArlasMovingStates.STILL), lit("31700")))
 
   val courseExtractorDF = new CourseExtractorDataGenerator(
     spark,

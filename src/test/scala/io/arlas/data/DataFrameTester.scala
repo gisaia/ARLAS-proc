@@ -56,9 +56,7 @@ trait DataFrameTester {
       .select(cols: _*) //sort columns for a consistent schema
   }
 
-  private def contentMismatchMessage[Row](a: Array[Row],
-                                          e: Array[Row],
-                                          fields: Array[StructField]): String = {
+  private def contentMismatchMessage[Row](a: Array[Row], e: Array[Row], fields: Array[StructField]): String = {
     "DataFrame content mismatch [ actual rows | expected rows ]\n" + a
       .zip(e)
       .map {

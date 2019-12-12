@@ -1,12 +1,13 @@
 package io.arlas.data.transform.features
 
 import io.arlas.data.sql._
-import io.arlas.data.transform.{ArlasMockServer, ArlasTest}
-import org.apache.spark.sql.types.{DoubleType, LongType, StringType}
-import io.arlas.data.transform.ArlasTransformerColumns._
-import scala.collection.immutable.ListMap
-import org.apache.spark.sql.functions._
 import io.arlas.data.transform.ArlasTestHelper._
+import io.arlas.data.transform.ArlasTransformerColumns._
+import io.arlas.data.transform.{ArlasMockServer, ArlasTest}
+import org.apache.spark.sql.functions._
+import org.apache.spark.sql.types.{DoubleType, LongType, StringType}
+
+import scala.collection.immutable.ListMap
 
 class WithRoutingDataTest extends ArlasTest with ArlasMockServer {
 
@@ -64,8 +65,7 @@ class WithRoutingDataTest extends ArlasTest with ArlasMockServer {
       .drop("condition")
 
     val expectedDF = testDF
-      .withColumn(arlasTrackRoutingTrailRefined,
-                  when(isId1, col("expected_refined_trail")).otherwise(col("trail")))
+      .withColumn(arlasTrackRoutingTrailRefined, when(isId1, col("expected_refined_trail")).otherwise(col("trail")))
       .withColumn(arlasTrackRoutingDistance, when(isId1, col("expected_refined_distance")))
       .withColumn(arlasTrackRoutingDuration, when(isId1, col("expected_refined_duration")))
       .drop("expected_refined_trail", "expected_refined_distance", "expected_refined_duration")
@@ -76,11 +76,9 @@ class WithRoutingDataTest extends ArlasTest with ArlasMockServer {
   "WithRefinedTrail" should "return null with invalid trail" in {
 
     val transformedDF = baseDF
-      .withColumn(
-        "trail",
-        //reverted lat and lon
-        when(lit(true),
-             lit("LINESTRING (42.099761 11.782009 , 42.099615 11.781858, 42.100029 11.782359)")))
+      .withColumn("trail",
+                  //reverted lat and lon
+                  when(lit(true), lit("LINESTRING (42.099761 11.782009 , 42.099615 11.781858, 42.100029 11.782359)")))
       .enrichWithArlas(new WithRoutingData("trail"))
       .drop("trail")
 

@@ -30,15 +30,11 @@ trait CassandraTool {
 
   def createCassandraKeyspaceIfNotExists(spark: SparkSession, keyspace: String): Unit = {
     CassandraConnector(spark.sparkContext.getConf).withSessionDo { session =>
-      session.execute(
-        s"CREATE KEYSPACE IF NOT EXISTS ${keyspace} WITH replication = {'class': 'SimpleStrategy', 'replication_factor':1}")
+      session.execute(s"CREATE KEYSPACE IF NOT EXISTS ${keyspace} WITH replication = {'class': 'SimpleStrategy', 'replication_factor':1}")
     }
   }
 
-  def createCassandraTableIfNotExists(df: DataFrame,
-                                      dataModel: DataModel,
-                                      keyspace: String,
-                                      table: String): Unit = {
+  def createCassandraTableIfNotExists(df: DataFrame, dataModel: DataModel, keyspace: String, table: String): Unit = {
     try {
       df.createCassandraTable(
         keyspace,

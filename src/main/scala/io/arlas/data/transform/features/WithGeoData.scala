@@ -6,9 +6,9 @@ import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import io.arlas.data.app.ArlasProcConfig
 import io.arlas.data.transform.ArlasTransformer
 import io.arlas.data.utils.RestTool
-import org.apache.spark.sql.{Column, DataFrame, Dataset}
-import org.apache.spark.sql.functions.{expr, _}
+import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types.{StringType, StructField, StructType}
+import org.apache.spark.sql.{Column, DataFrame, Dataset}
 
 /**
   * Get geo data (address data) from geopoints.
@@ -89,24 +89,12 @@ class WithGeoData(latColumn: String,
         //`explode(array(anUDF))` ensures that UDF is executed only once (see https://issues.apache.org/jira/browse/SPARK-17728)
         explode(array(whenConditionOtherwise(getGeoDataUDF(col(latColumn), col(lonColumn)))))
       )
-      .withColumn(cityColumn,
-                  whenConditionOtherwise(col(tmpAddressColumn + "." + tmpCityColumn),
-                                         col(cityColumn)))
-      .withColumn(countyColumn,
-                  whenConditionOtherwise(col(tmpAddressColumn + "." + tmpCountyColumn),
-                                         col(countyColumn)))
-      .withColumn(stateColumn,
-                  whenConditionOtherwise(col(tmpAddressColumn + "." + tmpStateColumn),
-                                         col(stateColumn)))
-      .withColumn(countryColumn,
-                  whenConditionOtherwise(col(tmpAddressColumn + "." + tmpCountryColumn),
-                                         col(countryColumn)))
-      .withColumn(countryCodeColumn,
-                  whenConditionOtherwise(col(tmpAddressColumn + "." + tmpCountryCodeColumn),
-                                         col(countryCodeColumn)))
-      .withColumn(postcodeColumn,
-                  whenConditionOtherwise(col(tmpAddressColumn + "." + tmpPostcodeColumn),
-                                         col(postcodeColumn)))
+      .withColumn(cityColumn, whenConditionOtherwise(col(tmpAddressColumn + "." + tmpCityColumn), col(cityColumn)))
+      .withColumn(countyColumn, whenConditionOtherwise(col(tmpAddressColumn + "." + tmpCountyColumn), col(countyColumn)))
+      .withColumn(stateColumn, whenConditionOtherwise(col(tmpAddressColumn + "." + tmpStateColumn), col(stateColumn)))
+      .withColumn(countryColumn, whenConditionOtherwise(col(tmpAddressColumn + "." + tmpCountryColumn), col(countryColumn)))
+      .withColumn(countryCodeColumn, whenConditionOtherwise(col(tmpAddressColumn + "." + tmpCountryCodeColumn), col(countryCodeColumn)))
+      .withColumn(postcodeColumn, whenConditionOtherwise(col(tmpAddressColumn + "." + tmpPostcodeColumn), col(postcodeColumn)))
       .drop(tmpAddressColumn)
   }
 

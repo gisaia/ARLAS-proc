@@ -3,9 +3,9 @@ package io.arlas.data.transform.features
 import io.arlas.data.model.DataModel
 import io.arlas.data.transform.ArlasMovingStates
 import io.arlas.data.transform.ArlasTransformerColumns._
-import org.apache.spark.sql.{Column, SparkSession}
-import org.apache.spark.sql.functions.col
 import org.apache.spark.sql.expressions.WindowSpec
+import org.apache.spark.sql.functions.col
+import org.apache.spark.sql.{Column, SparkSession}
 
 import scala.collection.immutable.ListMap
 

@@ -1,10 +1,11 @@
 package io.arlas.data.sql
 
-import io.arlas.data.transform.{ArlasTest, DataFrameException}
-import io.arlas.data.transform.ArlasTransformerColumns.arlasTimestampColumn
-import org.apache.spark.sql.types.{DoubleType, LongType, StringType}
-import org.apache.spark.sql.functions._
 import io.arlas.data.transform.ArlasTestHelper._
+import io.arlas.data.transform.ArlasTransformerColumns.arlasTimestampColumn
+import io.arlas.data.transform.{ArlasTest, DataFrameException}
+import org.apache.spark.sql.functions._
+import org.apache.spark.sql.types.{DoubleType, LongType, StringType}
+
 import scala.collection.immutable.ListMap
 
 class WritableDataFrameTest extends ArlasTest {
@@ -60,8 +61,7 @@ class WritableDataFrameTest extends ArlasTest {
           "city" -> ColumnGroup("new_city" -> "city")
         ))
     }
-    assert(
-      thrown.getMessage === "ColumnGroup city cannot be created because a column already exists with this name")
+    assert(thrown.getMessage === "ColumnGroup city cannot be created because a column already exists with this name")
   }
 
 }
