@@ -1,12 +1,13 @@
 package io.arlas.data.transform.testdata
 
 import io.arlas.data.model.DataModel
-import io.arlas.data.transform.{ArlasCourseOrStop, ArlasCourseStates}
 import io.arlas.data.transform.ArlasTransformerColumns._
+import io.arlas.data.transform.{ArlasCourseOrStop, ArlasCourseStates}
 import io.arlas.data.utils.GeoTool
 import org.apache.spark.sql.catalyst.expressions.GenericRowWithSchema
-import org.apache.spark.sql.{DataFrame, Row, SparkSession}
 import org.apache.spark.sql.types._
+import org.apache.spark.sql.{DataFrame, Row, SparkSession}
+
 import scala.collection.immutable.ListMap
 
 class CourseExtractorDataGenerator(spark: SparkSession,
@@ -105,8 +106,7 @@ class CourseExtractorDataGenerator(spark: SparkSession,
           .sum
         val pauseNumber = pauseRows.count(r => true)
         val pauseVisibilityProportion = 1.0 * pauseRows
-          .map(p =>
-            p.getAs[Double](arlasTrackVisibilityProportion) * p.getAs[Long](arlasTrackDuration))
+          .map(p => p.getAs[Double](arlasTrackVisibilityProportion) * p.getAs[Long](arlasTrackDuration))
           .sum / pauseDuration
         val trailData =
           GeoTool.getTrailDataFromTrailsAndCoords(
@@ -143,16 +143,14 @@ class CourseExtractorDataGenerator(spark: SparkSession,
             .lineStringsToSingleMultiLineString(pauseRows.map(_.getAs[String](arlasTrackTrail)))
             .getOrElse(null),
           arlasTrackMotionsVisibleTrail -> GeoTool
-            .groupTrailsByConsecutiveValue[Double](
-              1.0,
-              rows.map(_.getAs[Double](arlasTrackVisibilityProportion)),
-              rows.map(_.getAs[String](arlasTrackTrail)))
+            .groupTrailsByConsecutiveValue[Double](1.0,
+                                                   rows.map(_.getAs[Double](arlasTrackVisibilityProportion)),
+                                                   rows.map(_.getAs[String](arlasTrackTrail)))
             .getOrElse(null),
           arlasTrackMotionsInvisibleTrail -> GeoTool
-            .groupTrailsByConsecutiveValue[Double](
-              0.0,
-              rows.map(_.getAs[Double](arlasTrackVisibilityProportion)),
-              rows.map(_.getAs[String](arlasTrackTrail)))
+            .groupTrailsByConsecutiveValue[Double](0.0,
+                                                   rows.map(_.getAs[Double](arlasTrackVisibilityProportion)),
+                                                   rows.map(_.getAs[String](arlasTrackTrail)))
             .getOrElse(null),
           arlasDepartureLocationLat -> trailData.get.departureLat,
           arlasDepartureLocationLon -> trailData.get.departureLon,
@@ -199,52 +197,30 @@ class CourseExtractorDataGenerator(spark: SparkSession,
 
                     val data = r.toSeq ++ ListMap(
                       arlasArrivalStopAfterDuration -> getStopAfterValue[Long](arlasTrackDuration),
-                      arlasArrivalStopAfterLocationLon -> getStopAfterValue[Double](
-                        arlasTrackLocationLon),
-                      arlasArrivalStopAfterLocationLat -> getStopAfterValue[Double](
-                        arlasTrackLocationLat),
-                      arlasArrivalStopAfterLocationPrecisionValueLat -> getStopAfterValue[Double](
-                        arlasTrackLocationPrecisionValueLat),
-                      arlasArrivalStopAfterLocationPrecisionValueLon -> getStopAfterValue[Double](
-                        arlasTrackLocationPrecisionValueLon),
-                      arlasArrivalStopAfterLocationPrecisionGeometry -> getStopAfterValue[String](
-                        arlasTrackLocationPrecisionGeometry),
-                      arlasArrivalStopAfterVisibilityProportion -> getStopAfterValue[Double](
-                        arlasTrackVisibilityProportion),
+                      arlasArrivalStopAfterLocationLon -> getStopAfterValue[Double](arlasTrackLocationLon),
+                      arlasArrivalStopAfterLocationLat -> getStopAfterValue[Double](arlasTrackLocationLat),
+                      arlasArrivalStopAfterLocationPrecisionValueLat -> getStopAfterValue[Double](arlasTrackLocationPrecisionValueLat),
+                      arlasArrivalStopAfterLocationPrecisionValueLon -> getStopAfterValue[Double](arlasTrackLocationPrecisionValueLon),
+                      arlasArrivalStopAfterLocationPrecisionGeometry -> getStopAfterValue[String](arlasTrackLocationPrecisionGeometry),
+                      arlasArrivalStopAfterVisibilityProportion -> getStopAfterValue[Double](arlasTrackVisibilityProportion),
                       arlasArrivalAddressState -> getStopAfterValue[String](arlasTrackAddressState),
-                      arlasArrivalAddressPostcode -> getStopAfterValue[String](
-                        arlasTrackAddressPostcode),
-                      arlasArrivalAddressCounty -> getStopAfterValue[String](
-                        arlasTrackAddressCounty),
-                      arlasArrivalAddressCountry -> getStopAfterValue[String](
-                        arlasTrackAddressCountry),
-                      arlasArrivalAddressCountryCode -> getStopAfterValue[String](
-                        arlasTrackAddressCountryCode),
+                      arlasArrivalAddressPostcode -> getStopAfterValue[String](arlasTrackAddressPostcode),
+                      arlasArrivalAddressCounty -> getStopAfterValue[String](arlasTrackAddressCounty),
+                      arlasArrivalAddressCountry -> getStopAfterValue[String](arlasTrackAddressCountry),
+                      arlasArrivalAddressCountryCode -> getStopAfterValue[String](arlasTrackAddressCountryCode),
                       arlasArrivalAddressCity -> getStopAfterValue[String](arlasTrackAddressCity),
-                      arlasDepartureStopBeforeDuration -> getStopBeforeValue[Long](
-                        arlasTrackDuration),
-                      arlasDepartureStopBeforeLocationLon -> getStopBeforeValue[Double](
-                        arlasTrackLocationLon),
-                      arlasDepartureStopBeforeLocationLat -> getStopBeforeValue[Double](
-                        arlasTrackLocationLat),
-                      arlasDepartureStopBeforeLocationPrecisionValueLat -> getStopBeforeValue[
-                        Double](arlasTrackLocationPrecisionValueLat),
-                      arlasDepartureStopBeforeLocationPrecisionValueLon -> getStopBeforeValue[
-                        Double](arlasTrackLocationPrecisionValueLon),
-                      arlasDepartureStopBeforeLocationPrecisionGeometry -> getStopBeforeValue[
-                        String](arlasTrackLocationPrecisionGeometry),
-                      arlasDepartureStopBeforeVisibilityProportion -> getStopBeforeValue[Double](
-                        arlasTrackVisibilityProportion),
-                      arlasDepartureAddressState -> getStopBeforeValue[String](
-                        arlasTrackAddressState),
-                      arlasDepartureAddressPostcode -> getStopBeforeValue[String](
-                        arlasTrackAddressPostcode),
-                      arlasDepartureAddressCounty -> getStopBeforeValue[String](
-                        arlasTrackAddressCounty),
-                      arlasDepartureAddressCountry -> getStopBeforeValue[String](
-                        arlasTrackAddressCountry),
-                      arlasDepartureAddressCountryCode -> getStopBeforeValue[String](
-                        arlasTrackAddressCountryCode),
+                      arlasDepartureStopBeforeDuration -> getStopBeforeValue[Long](arlasTrackDuration),
+                      arlasDepartureStopBeforeLocationLon -> getStopBeforeValue[Double](arlasTrackLocationLon),
+                      arlasDepartureStopBeforeLocationLat -> getStopBeforeValue[Double](arlasTrackLocationLat),
+                      arlasDepartureStopBeforeLocationPrecisionValueLat -> getStopBeforeValue[Double](arlasTrackLocationPrecisionValueLat),
+                      arlasDepartureStopBeforeLocationPrecisionValueLon -> getStopBeforeValue[Double](arlasTrackLocationPrecisionValueLon),
+                      arlasDepartureStopBeforeLocationPrecisionGeometry -> getStopBeforeValue[String](arlasTrackLocationPrecisionGeometry),
+                      arlasDepartureStopBeforeVisibilityProportion -> getStopBeforeValue[Double](arlasTrackVisibilityProportion),
+                      arlasDepartureAddressState -> getStopBeforeValue[String](arlasTrackAddressState),
+                      arlasDepartureAddressPostcode -> getStopBeforeValue[String](arlasTrackAddressPostcode),
+                      arlasDepartureAddressCounty -> getStopBeforeValue[String](arlasTrackAddressCounty),
+                      arlasDepartureAddressCountry -> getStopBeforeValue[String](arlasTrackAddressCountry),
+                      arlasDepartureAddressCountryCode -> getStopBeforeValue[String](arlasTrackAddressCountryCode),
                       arlasDepartureAddressCity -> getStopBeforeValue[String](arlasTrackAddressCity)
                     ).values
                     new GenericRowWithSchema(data.toArray, schema)

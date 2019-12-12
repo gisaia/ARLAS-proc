@@ -25,8 +25,7 @@ import org.apache.spark.sql.functions.{col, regexp_replace}
 import org.apache.spark.sql.types.{DoubleType, StringType, StructField, StructType}
 import org.apache.spark.sql.{DataFrame, Dataset}
 
-class DataFrameFormatter(dataModel: DataModel, doubleColumns: Vector[String] = Vector.empty)
-    extends ArlasTransformer() {
+class DataFrameFormatter(dataModel: DataModel, doubleColumns: Vector[String] = Vector.empty) extends ArlasTransformer() {
 
   override def transform(dataset: Dataset[_]): DataFrame = {
     dataset.toDF
@@ -57,10 +56,8 @@ class DataFrameFormatter(dataModel: DataModel, doubleColumns: Vector[String] = V
 
   def withRequiredColumns()(df: DataFrame): DataFrame = {
     val colsNotFound =
-      (doubleColumns ++ Vector(dataModel.lonColumn,
-                               dataModel.latColumn,
-                               dataModel.idColumn,
-                               dataModel.timestampColumn)).distinct.diff(df.schema.fieldNames)
+      (doubleColumns ++ Vector(dataModel.lonColumn, dataModel.latColumn, dataModel.idColumn, dataModel.timestampColumn)).distinct
+        .diff(df.schema.fieldNames)
     if (colsNotFound.length > 0) {
       throw DataFrameException(
         s"The ${colsNotFound.mkString(", ")} columns are not included in the DataFrame with the following columns: ${df.schema.fieldNames

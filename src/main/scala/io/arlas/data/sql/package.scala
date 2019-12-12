@@ -24,8 +24,8 @@ import java.time.format.DateTimeFormatter
 
 import io.arlas.data.model._
 import io.arlas.data.transform.ArlasTransformerColumns._
+import org.apache.spark.sql.functions.col
 import org.apache.spark.sql.{Column, DataFrame}
-import org.apache.spark.sql.functions.{col, struct}
 
 import scala.collection.immutable.ListMap
 
@@ -47,8 +47,7 @@ package object sql extends DataFrameReader {
       start match {
         case Some(start: ZonedDateTime) => {
           df.where(
-            col(arlasPartitionColumn) >= Integer.valueOf(
-              start.format(DateTimeFormatter.ofPattern("yyyyMMdd")))
+            col(arlasPartitionColumn) >= Integer.valueOf(start.format(DateTimeFormatter.ofPattern("yyyyMMdd")))
               && col(arlasTimestampColumn) >= start.toEpochSecond)
         }
         case _ => df
@@ -59,8 +58,7 @@ package object sql extends DataFrameReader {
       stop match {
         case Some(stop: ZonedDateTime) => {
           df.where(
-            col(arlasPartitionColumn) <= Integer.valueOf(
-              stop.format(DateTimeFormatter.ofPattern("yyyyMMdd")))
+            col(arlasPartitionColumn) <= Integer.valueOf(stop.format(DateTimeFormatter.ofPattern("yyyyMMdd")))
               && col(arlasTimestampColumn) <= stop.toEpochSecond)
         }
         case _ => df
@@ -71,8 +69,7 @@ package object sql extends DataFrameReader {
   sealed trait ColumnGroupingElement
   implicit class ImplicitColumnName(val v: String) extends ColumnGroupingElement
   implicit class ImplicitColumnObj(val c: Column) extends ColumnGroupingElement
-  class ColumnGroup(groupingElements: Tuple2[String, ColumnGroupingElement]*)
-      extends ColumnGroupingElement {
+  class ColumnGroup(groupingElements: Tuple2[String, ColumnGroupingElement]*) extends ColumnGroupingElement {
     val elements: ListMap[String, ColumnGroupingElement] = ListMap() ++ groupingElements
   }
 

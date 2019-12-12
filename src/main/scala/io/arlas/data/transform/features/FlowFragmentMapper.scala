@@ -33,10 +33,8 @@ class FlowFragmentMapper(dataModel: DataModel,
                          aggregationColumnName: String,
                          averageColumns: List[String] = Nil,
                          standardDeviationEllipsisNbPoints: Int = 12)
-    extends ArlasTransformer(Vector(arlasTimestampColumn,
-                                    aggregationColumnName,
-                                    dataModel.latColumn,
-                                    dataModel.lonColumn) ++ averageColumns.toVector) {
+    extends ArlasTransformer(
+      Vector(arlasTimestampColumn, aggregationColumnName, dataModel.latColumn, dataModel.lonColumn) ++ averageColumns.toVector) {
 
   override def transform(dataset: Dataset[_]): DataFrame = {
 
@@ -78,31 +76,27 @@ class FlowFragmentMapper(dataModel: DataModel,
       )
       .withColumn( // track_duration_s = ts(start) - ts(end)
         arlasTrackDuration,
-        whenPreviousPointExists(
-          col(arlasTimestampColumn) - lag(arlasTimestampColumn, 1).over(window))
+        whenPreviousPointExists(col(arlasTimestampColumn) - lag(arlasTimestampColumn, 1).over(window))
       )
       .withColumn( // track_timestamps_start = ts(start)
                   arlasTrackTimestampStart,
                   whenPreviousPointExists(lag(arlasTimestampColumn, 1).over(window)))
       .withColumn( // track_timestamps_end = ts(end)
-        arlasTrackTimestampEnd,
-        when(lit(true), col(arlasTimestampColumn))) //when(lit(true), ...) makes column nullable
+                  arlasTrackTimestampEnd,
+                  when(lit(true), col(arlasTimestampColumn))) //when(lit(true), ...) makes column nullable
       .withColumn( // track_timestamps_center = mean(timestamp start, timestamp end)
         arlasTrackTimestampCenter,
-        whenPreviousPointExists(
-          mean(arlasTimestampColumn).over(window.rowsBetween(-1, 0)).cast(LongType))
+        whenPreviousPointExists(mean(arlasTimestampColumn).over(window.rowsBetween(-1, 0)).cast(LongType))
       )
 //    coalesce force field in schema to be not null
       .withColumn(arlasTimestampColumn, coalesce(col(arlasTrackTimestampCenter), lit(0)))
       .withColumn( // track_location_lat = mean(latitude start, latitude end)
         arlasTrackLocationLat,
-        whenPreviousPointExists(
-          round(mean(dataModel.latColumn).over(window.rowsBetween(-1, 0)), GeoTool.LOCATION_DIGITS))
+        whenPreviousPointExists(round(mean(dataModel.latColumn).over(window.rowsBetween(-1, 0)), GeoTool.LOCATION_DIGITS))
       )
       .withColumn( // track_location_lon = mean(longitude start, longitude end)
         arlasTrackLocationLon,
-        whenPreviousPointExists(
-          round(mean(dataModel.lonColumn).over(window.rowsBetween(-1, 0)), GeoTool.LOCATION_DIGITS))
+        whenPreviousPointExists(round(mean(dataModel.lonColumn).over(window.rowsBetween(-1, 0)), GeoTool.LOCATION_DIGITS))
       )
       .withColumn( // track_location_precision_value_lat = standard deviation of latitude
         arlasTrackLocationPrecisionValueLat,
@@ -141,8 +135,7 @@ class FlowFragmentMapper(dataModel: DataModel,
                   whenPreviousPointExists(lit(1.0)))
       .withColumn( // track_dynamics_gps_speed_kmh = track_distance_travelled_m / arlas_track_duration_s / 1000 * 3600
         arlasTrackDynamicsGpsSpeedKmh,
-        whenPreviousPointExists(
-          (col(arlasTrackDistanceGpsTravelled) / col(arlasTrackDuration)) / lit(1000) * lit(3600))
+        whenPreviousPointExists((col(arlasTrackDistanceGpsTravelled) / col(arlasTrackDuration)) / lit(1000) * lit(3600))
       )
       .withColumn( // track_dynamics_gps_bearing = getGPSBearing previous_point current_point
         arlasTrackDynamicsGpsBearing,
@@ -175,15 +168,8 @@ class FlowFragmentMapper(dataModel: DataModel,
     spark.udf.register("getDistanceTravelled", GeoTool.getDistanceBetween _)
     spark.udf.register("getGPSBearing", GeoTool.getBearingBetween _)
 
-    def getStandardDeviationEllipsis(latCenter: Double,
-                                     lonCenter: Double,
-                                     latStd: Double,
-                                     lonStd: Double) = {
-      GeoTool.getStandardDeviationEllipsis(latCenter,
-                                           lonCenter,
-                                           latStd,
-                                           lonStd,
-                                           standardDeviationEllipsisNbPoints)
+    def getStandardDeviationEllipsis(latCenter: Double, lonCenter: Double, latStd: Double, lonStd: Double) = {
+      GeoTool.getStandardDeviationEllipsis(latCenter, lonCenter, latStd, lonStd, standardDeviationEllipsisNbPoints)
     }
     spark.udf.register("getStandardDeviationEllipsis", getStandardDeviationEllipsis _)
 

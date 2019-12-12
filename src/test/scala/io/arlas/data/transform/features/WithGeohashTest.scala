@@ -2,12 +2,13 @@ package io.arlas.data.transform.features
 
 import io.arlas.data.sql._
 import io.arlas.data.transform.ArlasTest
-import org.apache.spark.sql.types.{ArrayType, StringType}
-import org.apache.spark.sql.functions._
 import io.arlas.data.transform.ArlasTestHelper._
+import io.arlas.data.transform.ArlasTransformerColumns._
+import org.apache.spark.sql.functions._
+import org.apache.spark.sql.types.{ArrayType, StringType}
+
 import scala.collection.immutable.ListMap
 import scala.collection.mutable
-import io.arlas.data.transform.ArlasTransformerColumns._
 
 class WithGeohashTest extends ArlasTest {
 

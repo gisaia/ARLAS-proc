@@ -31,8 +31,7 @@ class WithSupportValues(
     supportValueMaxNumberInGap: Int,
     irregularTempo: String,
     distanceColumn: String
-) extends ArlasTransformer(
-      Vector(arlasTrackDuration, supportColumn, arlasTempoColumn, distanceColumn)) {
+) extends ArlasTransformer(Vector(arlasTrackDuration, supportColumn, arlasTempoColumn, distanceColumn)) {
 
   override def transform(dataset: Dataset[_]): DataFrame = {
 

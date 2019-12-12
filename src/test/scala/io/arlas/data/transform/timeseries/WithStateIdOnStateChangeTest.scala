@@ -19,12 +19,13 @@
 
 package io.arlas.data.transform.timeseries
 
-import io.arlas.data.transform.ArlasTest
-import io.arlas.data.transform.ArlasTransformerColumns._
 import io.arlas.data.sql._
-import org.apache.spark.sql.types.{LongType, StringType}
-import scala.collection.immutable.ListMap
+import io.arlas.data.transform.ArlasTest
 import io.arlas.data.transform.ArlasTestHelper._
+import io.arlas.data.transform.ArlasTransformerColumns._
+import org.apache.spark.sql.types.{LongType, StringType}
+
+import scala.collection.immutable.ListMap
 
 class WithStateIdOnStateChangeTest extends ArlasTest {
 
@@ -52,8 +53,7 @@ class WithStateIdOnStateChangeTest extends ArlasTest {
 
     val expectedDF = testDF.withColumnRenamed("expected_state_id", "state_id")
 
-    val transformedDF = baseDF.enrichWithArlas(
-      new WithStateIdOnStateChange(dataModel, "state", arlasTimestampColumn, "state_id"))
+    val transformedDF = baseDF.enrichWithArlas(new WithStateIdOnStateChange(dataModel, "state", arlasTimestampColumn, "state_id"))
 
     assertDataFrameEquality(transformedDF, expectedDF)
   }

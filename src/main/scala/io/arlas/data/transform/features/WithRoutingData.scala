@@ -6,10 +6,10 @@ import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import io.arlas.data.app.ArlasProcConfig
 import io.arlas.data.transform.ArlasTransformer
 import io.arlas.data.transform.ArlasTransformerColumns._
-import org.apache.spark.sql.types._
-import org.apache.spark.sql.{Column, DataFrame, Dataset}
 import io.arlas.data.utils.{GeoTool, RestTool}
 import org.apache.spark.sql.functions._
+import org.apache.spark.sql.types._
+import org.apache.spark.sql.{Column, DataFrame, Dataset}
 
 /**
   * Extract routing data from a trail.
@@ -20,8 +20,7 @@ import org.apache.spark.sql.functions._
   * @param trailColumn input trail column
   * @param conditionColumn if provided, only rows whose value of conditionColumn is "true" are processed
   */
-class WithRoutingData(trailColumn: String, conditionColumn: Option[String] = None)
-    extends ArlasTransformer(Vector(trailColumn)) {
+class WithRoutingData(trailColumn: String, conditionColumn: Option[String] = None) extends ArlasTransformer(Vector(trailColumn)) {
 
   @transient lazy val MAPPER = new ObjectMapper().registerModule(DefaultScalaModule)
 
@@ -40,8 +39,7 @@ class WithRoutingData(trailColumn: String, conditionColumn: Option[String] = Non
           .map(
             res =>
               RoutingResult(
-                GeoTool.listOfCoordsToLineString(res.paths.head.points.coordinates.map(c =>
-                  (c(0), c(1)))),
+                GeoTool.listOfCoordsToLineString(res.paths.head.points.coordinates.map(c => (c(0), c(1)))),
                 Some(res.paths.head.distance),
                 Some(res.paths.head.time)
             ))
@@ -52,13 +50,10 @@ class WithRoutingData(trailColumn: String, conditionColumn: Option[String] = Non
 
   override def transform(dataset: Dataset[_]): DataFrame = {
     dataset
-      .withColumn(tmpRoutingColumn,
-                  explode(array(whenConditionOtherwise(getTrailRefinedUDF(col(trailColumn))))))
+      .withColumn(tmpRoutingColumn, explode(array(whenConditionOtherwise(getTrailRefinedUDF(col(trailColumn))))))
       .withColumn(arlasTrackRoutingTrailRefined,
-                  whenConditionOtherwise(col(tmpRoutingColumn + "." + tmpTrailRefinedColumn),
-                                         col(trailColumn)))
-      .withColumn(arlasTrackRoutingDistance,
-                  whenConditionOtherwise(col(tmpRoutingColumn + "." + tmpDistanceColumn)))
+                  whenConditionOtherwise(col(tmpRoutingColumn + "." + tmpTrailRefinedColumn), col(trailColumn)))
+      .withColumn(arlasTrackRoutingDistance, whenConditionOtherwise(col(tmpRoutingColumn + "." + tmpDistanceColumn)))
       .withColumn(
         //duration in seconds
         arlasTrackRoutingDuration,
@@ -84,9 +79,7 @@ class WithRoutingData(trailColumn: String, conditionColumn: Option[String] = Non
 
 }
 
-case class RoutingResult(trail_refined: Option[String] = None,
-                         distance: Option[Double] = None,
-                         duration: Option[Long] = None)
+case class RoutingResult(trail_refined: Option[String] = None, distance: Option[Double] = None, duration: Option[Long] = None)
 
 @JsonIgnoreProperties(ignoreUnknown = true) case class Route(@JsonProperty paths: Array[Path])
 @JsonIgnoreProperties(ignoreUnknown = true) case class Path(
@@ -94,5 +87,4 @@ case class RoutingResult(trail_refined: Option[String] = None,
     @JsonProperty distance: Double,
     @JsonProperty time: Long
 )
-@JsonIgnoreProperties(ignoreUnknown = true) case class Points(
-    @JsonProperty coordinates: Array[Array[Double]])
+@JsonIgnoreProperties(ignoreUnknown = true) case class Points(@JsonProperty coordinates: Array[Array[Double]])

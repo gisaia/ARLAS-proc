@@ -44,9 +44,7 @@ class WithDurationFromId(idColumn: String, durationColumn: String)
 
     dataset
       .toDF()
-      .withColumn(
-        durationColumn,
-        last(arlasTrackTimestampEnd).over(window) - first(arlasTrackTimestampStart).over(window))
+      .withColumn(durationColumn, last(arlasTrackTimestampEnd).over(window) - first(arlasTrackTimestampStart).over(window))
   }
 
   override def transformSchema(schema: StructType): StructType = {

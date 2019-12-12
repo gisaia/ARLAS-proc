@@ -35,10 +35,7 @@ import org.apache.spark.sql.{Column, DataFrame, Dataset}
   * For example, if you expect the rows to have the same state_id for each consecutive row with the same state,
   * you should return a 'true' at each state change.
   */
-class WithStateId(dataModel: DataModel,
-                  orderColumn: String,
-                  targetIdColumn: String,
-                  isNewIdColumn: Column)
+class WithStateId(dataModel: DataModel, orderColumn: String, targetIdColumn: String, isNewIdColumn: Column)
     extends ArlasTransformer(Vector(orderColumn, dataModel.idColumn)) {
 
   override def transform(dataset: Dataset[_]): DataFrame = {
@@ -48,9 +45,7 @@ class WithStateId(dataModel: DataModel,
     dataset
       .toDF()
       .withColumn("is_new_id", isNewIdColumn)
-      .withColumn("temp_id",
-                  when(col("is_new_id").equalTo(true),
-                       concat(col(dataModel.idColumn), lit("#"), col(orderColumn))))
+      .withColumn("temp_id", when(col("is_new_id").equalTo(true), concat(col(dataModel.idColumn), lit("#"), col(orderColumn))))
       .withColumn(targetIdColumn, last("temp_id", true).over(window))
       .drop("is_new_id", "temp_id")
   }

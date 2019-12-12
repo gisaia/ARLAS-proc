@@ -1,7 +1,9 @@
 package io.arlas.data.utils
 
 import java.net.{HttpURLConnection, URL, UnknownHostException}
+
 import org.slf4j.LoggerFactory
+
 import scala.util.{Failure, Try}
 
 object RestTool {
@@ -16,10 +18,7 @@ object RestTool {
     * @param requestMethod
     * @return
     */
-  def get(url: String,
-          connectTimeout: Int = 60000,
-          readTimeout: Int = 60000,
-          requestMethod: String = "GET") =
+  def get(url: String, connectTimeout: Int = 60000, readTimeout: Int = 60000, requestMethod: String = "GET") =
     Try {
 
       val connection = (new URL(url)).openConnection.asInstanceOf[HttpURLConnection]
@@ -50,10 +49,7 @@ object RestTool {
     * @return
     */
   @throws[Exception]
-  def getOrFailOnNotAvailable(url: String,
-                              connectTimeout: Int = 60000,
-                              readTimeout: Int = 60000,
-                              requestMethod: String = "GET") = {
+  def getOrFailOnNotAvailable(url: String, connectTimeout: Int = 60000, readTimeout: Int = 60000, requestMethod: String = "GET") = {
 
     val tryGetContent = get(url, connectTimeout, readTimeout, requestMethod)
 

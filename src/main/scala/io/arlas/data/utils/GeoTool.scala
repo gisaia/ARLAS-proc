@@ -2,10 +2,9 @@ package io.arlas.data.utils
 
 import org.geotools.referencing.GeodeticCalculator
 import org.geotools.referencing.datum.DefaultEllipsoid
-import org.locationtech.jts.geom.{Coordinate, Geometry, GeometryFactory, LineString, PrecisionModel}
+import org.locationtech.jts.geom._
 import org.locationtech.jts.io.{WKTReader, WKTWriter}
 
-import org.slf4j.LoggerFactory
 import scala.collection.immutable
 
 object GeoTool {
@@ -16,16 +15,13 @@ object GeoTool {
 
   private val GEOHASH_BITS = Array(16, 8, 4, 2, 1)
   private val GEOHASH_BASE_32 =
-    Array('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'j',
-      'k', 'm', 'n', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z') //note: this is sorted
+    Array('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'j', 'k', 'm', 'n', 'p', 'q', 'r', 's', 't',
+      'u', 'v', 'w', 'x', 'y', 'z') //note: this is sorted
 
   /**
     * Compute track geometry WKT between 2 geopoints (LineString)
     */
-  def getTrailBetween(prevLat: Double,
-                      prevLon: Double,
-                      lat: Double,
-                      lon: Double): Option[String] = {
+  def getTrailBetween(prevLat: Double, prevLon: Double, lat: Double, lon: Double): Option[String] = {
     Some((new WKTWriter()).write(getTrailGeometryBetween(prevLat, prevLon, lat, lon)))
   }
 
@@ -37,10 +33,7 @@ object GeoTool {
     * @param lon
     * @return
     */
-  def getBearingBetween(prevLat: Double,
-                        prevLon: Double,
-                        lat: Double,
-                        lon: Double): Option[Double] = {
+  def getBearingBetween(prevLat: Double, prevLon: Double, lat: Double, lon: Double): Option[Double] = {
     val geodesicCalculator = new GeodeticCalculator(DefaultEllipsoid.WGS84)
     geodesicCalculator.setStartingGeographicPoint(prevLon, prevLat)
     geodesicCalculator.setDestinationGeographicPoint(lon, lat)
@@ -49,11 +42,7 @@ object GeoTool {
     Some(((geodesicCalculator.getAzimuth % 360) + 360) % 360)
   }
 
-  def getStandardDeviationEllipsis(latCenter: Double,
-                                   lonCenter: Double,
-                                   latStd: Double,
-                                   lonStd: Double,
-                                   nbPoints: Int) = {
+  def getStandardDeviationEllipsis(latCenter: Double, lonCenter: Double, latStd: Double, lonStd: Double, nbPoints: Int) = {
     val deltaTeta = 2 * Math.PI / nbPoints
 
     //avoid an ellipsis with all points at same position
@@ -71,10 +60,7 @@ object GeoTool {
     Some(new WKTWriter().write(geometry))
   }
 
-  def getDistanceBetween(prevLat: Double,
-                         prevLon: Double,
-                         lat: Double,
-                         lon: Double): Option[Double] = {
+  def getDistanceBetween(prevLat: Double, prevLon: Double, lat: Double, lon: Double): Option[Double] = {
     val geodesicCalculator = new GeodeticCalculator(DefaultEllipsoid.WGS84)
     geodesicCalculator.setStartingGeographicPoint(prevLon, prevLat)
     geodesicCalculator.setDestinationGeographicPoint(lon, lat)
@@ -158,10 +144,7 @@ object GeoTool {
     geohash.toString
   }
 
-  private def getTrailGeometryBetween(prevLat: Double,
-                                      prevLon: Double,
-                                      lat: Double,
-                                      lon: Double): Geometry = {
+  private def getTrailGeometryBetween(prevLat: Double, prevLon: Double, lat: Double, lon: Double): Geometry = {
     val start = new Coordinate(prevLon, prevLat)
     val end = new Coordinate(lon, lat)
     if (start.equals2D(end)) {
@@ -224,9 +207,7 @@ object GeoTool {
     }
   }
 
-  def groupTrailsByConsecutiveValue[T](expectedValue: T,
-                                       values: Array[T],
-                                       trails: Array[String]) = {
+  def groupTrailsByConsecutiveValue[T](expectedValue: T, values: Array[T], trails: Array[String]) = {
 
     if (values.size != trails.size) {
       None
@@ -288,10 +269,6 @@ object GeoTool {
   def scaleDouble(double: Double, scale: Int) =
     BigDecimal(double).setScale(scale, BigDecimal.RoundingMode.HALF_UP).toDouble
 
-  case class TrailData(trail: String,
-                       departureLat: Double,
-                       departureLon: Double,
-                       arrivalLat: Double,
-                       arrivalLon: Double)
+  case class TrailData(trail: String, departureLat: Double, departureLon: Double, arrivalLat: Double, arrivalLon: Double)
 
 }

@@ -19,8 +19,8 @@
 
 package io.arlas.data.transform.ml
 
-import io.arlas.data.sql._
 import io.arlas.data.model.MLModelLocal
+import io.arlas.data.sql._
 import io.arlas.data.transform.ArlasTest
 import io.arlas.data.transform.ArlasTransformerColumns._
 import org.apache.spark.sql.functions._
@@ -62,11 +62,7 @@ class HmmProcessorTest extends ArlasTest {
       intercept[Exception] {
         baseDF
           .enrichWithArlas(
-            new HmmProcessor("notExisting",
-                             movingStateModel,
-                             partitionColumn,
-                             arlasMovingStateColumn,
-                             5000)
+            new HmmProcessor("notExisting", movingStateModel, partitionColumn, arlasMovingStateColumn, 5000)
           )
       }
 
@@ -107,12 +103,7 @@ class HmmProcessorTest extends ArlasTest {
     val transformedDF = baseDF
     //avoid natural ordering to ensure that hmm doesn't depend on initial order
       .sort(dataModel.latColumn, dataModel.lonColumn)
-      .enrichWithArlas(
-        new HmmProcessor(speedColumn,
-                         movingStateModel,
-                         partitionColumn,
-                         arlasMovingStateColumn,
-                         5000))
+      .enrichWithArlas(new HmmProcessor(speedColumn, movingStateModel, partitionColumn, arlasMovingStateColumn, 5000))
 
     assertDataFrameEquality(transformedDF, expectedDF)
   }
@@ -124,12 +115,7 @@ class HmmProcessorTest extends ArlasTest {
     val expectedDF = testDF.withColumnRenamed(expectedMovingStateColumn, arlasMovingStateColumn)
 
     val transformedDF = baseDF
-      .enrichWithArlas(
-        new HmmProcessor(speedColumn,
-                         movingStateModel,
-                         partitionColumn,
-                         arlasMovingStateColumn,
-                         30))
+      .enrichWithArlas(new HmmProcessor(speedColumn, movingStateModel, partitionColumn, arlasMovingStateColumn, 30))
 
     assertDataFrameEquality(transformedDF, expectedDF)
   }
@@ -140,12 +126,7 @@ class HmmProcessorTest extends ArlasTest {
 
     val transformedDF = baseDF
       .withColumn(speedColumn, array(col(speedColumn)))
-      .enrichWithArlas(
-        new HmmProcessor(speedColumn,
-                         movingStateModel,
-                         partitionColumn,
-                         arlasMovingStateColumn,
-                         30))
+      .enrichWithArlas(new HmmProcessor(speedColumn, movingStateModel, partitionColumn, arlasMovingStateColumn, 30))
 
     //not compare speedColumn that is either a Double or Array[Double]
     assertDataFrameEquality(transformedDF.drop(speedColumn), expectedDF.drop(speedColumn))
@@ -165,12 +146,7 @@ class HmmProcessorTest extends ArlasTest {
              lit(Array(5.1, 5.1)))
           .otherwise(array(col(speedColumn)))
       )
-      .enrichWithArlas(
-        new HmmProcessor(speedColumn,
-                         movingStateModel,
-                         partitionColumn,
-                         arlasMovingStateColumn,
-                         30))
+      .enrichWithArlas(new HmmProcessor(speedColumn, movingStateModel, partitionColumn, arlasMovingStateColumn, 30))
 
     //not compare speedColumn that is either a Double or Array[Double]
     assertDataFrameEquality(transformedDF.drop(speedColumn), expectedDF.drop(speedColumn))

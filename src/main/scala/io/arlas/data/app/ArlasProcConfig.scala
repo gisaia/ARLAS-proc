@@ -16,11 +16,7 @@ object ArlasProcConfig {
     s"${GEODATA_BASE_PATH}/reverse.php?format=json&lat=%2f&lon=%2f&zoom=${zoomLevel}"
       .formatLocal(DEFAULT_LOCALE, lat, lon)
 
-  val getCloudsmithModelUrl = (token: String,
-                               repo: String,
-                               version: String,
-                               project: String,
-                               model: String) =>
+  val getCloudsmithModelUrl = (token: String, repo: String, version: String, project: String, model: String) =>
     s"${CLOUDSMITH_BASE_PATH}/${token}/${repo}/raw/versions/${version}/io.arlas.ml.models.${project}.${model}"
 
   val getRefineTrailUrl = (trail: String) => {

@@ -1,11 +1,12 @@
 package io.arlas.data.transform.features
 
-import io.arlas.data.transform.{ArlasMockServer, ArlasTest}
-import org.apache.spark.sql.types.{DoubleType, StringType}
 import io.arlas.data.sql._
-import org.apache.spark.sql.functions._
-import scala.collection.immutable.ListMap
 import io.arlas.data.transform.ArlasTestHelper._
+import io.arlas.data.transform.{ArlasMockServer, ArlasTest}
+import org.apache.spark.sql.functions._
+import org.apache.spark.sql.types.{DoubleType, StringType}
+
+import scala.collection.immutable.ListMap
 
 class WithGeoDataTest extends ArlasTest with ArlasMockServer {
 
@@ -25,35 +26,15 @@ class WithGeoDataTest extends ArlasTest with ArlasMockServer {
     createDataFrameWithTypes(
       spark,
       List(
-        Seq("id1",
-            43.636883,
-            1.373484,
-            "Blagnac",
-            "Toulouse",
-            "Occitanie",
-            "France",
-            "fr",
-            "31700"),
-        Seq("id2",
-            44.636883,
-            2.373484,
-            "Conques-en-Rouergue",
-            "Rodez",
-            "Occitanie",
-            "France",
-            "fr",
-            "12320"),
+        Seq("id1", 43.636883, 1.373484, "Blagnac", "Toulouse", "Occitanie", "France", "fr", "31700"),
+        Seq("id2", 44.636883, 2.373484, "Conques-en-Rouergue", "Rodez", "Occitanie", "France", "fr", "12320"),
         Seq("id3", 41.270568, 6.670123, null, null, null, null, null, null)
       ),
       testSchemaFields
     )
 
-  val baseDF = testDF.drop("expected_city",
-                           "expected_county",
-                           "expected_state",
-                           "expected_country",
-                           "expected_country_code",
-                           "expected_postcode")
+  val baseDF =
+    testDF.drop("expected_city", "expected_county", "expected_state", "expected_country", "expected_country_code", "expected_postcode")
 
   val addressColumnsPrefix = "address_"
   val cityColumn = addressColumnsPrefix + "city"
@@ -80,32 +61,20 @@ class WithGeoDataTest extends ArlasTest with ArlasMockServer {
   "WithGeoData" should "get GeoData when a 'null' condition is true" in {
 
     val expectedDF = testDF
-      .withColumn(cityColumn,
-                  when(col("id").equalTo("id2"), col("expected_city")).otherwise(lit(null)))
-      .withColumn(countyColumn,
-                  when(col("id").equalTo("id2"), col("expected_county")).otherwise(lit(null)))
-      .withColumn(stateColumn,
-                  when(col("id").equalTo("id2"), col("expected_state")).otherwise(lit(null)))
-      .withColumn(countryColumn,
-                  when(col("id").equalTo("id2"), col("expected_country")).otherwise(lit(null)))
-      .withColumn(countryCodeColumn,
-                  when(col("id").equalTo("id2"), col("expected_country_code")).otherwise(lit(null)))
-      .withColumn(postcodeColumn,
-                  when(col("id").equalTo("id2"), col("expected_postcode")).otherwise(lit(null)))
-      .drop("expected_city",
-            "expected_county",
-            "expected_state",
-            "expected_country",
-            "expected_country_code",
-            "expected_postcode")
+      .withColumn(cityColumn, when(col("id").equalTo("id2"), col("expected_city")).otherwise(lit(null)))
+      .withColumn(countyColumn, when(col("id").equalTo("id2"), col("expected_county")).otherwise(lit(null)))
+      .withColumn(stateColumn, when(col("id").equalTo("id2"), col("expected_state")).otherwise(lit(null)))
+      .withColumn(countryColumn, when(col("id").equalTo("id2"), col("expected_country")).otherwise(lit(null)))
+      .withColumn(countryCodeColumn, when(col("id").equalTo("id2"), col("expected_country_code")).otherwise(lit(null)))
+      .withColumn(postcodeColumn, when(col("id").equalTo("id2"), col("expected_postcode")).otherwise(lit(null)))
+      .drop("expected_city", "expected_county", "expected_state", "expected_country", "expected_country_code", "expected_postcode")
 
     //set "id (row with id2) = null" and get address with condition "id = null"
     val transformedDF =
       baseDF
         .withColumn("id", when(col("id").equalTo("id2"), lit(null)).otherwise(col("id")))
         .withColumn("do_get_address", col("id").isNull)
-        .enrichWithArlas(
-          new WithGeoData("lat", "lon", addressColumnsPrefix, Some("do_get_address")))
+        .enrichWithArlas(new WithGeoData("lat", "lon", addressColumnsPrefix, Some("do_get_address")))
         .withColumn("id", when(col("id") isNull, lit("id2")).otherwise(col("id")))
         .drop("do_get_address")
     assertDataFrameEquality(transformedDF, expectedDF)
@@ -114,30 +83,18 @@ class WithGeoDataTest extends ArlasTest with ArlasMockServer {
   "WithGeoData" should "get GeoData when a 'equals value' condition is true" in {
 
     val expectedDF = testDF
-      .withColumn(cityColumn,
-                  when(col("id").equalTo("id2"), col("expected_city")).otherwise(lit(null)))
-      .withColumn(countyColumn,
-                  when(col("id").equalTo("id2"), col("expected_county")).otherwise(lit(null)))
-      .withColumn(stateColumn,
-                  when(col("id").equalTo("id2"), col("expected_state")).otherwise(lit(null)))
-      .withColumn(countryColumn,
-                  when(col("id").equalTo("id2"), col("expected_country")).otherwise(lit(null)))
-      .withColumn(countryCodeColumn,
-                  when(col("id").equalTo("id2"), col("expected_country_code")).otherwise(lit(null)))
-      .withColumn(postcodeColumn,
-                  when(col("id").equalTo("id2"), col("expected_postcode")).otherwise(lit(null)))
-      .drop("expected_city",
-            "expected_county",
-            "expected_state",
-            "expected_country",
-            "expected_country_code",
-            "expected_postcode")
+      .withColumn(cityColumn, when(col("id").equalTo("id2"), col("expected_city")).otherwise(lit(null)))
+      .withColumn(countyColumn, when(col("id").equalTo("id2"), col("expected_county")).otherwise(lit(null)))
+      .withColumn(stateColumn, when(col("id").equalTo("id2"), col("expected_state")).otherwise(lit(null)))
+      .withColumn(countryColumn, when(col("id").equalTo("id2"), col("expected_country")).otherwise(lit(null)))
+      .withColumn(countryCodeColumn, when(col("id").equalTo("id2"), col("expected_country_code")).otherwise(lit(null)))
+      .withColumn(postcodeColumn, when(col("id").equalTo("id2"), col("expected_postcode")).otherwise(lit(null)))
+      .drop("expected_city", "expected_county", "expected_state", "expected_country", "expected_country_code", "expected_postcode")
 
     val transformedDF =
       baseDF
         .withColumn("do_get_address", col("lat").equalTo("44.636883"))
-        .enrichWithArlas(
-          new WithGeoData("lat", "lon", addressColumnsPrefix, Some("do_get_address")))
+        .enrichWithArlas(new WithGeoData("lat", "lon", addressColumnsPrefix, Some("do_get_address")))
         .drop("do_get_address")
     assertDataFrameEquality(transformedDF, expectedDF)
   }
@@ -155,24 +112,13 @@ class WithGeoDataTest extends ArlasTest with ArlasMockServer {
     //before transformation, only id2 has an address. Then we get geo data for id1
     val transformedDF = testDF
       .withColumn("do_get_address", col("id").equalTo("id1"))
-      .withColumn(cityColumn,
-                  when(col("id").equalTo("id2"), col("expected_city")).otherwise(lit(null)))
-      .withColumn(countyColumn,
-                  when(col("id").equalTo("id2"), col("expected_county")).otherwise(lit(null)))
-      .withColumn(stateColumn,
-                  when(col("id").equalTo("id2"), col("expected_state")).otherwise(lit(null)))
-      .withColumn(countryColumn,
-                  when(col("id").equalTo("id2"), col("expected_country")).otherwise(lit(null)))
-      .withColumn(countryCodeColumn,
-                  when(col("id").equalTo("id2"), col("expected_country_code")).otherwise(lit(null)))
-      .withColumn(postcodeColumn,
-                  when(col("id").equalTo("id2"), col("expected_postcode")).otherwise(lit(null)))
-      .drop("expected_city",
-            "expected_county",
-            "expected_state",
-            "expected_country",
-            "expected_country_code",
-            "expected_postcode")
+      .withColumn(cityColumn, when(col("id").equalTo("id2"), col("expected_city")).otherwise(lit(null)))
+      .withColumn(countyColumn, when(col("id").equalTo("id2"), col("expected_county")).otherwise(lit(null)))
+      .withColumn(stateColumn, when(col("id").equalTo("id2"), col("expected_state")).otherwise(lit(null)))
+      .withColumn(countryColumn, when(col("id").equalTo("id2"), col("expected_country")).otherwise(lit(null)))
+      .withColumn(countryCodeColumn, when(col("id").equalTo("id2"), col("expected_country_code")).otherwise(lit(null)))
+      .withColumn(postcodeColumn, when(col("id").equalTo("id2"), col("expected_postcode")).otherwise(lit(null)))
+      .drop("expected_city", "expected_county", "expected_state", "expected_country", "expected_country_code", "expected_postcode")
       .enrichWithArlas(new WithGeoData("lat", "lon", addressColumnsPrefix, Some("do_get_address")))
       .drop("do_get_address")
     assertDataFrameEquality(transformedDF, expectedDF)
@@ -182,18 +128,12 @@ class WithGeoDataTest extends ArlasTest with ArlasMockServer {
 
     val expectedDF = createDataFrameWithTypes(
       spark,
-      List(
-        Seq("id1", 43.636883, 0.000932, "Tasque", "Mirande", "Occitanie", "France", "fr", "32160")),
+      List(Seq("id1", 43.636883, 0.000932, "Tasque", "Mirande", "Occitanie", "France", "fr", "32160")),
       testSchemaFields
     )
 
     val transformedDF = expectedDF
-      .drop("expected_city",
-            "expected_county",
-            "expected_state",
-            "expected_country",
-            "expected_country_code",
-            "expected_postcode")
+      .drop("expected_city", "expected_county", "expected_state", "expected_country", "expected_country_code", "expected_postcode")
       .enrichWithArlas(new WithGeoData("lat", "lon", "expected_"))
 
     assertDataFrameEquality(transformedDF, expectedDF)

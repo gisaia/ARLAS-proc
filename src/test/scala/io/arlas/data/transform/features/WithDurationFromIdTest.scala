@@ -21,10 +21,11 @@ package io.arlas.data.transform.features
 
 import io.arlas.data.sql._
 import io.arlas.data.transform.ArlasTest
+import io.arlas.data.transform.ArlasTestHelper._
 import io.arlas.data.transform.ArlasTransformerColumns._
 import org.apache.spark.sql.types.{IntegerType, StringType}
+
 import scala.collection.immutable.ListMap
-import io.arlas.data.transform.ArlasTestHelper._
 
 class WithDurationFromIdTest extends ArlasTest {
 

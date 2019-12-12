@@ -28,11 +28,7 @@ class DataFrameReader {
     readFromCsv(spark, delimiter, true, None, sources: _*)
   }
 
-  def readFromCsv(spark: SparkSession,
-                  delimiter: String,
-                  header: Boolean,
-                  schema: Option[StructType],
-                  sources: String*): DataFrame = {
+  def readFromCsv(spark: SparkSession, delimiter: String, header: Boolean, schema: Option[StructType], sources: String*): DataFrame = {
     val dfReader = spark.read
       .option("header", header.toString)
       .option("delimiter", delimiter)

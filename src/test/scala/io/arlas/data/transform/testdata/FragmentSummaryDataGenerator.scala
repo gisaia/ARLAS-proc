@@ -1,29 +1,27 @@
 package io.arlas.data.transform.testdata
 import io.arlas.data.model.DataModel
-import io.arlas.data.transform.ArlasTestHelper.{mean, stdDev}
+import io.arlas.data.transform.ArlasTestHelper.{mean, stdDev, _}
 import io.arlas.data.transform.ArlasTransformerColumns.{arlasTempoColumn, _}
 import io.arlas.data.utils.GeoTool
 import org.apache.spark.sql.catalyst.expressions.GenericRowWithSchema
 import org.apache.spark.sql.types.{StructField, StructType}
 import org.apache.spark.sql.{DataFrame, Row, SparkSession}
-import io.arlas.data.transform.ArlasTestHelper._
 
 import scala.collection.immutable.ListMap
 
-class FragmentSummaryDataGenerator(
-    spark: SparkSession,
-    baseDF: DataFrame,
-    dataModel: DataModel,
-    speedColumn: String,
-    tempoProportionsColumns: Map[String, String],
-    tempoIrregular: String,
-    standardDeviationEllipsisNbPoints: Int,
-    aggregationColumn: String,
-    aggregationCondition: (String, String),
-    aggregationColumns: Seq[StructField],
-    afterTransformColumns: Seq[StructField],
-    additionalAggregations: (ListMap[String, Any], Array[Row]) => ListMap[String, Any],
-    afterTransform: (Seq[Row], StructType) => Seq[Row] = (rows, schema) => rows)
+class FragmentSummaryDataGenerator(spark: SparkSession,
+                                   baseDF: DataFrame,
+                                   dataModel: DataModel,
+                                   speedColumn: String,
+                                   tempoProportionsColumns: Map[String, String],
+                                   tempoIrregular: String,
+                                   standardDeviationEllipsisNbPoints: Int,
+                                   aggregationColumn: String,
+                                   aggregationCondition: (String, String),
+                                   aggregationColumns: Seq[StructField],
+                                   afterTransformColumns: Seq[StructField],
+                                   additionalAggregations: (ListMap[String, Any], Array[Row]) => ListMap[String, Any],
+                                   afterTransform: (Seq[Row], StructType) => Seq[Row] = (rows, schema) => rows)
     extends TestDataGenerator {
 
   override def get(): DataFrame = {
@@ -91,11 +89,9 @@ class FragmentSummaryDataGenerator(
     val duration = getWindowLongs(arlasTrackDuration).sum
 
     val precisionValueLat =
-      scaleDouble(stdDev(getWindowDoubles(arlasTrackLocationLat)),
-                  GeoTool.LOCATION_PRECISION_DIGITS)
+      scaleDouble(stdDev(getWindowDoubles(arlasTrackLocationLat)), GeoTool.LOCATION_PRECISION_DIGITS)
     val precisionValueLon =
-      scaleDouble(stdDev(getWindowDoubles(arlasTrackLocationLon)),
-                  GeoTool.LOCATION_PRECISION_DIGITS)
+      scaleDouble(stdDev(getWindowDoubles(arlasTrackLocationLon)), GeoTool.LOCATION_PRECISION_DIGITS)
     val locationLat =
       scaleDouble(mean(getWindowDoubles(arlasTrackLocationLat)), GeoTool.LOCATION_DIGITS)
     val locationLon =
@@ -107,11 +103,7 @@ class FragmentSummaryDataGenerator(
     val trackId = objectId + "#" + timestampStart + "_" + timestampEnd
     val precisionGeometry =
       GeoTool
-        .getStandardDeviationEllipsis(locationLat,
-                                      locationLon,
-                                      precisionValueLat,
-                                      precisionValueLon,
-                                      standardDeviationEllipsisNbPoints)
+        .getStandardDeviationEllipsis(locationLat, locationLon, precisionValueLat, precisionValueLon, standardDeviationEllipsisNbPoints)
         .get
 
     val tempoProportions = sortedRows
@@ -188,9 +180,7 @@ class FragmentSummaryDataGenerator(
 
     val withAdditionalAggregationData = additionalAggregations(fragmentSummaryData, sortedRows)
 
-    Seq(
-      new GenericRowWithSchema(withAdditionalAggregationData.values.toArray,
-                               getSchemaWithColumns(baseDF, aggregationColumns)))
+    Seq(new GenericRowWithSchema(withAdditionalAggregationData.values.toArray, getSchemaWithColumns(baseDF, aggregationColumns)))
   }
 
   def getSchemaWithColumns(baseDF: DataFrame, columns: Seq[StructField]) =
