@@ -23,7 +23,8 @@ import io.arlas.data.model.DataModel
 import io.arlas.data.transform.ArlasTransformerColumns._
 import io.arlas.data.transform.DataFrameException
 import io.arlas.data.utils.CassandraTool
-import org.apache.spark.sql.functions.{col, concat, lit, struct}
+import org.apache.spark.sql.functions._
+import org.apache.spark.sql.types.ArrayType
 import org.apache.spark.sql.{Column, DataFrame, SaveMode, SparkSession}
 import org.elasticsearch.spark.sql._
 
@@ -114,6 +115,25 @@ class WritableDataFrame(df: DataFrame) extends TransformableDataFrame(df) with C
       .options(Map("keyspace" -> targetKeyspace, "table" -> targetTable))
       .mode(SaveMode.Append)
       .save()
+  }
+
+  def writeToCsv(target: String, delimiter: String = ";", toSingleFile: Boolean = true) = {
+
+    val coalescedDF = if (toSingleFile) df.coalesce(1) else df
+
+    //stringify array columns
+    val arrayColumns = df.schema.fields.filter(_.dataType.isInstanceOf[ArrayType]).map(_.name)
+    val withoutArrayDF = arrayColumns.foldLeft(coalescedDF) {
+      case (df, c) => {
+        df.withColumn(c, concat(lit("["), concat_ws(",", col(c)), lit("]")))
+      }
+    }
+
+    withoutArrayDF.write
+      .format("com.databricks.spark.csv")
+      .option("header", "true")
+      .option("delimiter", delimiter)
+      .save(target)
   }
 
 }
