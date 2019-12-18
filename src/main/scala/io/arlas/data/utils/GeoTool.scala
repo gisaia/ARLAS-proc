@@ -4,7 +4,6 @@ import org.geotools.referencing.GeodeticCalculator
 import org.geotools.referencing.datum.DefaultEllipsoid
 import org.locationtech.jts.geom._
 import org.locationtech.jts.io.{WKTReader, WKTWriter}
-
 import scala.collection.immutable
 
 object GeoTool {
@@ -13,10 +12,15 @@ object GeoTool {
   val LOCATION_PRECISION_DIGITS = 12
   val ELLIPSIS_DEFAULT_STANDARD_DEVIATION = Math.pow(10.0, -4.0)
 
+  //instantiate some geotools objects as constant to avoid unnecessry memory footprint
+  //these are supposed to be thread safe; to the contrary GeodeticCalculator isn't (so it is re-instantiated when needed)
+  val GEOMETRY_FACTORY = new GeometryFactory(new PrecisionModel(Math.pow(10, LOCATION_DIGITS)), 4326)
+  val WKT_READER = new WKTReader(GEOMETRY_FACTORY)
+  val WKT_WRITER = new WKTWriter()
+
   private val GEOHASH_BITS = Array(16, 8, 4, 2, 1)
-  private val GEOHASH_BASE_32 =
-    Array('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'j', 'k', 'm', 'n', 'p', 'q', 'r', 's', 't',
-      'u', 'v', 'w', 'x', 'y', 'z') //note: this is sorted
+  private val GEOHASH_BASE_32 = Array('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'j', 'k', 'm',
+    'n', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z') //note: this is sorted
 
   /**
     * Compute track geometry WKT between 2 geopoints (LineString)
@@ -34,12 +38,12 @@ object GeoTool {
     * @return
     */
   def getBearingBetween(prevLat: Double, prevLon: Double, lat: Double, lon: Double): Option[Double] = {
-    val geodesicCalculator = new GeodeticCalculator(DefaultEllipsoid.WGS84)
-    geodesicCalculator.setStartingGeographicPoint(prevLon, prevLat)
-    geodesicCalculator.setDestinationGeographicPoint(lon, lat)
+    val geodeticCalculator = new GeodeticCalculator(DefaultEllipsoid.WGS84)
+    geodeticCalculator.setStartingGeographicPoint(prevLon, prevLat)
+    geodeticCalculator.setDestinationGeographicPoint(lon, lat)
     //azimuth is between -180 and +180, but is expected between 0 and 360
     //unlike Python, scala keeps the sign of the dividend, we need to bypass it
-    Some(((geodesicCalculator.getAzimuth % 360) + 360) % 360)
+    Some(((geodeticCalculator.getAzimuth % 360) + 360) % 360)
   }
 
   def getStandardDeviationEllipsis(latCenter: Double, lonCenter: Double, latStd: Double, lonStd: Double, nbPoints: Int) = {
@@ -56,21 +60,20 @@ object GeoTool {
         new Coordinate(thetaLon, thetaLat)
       })
     val fCoords = coords :+ coords(0) //add first point at the end
-    val geometry = getNewGeometryFactory().createLineString(fCoords.toArray)
-    Some(new WKTWriter().write(geometry))
+    val geometry = GEOMETRY_FACTORY.createLineString(fCoords.toArray)
+    Some(WKT_WRITER.write(geometry))
   }
 
   def getDistanceBetween(prevLat: Double, prevLon: Double, lat: Double, lon: Double): Option[Double] = {
-    val geodesicCalculator = new GeodeticCalculator(DefaultEllipsoid.WGS84)
-    geodesicCalculator.setStartingGeographicPoint(prevLon, prevLat)
-    geodesicCalculator.setDestinationGeographicPoint(lon, lat)
-    Some(geodesicCalculator.getOrthodromicDistance)
+    val geodeticCalculator = new GeodeticCalculator(DefaultEllipsoid.WGS84)
+    geodeticCalculator.setStartingGeographicPoint(prevLon, prevLat)
+    geodeticCalculator.setDestinationGeographicPoint(lon, lat)
+    Some(geodeticCalculator.getOrthodromicDistance)
   }
 
   def getStraightLineDistanceFromTrails(trails: Array[String]): Option[Double] = {
     val nonNullTrails = trails.filterNot(_ == null)
-    val reader = new WKTReader()
-    val geometries: Seq[Coordinate] = nonNullTrails.flatMap(reader.read(_).getCoordinates)
+    val geometries: Seq[Coordinate] = nonNullTrails.flatMap(WKT_READER.read(_).getCoordinates)
     if (geometries.size > 1) {
       getDistanceBetween(geometries.head.y, geometries.head.x, geometries.last.y, geometries.last.x)
     } else Some(0.0)
@@ -81,9 +84,8 @@ object GeoTool {
     if (wkt == null || wkt.isEmpty) {
       Array()
     } else {
-      val factory = getNewGeometryFactory
-      val reader = new WKTReader(factory)
-      val trailGeometry = reader.read(wkt)
+
+      val trailGeometry = WKT_READER.read(wkt)
       trailGeometry.getCoordinates.map(c => (c.y, c.x))
     }
   }
@@ -93,8 +95,8 @@ object GeoTool {
       None
     } else {
       val geometry =
-        getNewGeometryFactory().createLineString(coords.map(c => new Coordinate(c._1, c._2)))
-      Some(new WKTWriter().write(geometry))
+        GEOMETRY_FACTORY.createLineString(coords.map(c => new Coordinate(c._1, c._2)))
+      Some(WKT_WRITER.write(geometry))
     }
   }
 
@@ -148,9 +150,9 @@ object GeoTool {
     val start = new Coordinate(prevLon, prevLat)
     val end = new Coordinate(lon, lat)
     if (start.equals2D(end)) {
-      getNewGeometryFactory().createPoint(start)
+      GEOMETRY_FACTORY.createPoint(start)
     } else {
-      getNewGeometryFactory().createLineString(Array(start, end))
+      GEOMETRY_FACTORY.createLineString(Array(start, end))
     }
   }
 
@@ -158,12 +160,10 @@ object GeoTool {
     if (trails.isEmpty) {
       None
     } else {
-      val factory = getNewGeometryFactory
-      val reader = new WKTReader(factory)
       val lineStrings: Seq[LineString] =
-        trails.map(reader.read(_).getCoordinates).map(factory.createLineString(_))
-      val multiLineString = factory.createMultiLineString(lineStrings.toArray)
-      Some(new WKTWriter().write(multiLineString))
+        trails.map(WKT_READER.read(_).getCoordinates).map(GEOMETRY_FACTORY.createLineString(_))
+      val multiLineString = GEOMETRY_FACTORY.createMultiLineString(lineStrings.toArray)
+      Some(WKT_WRITER.write(multiLineString))
     }
   }
 
@@ -175,12 +175,10 @@ object GeoTool {
     if (useTrail.size != trails.size || useTrail.size != latitudes.size || useTrail.size != longitudes.size) {
       None
     } else {
-      val factory = getNewGeometryFactory()
-      val reader = new WKTReader(factory)
 
       val coordinates: Seq[Coordinate] = useTrail.zipWithIndex.flatMap {
         case (state, index) => {
-          if (state == true) reader.read(trails(index)).getCoordinates.toSeq
+          if (state == true) WKT_READER.read(trails(index)).getCoordinates.toSeq
           //resume pauses to single points
           else Seq(new Coordinate(longitudes(index), latitudes(index)))
         }
@@ -189,10 +187,10 @@ object GeoTool {
 
       val geometry =
         if (withoutConsecutiveDuplicates.size == 1)
-          factory.createPoint(withoutConsecutiveDuplicates(0))
-        else factory.createLineString(withoutConsecutiveDuplicates.toArray)
+          GEOMETRY_FACTORY.createPoint(withoutConsecutiveDuplicates(0))
+        else GEOMETRY_FACTORY.createLineString(withoutConsecutiveDuplicates.toArray)
 
-      val trail = new WKTWriter().write(geometry)
+      val trail = WKT_WRITER.write(geometry)
       val departure = geometry.getCoordinates().head
       val arrival = geometry.getCoordinates().last
 
@@ -217,19 +215,17 @@ object GeoTool {
         groupConsecutiveValuesByCondition(expectedValue, Seq(values.zip(trails): _*))
       if (groupedTrails.isEmpty) None
       else {
-        val factory = getNewGeometryFactory()
-        val reader = new WKTReader(factory)
 
         val lineStrings: Seq[LineString] = groupedTrails.map(g => {
-          val coordinates = g.seq.flatMap(reader.read(_).getCoordinates)
+          val coordinates = g.seq.flatMap(WKT_READER.read(_).getCoordinates)
           val withoutConsecutiveDuplicates = removeConsecutiveDuplicatesCoords(coordinates.toList)
-          factory.createLineString(
+          GEOMETRY_FACTORY.createLineString(
             if (withoutConsecutiveDuplicates.size == 1) //if single point, create linestring with 2 times the same coordinates
               Array(withoutConsecutiveDuplicates(0), withoutConsecutiveDuplicates(0))
             else withoutConsecutiveDuplicates.toArray)
         })
-        val multiLineString = factory.createMultiLineString(lineStrings.toArray)
-        Some(new WKTWriter().write(multiLineString))
+        val multiLineString = GEOMETRY_FACTORY.createMultiLineString(lineStrings.toArray)
+        Some(WKT_WRITER.write(multiLineString))
       }
     }
   }
@@ -262,9 +258,6 @@ object GeoTool {
       case _ => resultWithAcc
     }
   }
-
-  private def getNewGeometryFactory() =
-    new GeometryFactory(new PrecisionModel(Math.pow(10, LOCATION_DIGITS)), 4326)
 
   def scaleDouble(double: Double, scale: Int) =
     BigDecimal(double).setScale(scale, BigDecimal.RoundingMode.HALF_UP).toDouble
