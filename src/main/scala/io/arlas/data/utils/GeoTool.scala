@@ -4,6 +4,8 @@ import org.geotools.referencing.GeodeticCalculator
 import org.geotools.referencing.datum.DefaultEllipsoid
 import org.locationtech.jts.geom._
 import org.locationtech.jts.io.{WKTReader, WKTWriter}
+import org.locationtech.jts.simplify.DouglasPeuckerSimplifier
+
 import scala.collection.immutable
 
 object GeoTool {
@@ -17,6 +19,7 @@ object GeoTool {
   val GEOMETRY_FACTORY = new GeometryFactory(new PrecisionModel(Math.pow(10, LOCATION_DIGITS)), 4326)
   val WKT_READER = new WKTReader(GEOMETRY_FACTORY)
   val WKT_WRITER = new WKTWriter()
+  val DEFAULT_SIMPLIFY_DISTANCE_TOLERANCE = 0.0002
 
   private val GEOHASH_BITS = Array(16, 8, 4, 2, 1)
   private val GEOHASH_BASE_32 = Array('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'j', 'k', 'm',
@@ -256,6 +259,18 @@ object GeoTool {
         else
           groupConsecutiveValuesByCondition(conditionalValue, tail, List(), resultWithAcc)
       case _ => resultWithAcc
+    }
+  }
+
+  def simplifyGeometry(geometry: String, distanceTolerance: Option[Double]): Option[String] = {
+    if (geometry == null || geometry == "") {
+      None
+
+    } else {
+      val simplified =
+        DouglasPeuckerSimplifier.simplify(WKT_READER.read(geometry), distanceTolerance.getOrElse(DEFAULT_SIMPLIFY_DISTANCE_TOLERANCE))
+
+      Some(WKT_WRITER.write(simplified))
     }
   }
 
