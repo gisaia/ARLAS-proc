@@ -27,12 +27,15 @@ import org.apache.spark.sql.expressions.Window
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types._
 
-class FragmentPseudoResampler(dataModel: DataModel,
-                              spark: SparkSession,
-                              aggregationColumnName: String,
-                              condition: Column,
-                              targetIdColumn: String,
-                              sampling: Long)
+/**
+  * Tag fragments of a same aggregation group with same arlasTrackSampleId
+  * so that their durations' sum approximates sampling duration when possible.
+  *
+  * @param dataModel the input Datamodel
+  * @param aggregationColumnName aggregation column to group fragments
+  * @param sampling target sampling duration for fragments
+  */
+class WithFragmentSampleId(dataModel: DataModel, spark: SparkSession, aggregationColumnName: String, sampling: Long)
     extends ArlasTransformer(Vector(arlasTrackTimestampCenter, arlasTrackDuration, aggregationColumnName)) {
 
   override def transform(dataset: Dataset[_]): DataFrame = {
@@ -42,10 +45,12 @@ class FragmentPseudoResampler(dataModel: DataModel,
       .orderBy(arlasTrackTimestampCenter)
 
     dataset.withColumn(
-      targetIdColumn,
+      arlasTrackSampleId,
       concat(
         col(aggregationColumnName),
         lit("_"),
+        // sample index = duration sum of preceding and current rows / sampling (common case)
+        //                - current row's duration / sampling (to fix fragments with duration > sampling case)
         floor((sum(arlasTrackDuration).over(window) - lit(1)) / lit(sampling))
           - floor((col(arlasTrackDuration) - lit(1)) / lit(sampling))
       )
@@ -55,6 +60,6 @@ class FragmentPseudoResampler(dataModel: DataModel,
 
   override def transformSchema(schema: StructType): StructType = {
     checkSchema(schema)
-      .add(StructField(targetIdColumn, StringType, true))
+      .add(StructField(arlasTrackSampleId, StringType, true))
   }
 }

@@ -194,6 +194,34 @@ trait ArlasTest extends FlatSpec with Matchers with TestSparkSession with DataFr
     standardDeviationEllipsisNbPoints
   ).get()
 
+  val getMovingFragmentSampleSummarizerBaseDF =
+    getStopPauseSummaryBaseDF
+      .withColumn(
+        arlasTempoColumn,
+        when(
+          lit(true),
+          when(col(arlasTrackDuration).between(0, 4), lit(tempo1s))
+            .when(col(arlasTrackDuration).between(5, 10), lit(tempo10s))
+            .when(col(arlasTrackDuration).between(11, 20), lit(tempo20s))
+            .when(col(arlasTrackDuration).geq(21), lit(tempoIrregular))
+            .otherwise(null)
+        )
+      )
+      .enrichWithArlas(
+        new WithFragmentVisibilityFromTempo(dataModel, spark, tempoIrregular),
+        new WithFragmentSampleId(dataModel, spark, arlasMotionIdColumn, 60l)
+      )
+
+  val movingFragmentSampleSummarizerDF = new MovingFragmentSampleSummarizerDataGenerator(
+    spark,
+    getMovingFragmentSampleSummarizerBaseDF,
+    dataModel,
+    speedColumn,
+    tempoProportionsColumns,
+    tempoIrregular,
+    standardDeviationEllipsisNbPoints
+  ).get()
+
   val courseExtractorBaseDF = stopPauseSummaryDF
     .withColumn(arlasTrackVisibilityProportion,
                 when(lit(true), when(col(tempoProportionIrregular).equalTo(1.0), lit(0.0)).otherwise(lit(1.0))))

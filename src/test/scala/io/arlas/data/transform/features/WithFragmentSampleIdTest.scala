@@ -29,9 +29,7 @@ import org.apache.spark.sql.types.{LongType, StringType}
 
 import scala.collection.immutable.ListMap
 
-class FragmentPseudoResamplerTest extends ArlasTest {
-
-  val arlasSubMotionIdColumn = "arlas_sub_motion_id"
+class WithFragmentSampleIdTest extends ArlasTest {
 
   val testDF = createDataFrameWithTypes(
     spark,
@@ -57,23 +55,17 @@ class FragmentPseudoResamplerTest extends ArlasTest {
       arlasMotionIdColumn -> (StringType, true),
       arlasTrackTimestampCenter -> (LongType, true),
       arlasTrackDuration -> (LongType, true),
-      arlasSubMotionIdColumn -> (StringType, true)
+      arlasTrackSampleId -> (StringType, true)
     )
   )
 
-  "FragmentPseudoResamplerTest withSubId transformation" should "resample fragments on a given tempo with best effort" in {
+  "WithFragmentSampleIdTest withSubId transformation" should "resample fragments on a given tempo with best effort" in {
 
     val expectedDF = testDF
 
     val transformedDF: DataFrame = testDF
-      .drop(arlasSubMotionIdColumn)
-      .enrichWithArlas(
-        new FragmentPseudoResampler(dataModel,
-                                    spark,
-                                    arlasMotionIdColumn,
-                                    col(arlasMovingStateColumn).equalTo(lit(ArlasMovingStates.MOVE)),
-                                    arlasSubMotionIdColumn,
-                                    10l))
+      .drop(arlasTrackSampleId)
+      .enrichWithArlas(new WithFragmentSampleId(dataModel, spark, arlasMotionIdColumn, 10l))
 
     assertDataFrameEquality(transformedDF, expectedDF)
   }

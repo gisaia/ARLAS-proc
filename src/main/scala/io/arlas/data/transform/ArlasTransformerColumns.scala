@@ -47,6 +47,7 @@ object ArlasTransformerColumns {
   // TRACK COLUMNS
   val arlasTrackPrefix = "arlas_track_"
   val arlasTrackId = arlasTrackPrefix + "id"
+  val arlasTrackSampleId = arlasTrackPrefix + "sample_id"
   val arlasTrackNbGeopoints = arlasTrackPrefix + "nb_geopoints"
   val arlasTrackTrail = arlasTrackPrefix + "trail"
   val arlasTrackTrailGeohashes = arlasTrackPrefix + "trail_geohashes"
