@@ -21,7 +21,7 @@ val scalaTest = "org.scalatest" %% "scalatest" % "2.2.5" % Test
 val wiremockStandalone = "com.github.tomakehurst" % "wiremock-standalone" % "2.25.1" % Test
 val tests = Seq(scalaTest, wiremockStandalone)
 
-val elasticSearch = "org.elasticsearch" %% "elasticsearch-spark-20" % "6.4.0" % "provided"
+val elasticSearch = "org.elasticsearch" %% "elasticsearch-spark-20" % "7.4.2" % "provided"
 val elastic = Seq(elasticSearch)
 
 val gtReferencing = "org.geotools" % "gt-referencing" % "20.1" % "provided"
