@@ -29,39 +29,9 @@ trait BasicApp[R <: RunOptions] {
   @transient lazy val logger = LoggerFactory.getLogger(this.getClass)
 
   def appArguments =
-    Seq("id",
-        "timestamp",
-        "timeformat",
-        "lat",
-        "lon",
-        "speed",
-        "distance",
-        "dynamic",
-        "warmingPeriod",
-        "endingPeriod",
-        "start",
-        "stop",
-        "source",
-        "target")
+    Map("start" -> "YYYY-MM-DDThh:mm:ss+00:00", "stop" -> "YYYY-MM-DDThh:mm:ss+00:00", "source" -> "String", "target" -> "String")
 
   def getName: String
-
-  val usage = s"""
-    Usage: ${this.getClass}
-              [--id string]
-              [--timestamp string]
-              [--lat string]
-              [--lon string]
-              [--speed string]
-              [--distance string]
-              [--dynamic coma,separated,string]
-              [--start YYYY-MM-DDThh:mm:ss+00:00]
-              [--stop YYYY-MM-DDThh:mm:ss+00:00]
-              [--warmingPeriod long]
-              [--endingPeriod long]
-              --source string
-              --target string
-  """
 
   def run(spark: SparkSession, dataModel: DataModel, runOptions: R): Unit
 
@@ -74,7 +44,11 @@ trait BasicApp[R <: RunOptions] {
 
   def main(args: Array[String]): Unit = {
 
-    if (args.length == 0) println(usage)
+    if (args.length == 0) {
+      println(s"""Usage: ${this.getClass}
+            | ${appArguments.map(arg => s"--${arg._1} ${arg._2}").mkString("""
+              |""".stripMargin)} """.stripMargin)
+    }
     val arglist = args.toList
     val options = getArgs(Map(), arglist)
     logger.info(s"""App arguments : \n${options}""")
@@ -92,9 +66,9 @@ trait BasicApp[R <: RunOptions] {
   def getArgs(map: ArgumentMap, list: List[String]): ArgumentMap = {
     list match {
       case Nil => map
-      case head :: value :: tail if appArguments.map(arg => s"--${arg}").contains(head) =>
+      case head :: value :: tail if appArguments.keySet.map(arg => s"--${arg}").contains(head) =>
         getArgs(map ++ Map(head.replaceFirst("^\\-\\-", "") -> value), tail)
-      case argument :: tail =>
+      case argument :: _ =>
         println("Unknown argument " + argument)
         getArgs(map, list.tail)
     }

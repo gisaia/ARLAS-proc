@@ -21,10 +21,11 @@ package io.arlas.data.transform
 
 import io.arlas.data.model.DataModel
 import io.arlas.data.sql._
+import io.arlas.data.transform.ArlasTestHelper._
 import io.arlas.data.transform.timeseries.WithStateIdFromState
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types.{IntegerType, StringType}
-import io.arlas.data.transform.ArlasTestHelper._
+
 import scala.collection.immutable.ListMap
 
 class WithStateIdFromStateTest extends ArlasTest {

@@ -29,9 +29,5 @@ import org.apache.spark.sql.functions._
   * @param fromState
   * @param targetIdColumn
   */
-class WithStateIdFromState(dataModel: DataModel,
-                           stateColumn: String,
-                           orderColumn: String,
-                           fromState: String,
-                           targetIdColumn: String)
+class WithStateIdFromState(dataModel: DataModel, stateColumn: String, orderColumn: String, fromState: String, targetIdColumn: String)
     extends WithStateId(dataModel, orderColumn, targetIdColumn, col(stateColumn).equalTo(fromState))

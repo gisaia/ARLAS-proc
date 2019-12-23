@@ -20,11 +20,12 @@
 package io.arlas.data.transform.tools
 
 import io.arlas.data.sql._
+import io.arlas.data.transform.ArlasTestHelper._
 import io.arlas.data.transform.{ArlasTest, DataFrameException}
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types._
-import io.arlas.data.transform.ArlasTestHelper._
+
 import scala.collection.immutable.ListMap
 
 class DataFrameFormatterTest extends ArlasTest {
@@ -69,8 +70,7 @@ class DataFrameFormatterTest extends ArlasTest {
       baseDF
         .enrichWithArlas(new DataFrameFormatter(dataModel))
     }
-    assert(
-      thrown.getMessage === "The lat columns are not included in the DataFrame with the following columns: id, timestamp, lon")
+    assert(thrown.getMessage === "The lat columns are not included in the DataFrame with the following columns: id, timestamp, lon")
   }
 
   "DataFrameFormatter " should " fail with missing double columns" in {
@@ -94,8 +94,7 @@ class DataFrameFormatterTest extends ArlasTest {
       .withColumn("stringeuropeandouble", when(lit(true), lit(0.5)).otherwise(null))
 
     val transformedDF: DataFrame = baseDF
-      .enrichWithArlas(
-        new DataFrameFormatter(dataModel, Vector("stringdouble", "stringeuropeandouble")))
+      .enrichWithArlas(new DataFrameFormatter(dataModel, Vector("stringdouble", "stringeuropeandouble")))
 
     assertDataFrameEquality(transformedDF, expectedDF)
   }

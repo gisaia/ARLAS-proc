@@ -29,10 +29,7 @@ import org.apache.spark.sql.functions._
   * @param stateColumn
   * @param targetIdColumn
   */
-class WithStateIdOnStateChange(dataModel: DataModel,
-                               stateColumn: String,
-                               orderColumn: String,
-                               targetIdColumn: String)
+class WithStateIdOnStateChange(dataModel: DataModel, stateColumn: String, orderColumn: String, targetIdColumn: String)
     extends WithStateId(
       dataModel,
       orderColumn,

@@ -2,9 +2,9 @@ package io.arlas.data.transform.features
 
 import io.arlas.data.transform.ArlasTransformer
 import io.arlas.data.utils.GeoTool
-import org.apache.spark.sql.{DataFrame, Dataset}
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types.{ArrayType, StringType, StructField, StructType}
+import org.apache.spark.sql.{DataFrame, Dataset}
 
 /**
   * Get the geohashes of every point from the input trail.
@@ -12,8 +12,7 @@ import org.apache.spark.sql.types.{ArrayType, StringType, StructField, StructTyp
   * @param geohashColumn the output column, containing an array of the geohashes
   * @param precision optional precision of the resolved geohash
   */
-class WithGeohash(trailColumn: String, geohashColumn: String, precision: Int = 6)
-    extends ArlasTransformer(Vector(trailColumn)) {
+class WithGeohash(trailColumn: String, geohashColumn: String, precision: Int = 6) extends ArlasTransformer(Vector(trailColumn)) {
 
   def getGeoHashUDF =
     udf((trail: String) => {

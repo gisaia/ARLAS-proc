@@ -33,8 +33,7 @@ import org.apache.spark.sql.{DataFrame, Dataset}
   * @param idColumn
   */
 class IdUpdater(dataModel: DataModel, idColumn: String)
-    extends ArlasTransformer(
-      Vector(idColumn, arlasTrackTimestampStart, arlasTrackTimestampEnd, dataModel.idColumn)) {
+    extends ArlasTransformer(Vector(idColumn, arlasTrackTimestampStart, arlasTrackTimestampEnd, dataModel.idColumn)) {
 
   override def transform(dataset: Dataset[_]): DataFrame = {
 

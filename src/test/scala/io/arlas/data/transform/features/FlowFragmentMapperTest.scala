@@ -30,12 +30,7 @@ class FlowFragmentMapperTest extends ArlasTest {
     val expectedDF = flowFragmentTestDF
 
     val transformedDF: DataFrame = baseTestDF
-      .enrichWithArlas(
-        new FlowFragmentMapper(dataModel,
-                               spark,
-                               dataModel.idColumn,
-                               averagedColumns,
-                               standardDeviationEllipsisNbPoints))
+      .enrichWithArlas(new FlowFragmentMapper(dataModel, spark, dataModel.idColumn, averagedColumns, standardDeviationEllipsisNbPoints))
 
     assertDataFrameEquality(transformedDF, expectedDF)
   }

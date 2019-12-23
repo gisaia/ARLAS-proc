@@ -1,7 +1,7 @@
 package io.arlas.data.transform.features
 
-import io.arlas.data.transform.ArlasTest
 import io.arlas.data.sql._
+import io.arlas.data.transform.ArlasTest
 
 class CourseExtractorTransformerTest extends ArlasTest {
 

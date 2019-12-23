@@ -1,15 +1,16 @@
 package io.arlas.data.transform.features
 
 import io.arlas.data.model.DataModel
-import io.arlas.data.transform.{ArlasCourseOrStop, ArlasCourseStates}
 import io.arlas.data.transform.ArlasTransformerColumns._
+import io.arlas.data.transform.{ArlasCourseOrStop, ArlasCourseStates}
 import io.arlas.data.utils.GeoTool
-import org.apache.spark.sql.{Column, DataFrame, SparkSession}
 import org.apache.spark.sql.expressions.{Window, WindowSpec}
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types._
-import scala.collection.mutable.WrappedArray
+import org.apache.spark.sql.{Column, DataFrame, SparkSession}
+
 import scala.collection.immutable.ListMap
+import scala.collection.mutable.WrappedArray
 
 class CourseExtractorTransformer(spark: SparkSession,
                                  dataModel: DataModel,
@@ -43,13 +44,9 @@ class CourseExtractorTransformer(spark: SparkSession,
   override def getAggregatedRowsColumns(window: WindowSpec): ListMap[String, Column] =
     ListMap(
       arlasTrackMotionsVisibleDuration -> sumMotionByVisibility(1.0, arlasTrackDuration, window),
-      arlasTrackMotionsVisibleLength -> sumMotionByVisibility(1.0,
-                                                              arlasTrackDistanceGpsTravelled,
-                                                              window),
+      arlasTrackMotionsVisibleLength -> sumMotionByVisibility(1.0, arlasTrackDistanceGpsTravelled, window),
       arlasTrackMotionsInvisibleDuration -> sumMotionByVisibility(0.0, arlasTrackDuration, window),
-      arlasTrackMotionsInvisibleLength -> sumMotionByVisibility(0.0,
-                                                                arlasTrackDistanceGpsTravelled,
-                                                                window),
+      arlasTrackMotionsInvisibleLength -> sumMotionByVisibility(0.0, arlasTrackDistanceGpsTravelled, window),
       arlasTrackPausesDuration -> sum(
         when(col(arlasCourseStateColumn)
                .equalTo(lit(ArlasCourseStates.PAUSE)),
@@ -73,20 +70,18 @@ class CourseExtractorTransformer(spark: SparkSession,
                    .equalTo(lit(ArlasCourseStates.PAUSE)),
                  col(arlasTrackDuration))
               .otherwise(lit(0))).over(window)),
-      arlasTrackMotionVisibilityProportionDuration -> col(arlasTrackMotionsVisibleDuration) / (col(
-        arlasTrackMotionsVisibleDuration) + col(arlasTrackMotionsInvisibleDuration)),
-      arlasTrackMotionVisibilityProportionDistance -> col(arlasTrackMotionsVisibleLength) / (col(
-        arlasTrackMotionsVisibleLength) + col(arlasTrackMotionsInvisibleLength)),
+      arlasTrackMotionVisibilityProportionDuration -> col(arlasTrackMotionsVisibleDuration) / (col(arlasTrackMotionsVisibleDuration) + col(
+        arlasTrackMotionsInvisibleDuration)),
+      arlasTrackMotionVisibilityProportionDistance -> col(arlasTrackMotionsVisibleLength) / (col(arlasTrackMotionsVisibleLength) + col(
+        arlasTrackMotionsInvisibleLength)),
       arlasTrackPausesProportion -> col(arlasTrackPausesDuration) / col(arlasCourseDurationColumn),
       arlasDepartureTimestamp -> first(arlasTrackTimestampStart).over(window),
       arlasArrivalTimestamp -> last(arlasTrackTimestampEnd).over(window),
       arlasTrackPausesTrail -> getPauseTrailUDF(
-        collect_list(when(col(arlasCourseStateColumn).equalTo(ArlasCourseStates.PAUSE),
-                          col(arlasTrackTrail))).over(window)),
-      arlasTrackMotionsVisibleTrail -> getVisibilityTrailUDF(
-        lit(1.0),
-        collect_list(col(arlasTrackVisibilityProportion)).over(window),
-        collect_list(col(arlasTrackTrail)).over(window)),
+        collect_list(when(col(arlasCourseStateColumn).equalTo(ArlasCourseStates.PAUSE), col(arlasTrackTrail))).over(window)),
+      arlasTrackMotionsVisibleTrail -> getVisibilityTrailUDF(lit(1.0),
+                                                             collect_list(col(arlasTrackVisibilityProportion)).over(window),
+                                                             collect_list(col(arlasTrackTrail)).over(window)),
       arlasTrackMotionsInvisibleTrail ->
         getVisibilityTrailUDF(lit(0.0),
                               collect_list(col(arlasTrackVisibilityProportion)).over(window),
@@ -118,20 +113,15 @@ class CourseExtractorTransformer(spark: SparkSession,
         lead(nextCol, 1).over(window)
     )
     val whenIsCourseGetPrev = (prevCol: String) =>
-      when(col(arlasCourseOrStopColumn).equalTo(lit(ArlasCourseOrStop.COURSE)),
-           lag(prevCol, 1).over(window))
+      when(col(arlasCourseOrStopColumn).equalTo(lit(ArlasCourseOrStop.COURSE)), lag(prevCol, 1).over(window))
 
     df.withColumn(arlasArrivalStopAfterDuration, whenIsCourseGetNext(arlasTrackDuration))
       .withColumn(arlasArrivalStopAfterLocationLon, whenIsCourseGetNext(arlasTrackLocationLon))
       .withColumn(arlasArrivalStopAfterLocationLat, whenIsCourseGetNext(arlasTrackLocationLat))
-      .withColumn(arlasArrivalStopAfterLocationPrecisionValueLat,
-                  whenIsCourseGetNext(arlasTrackLocationPrecisionValueLat))
-      .withColumn(arlasArrivalStopAfterLocationPrecisionValueLon,
-                  whenIsCourseGetNext(arlasTrackLocationPrecisionValueLon))
-      .withColumn(arlasArrivalStopAfterLocationPrecisionGeometry,
-                  whenIsCourseGetNext(arlasTrackLocationPrecisionGeometry))
-      .withColumn(arlasArrivalStopAfterVisibilityProportion,
-                  whenIsCourseGetNext(arlasTrackVisibilityProportion))
+      .withColumn(arlasArrivalStopAfterLocationPrecisionValueLat, whenIsCourseGetNext(arlasTrackLocationPrecisionValueLat))
+      .withColumn(arlasArrivalStopAfterLocationPrecisionValueLon, whenIsCourseGetNext(arlasTrackLocationPrecisionValueLon))
+      .withColumn(arlasArrivalStopAfterLocationPrecisionGeometry, whenIsCourseGetNext(arlasTrackLocationPrecisionGeometry))
+      .withColumn(arlasArrivalStopAfterVisibilityProportion, whenIsCourseGetNext(arlasTrackVisibilityProportion))
       .withColumn(arlasArrivalAddressState, whenIsCourseGetNext(arlasTrackAddressState))
       .withColumn(arlasArrivalAddressPostcode, whenIsCourseGetNext(arlasTrackAddressPostcode))
       .withColumn(arlasArrivalAddressCounty, whenIsCourseGetNext(arlasTrackAddressCounty))
@@ -141,20 +131,15 @@ class CourseExtractorTransformer(spark: SparkSession,
       .withColumn(arlasDepartureStopBeforeDuration, whenIsCourseGetPrev(arlasTrackDuration))
       .withColumn(arlasDepartureStopBeforeLocationLon, whenIsCourseGetPrev(arlasTrackLocationLon))
       .withColumn(arlasDepartureStopBeforeLocationLat, whenIsCourseGetPrev(arlasTrackLocationLat))
-      .withColumn(arlasDepartureStopBeforeLocationPrecisionValueLat,
-                  whenIsCourseGetPrev(arlasTrackLocationPrecisionValueLat))
-      .withColumn(arlasDepartureStopBeforeLocationPrecisionValueLon,
-                  whenIsCourseGetPrev(arlasTrackLocationPrecisionValueLon))
-      .withColumn(arlasDepartureStopBeforeLocationPrecisionGeometry,
-                  whenIsCourseGetPrev(arlasTrackLocationPrecisionGeometry))
-      .withColumn(arlasDepartureStopBeforeVisibilityProportion,
-                  whenIsCourseGetPrev(arlasTrackVisibilityProportion))
+      .withColumn(arlasDepartureStopBeforeLocationPrecisionValueLat, whenIsCourseGetPrev(arlasTrackLocationPrecisionValueLat))
+      .withColumn(arlasDepartureStopBeforeLocationPrecisionValueLon, whenIsCourseGetPrev(arlasTrackLocationPrecisionValueLon))
+      .withColumn(arlasDepartureStopBeforeLocationPrecisionGeometry, whenIsCourseGetPrev(arlasTrackLocationPrecisionGeometry))
+      .withColumn(arlasDepartureStopBeforeVisibilityProportion, whenIsCourseGetPrev(arlasTrackVisibilityProportion))
       .withColumn(arlasDepartureAddressState, whenIsCourseGetPrev(arlasTrackAddressState))
       .withColumn(arlasDepartureAddressPostcode, whenIsCourseGetPrev(arlasTrackAddressPostcode))
       .withColumn(arlasDepartureAddressCounty, whenIsCourseGetPrev(arlasTrackAddressCounty))
       .withColumn(arlasDepartureAddressCountry, whenIsCourseGetPrev(arlasTrackAddressCountry))
-      .withColumn(arlasDepartureAddressCountryCode,
-                  whenIsCourseGetPrev(arlasTrackAddressCountryCode))
+      .withColumn(arlasDepartureAddressCountryCode, whenIsCourseGetPrev(arlasTrackAddressCountryCode))
       .withColumn(arlasDepartureAddressCity, whenIsCourseGetPrev(arlasTrackAddressCity))
       .filter(col(arlasCourseOrStopColumn).equalTo(ArlasCourseOrStop.COURSE))
       .drop(tmpTrailData)
@@ -169,29 +154,18 @@ class CourseExtractorTransformer(spark: SparkSession,
         .otherwise(lit(0))).over(window)
 
   def getPauseTrailUDF =
-    udf(
-      (trails: WrappedArray[String]) => GeoTool.lineStringsToSingleMultiLineString(trails.toArray))
+    udf((trails: WrappedArray[String]) => GeoTool.lineStringsToSingleMultiLineString(trails.toArray))
 
   def getTrailDataUDF =
     udf(
-      (trails: WrappedArray[String],
-       latitudes: WrappedArray[Double],
-       longitudes: WrappedArray[Double],
-       useTrail: WrappedArray[Boolean]) =>
-        GeoTool.getTrailDataFromTrailsAndCoords(trails.toArray,
-                                                latitudes.toArray,
-                                                longitudes.toArray,
-                                                useTrail.toArray))
+      (trails: WrappedArray[String], latitudes: WrappedArray[Double], longitudes: WrappedArray[Double], useTrail: WrappedArray[Boolean]) =>
+        GeoTool.getTrailDataFromTrailsAndCoords(trails.toArray, latitudes.toArray, longitudes.toArray, useTrail.toArray))
 
   def getVisibilityTrailUDF =
     udf(
-      (expectedVisibility: Double,
-       visibilityProportions: WrappedArray[Double],
-       trails: WrappedArray[String]) =>
+      (expectedVisibility: Double, visibilityProportions: WrappedArray[Double], trails: WrappedArray[String]) =>
         GeoTool
-          .groupTrailsByConsecutiveValue[Double](expectedVisibility,
-                                                 visibilityProportions.toArray,
-                                                 trails.toArray))
+          .groupTrailsByConsecutiveValue[Double](expectedVisibility, visibilityProportions.toArray, trails.toArray))
 
   override def transformSchema(schema: StructType): StructType = {
     checkRequiredColumns(schema, Vector(arlasTrackVisibilityProportion))

@@ -3,8 +3,8 @@ package io.arlas.data.transform.testdata
 import io.arlas.data.model.DataModel
 import io.arlas.data.transform.ArlasMovingStates
 import io.arlas.data.transform.ArlasTransformerColumns._
+import org.apache.spark.sql.types.{BooleanType, StringType, StructField}
 import org.apache.spark.sql.{DataFrame, SparkSession}
-import org.apache.spark.sql.types.{BooleanType, StringType, StructField, StructType}
 
 class StopPauseSummaryDataGenerator(spark: SparkSession,
                                     baseDF: DataFrame,
@@ -23,8 +23,7 @@ class StopPauseSummaryDataGenerator(spark: SparkSession,
       standardDeviationEllipsisNbPoints,
       arlasMotionIdColumn,
       (arlasMovingStateColumn, ArlasMovingStates.STILL),
-      Seq(StructField(arlasTempoColumn, StringType, true),
-          StructField(arlasTrackTempoEmissionIsMulti, BooleanType, true)),
+      Seq(StructField(arlasTempoColumn, StringType, true), StructField(arlasTrackTempoEmissionIsMulti, BooleanType, true)),
       Seq(),
       (values, rows) => {
         values.map(

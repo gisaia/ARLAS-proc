@@ -142,6 +142,41 @@ object ArlasTransformerColumns {
   val arlasTrackRoutingDistance = arlasTrackRoutingPrefix + "distance"
   val arlasTrackRoutingDuration = arlasTrackRoutingPrefix + "duration"
 
+  //MISSION COLUMNS
+  val arlasMissionPrefix = "arlas_mission_"
+  val arlasMissionId = arlasMissionPrefix + "id"
+  val arlasMissionDuration = arlasMissionPrefix + "duration"
+  val arlasMissionDistanceSensorTravelled = arlasMissionPrefix + "distance_sensor_travelled"
+  val arlasMissionDistanceGpsTravelled = arlasMissionPrefix + "distance_gps_travelled"
+  val arlasMissionDistanceGpsStraigthline = arlasMissionPrefix + "distance_gps_straightline"
+  val arlasMissionDistanceGpsStraigthness = arlasMissionPrefix + "distance_gps_straightness"
+
+  val arlasMissionDeparturePrefix = arlasMissionPrefix + "departure_"
+  val arlasMissionDepartureLocationLat = arlasMissionDeparturePrefix + "location_lat"
+  val arlasMissionDepartureLocationLon = arlasMissionDeparturePrefix + "location_lon"
+  val arlasMissionDepartureTimestamp = arlasMissionDeparturePrefix + "timestamp"
+
+  val arlasMissionDepartureAddressPrefix = arlasMissionDeparturePrefix + "address_"
+  val arlasMissionDepartureAddressState = arlasMissionDepartureAddressPrefix + WithGeoData.statePostfix
+  val arlasMissionDepartureAddressPostcode = arlasMissionDepartureAddressPrefix + WithGeoData.postcodePostfix
+  val arlasMissionDepartureAddressCounty = arlasMissionDepartureAddressPrefix + WithGeoData.countyPostfix
+  val arlasMissionDepartureAddressCountry = arlasMissionDepartureAddressPrefix + WithGeoData.countryPostfix
+  val arlasMissionDepartureAddressCountryCode = arlasMissionDepartureAddressPrefix + WithGeoData.countryCodePostfix
+  val arlasMissionDepartureAddressCity = arlasMissionDepartureAddressPrefix + WithGeoData.cityPostfix
+
+  val arlasMissionArrivalPrefix = arlasMissionPrefix + "arrival_"
+  val arlasMissionArrivalLocationLat = arlasMissionArrivalPrefix + "location_lat"
+  val arlasMissionArrivalLocationLon = arlasMissionArrivalPrefix + "location_lon"
+  val arlasMissionArrivalLocationTimestamp = arlasMissionArrivalPrefix + "timestamp"
+
+  val arlasMissionArrivalAddressPrefix = arlasMissionArrivalPrefix + "address_"
+  val arlasMissionArrivalAddressState = arlasMissionArrivalAddressPrefix + WithGeoData.statePostfix
+  val arlasMissionArrivalAddressPostcode = arlasMissionArrivalAddressPrefix + WithGeoData.postcodePostfix
+  val arlasMissionArrivalAddressCounty = arlasMissionArrivalAddressPrefix + WithGeoData.countyPostfix
+  val arlasMissionArrivalAddressCountry = arlasMissionArrivalAddressPrefix + WithGeoData.countryPostfix
+  val arlasMissionArrivalAddressCountryCode = arlasMissionArrivalAddressPrefix + WithGeoData.countryCodePostfix
+  val arlasMissionArrivalAddressCity = arlasMissionArrivalAddressPrefix + WithGeoData.cityPostfix
+
 }
 
 /**

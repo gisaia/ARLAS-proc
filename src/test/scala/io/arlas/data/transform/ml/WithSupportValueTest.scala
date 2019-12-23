@@ -21,9 +21,10 @@ package io.arlas.data.transform.ml
 
 import io.arlas.data.sql._
 import io.arlas.data.transform.ArlasTest
+import io.arlas.data.transform.ArlasTestHelper._
 import io.arlas.data.transform.ArlasTransformerColumns._
 import org.apache.spark.sql.types._
-import io.arlas.data.transform.ArlasTestHelper._
+
 import scala.collection.immutable.ListMap
 
 class WithSupportValueTest extends ArlasTest {
@@ -52,8 +53,7 @@ class WithSupportValueTest extends ArlasTest {
     val expectedDF =
       testDF.withColumnRenamed("expected" + speedColumn + "_array", speedColumn + "_array")
 
-    val transformedDF = baseDF.enrichWithArlas(
-      new WithSupportValues(speedColumn, 5, 8, "tempo_irregular", "distance"))
+    val transformedDF = baseDF.enrichWithArlas(new WithSupportValues(speedColumn, 5, 8, "tempo_irregular", "distance"))
 
     assertDataFrameEquality(transformedDF, expectedDF)
   }
