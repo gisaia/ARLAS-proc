@@ -167,7 +167,7 @@ object ArlasTransformerColumns {
   val arlasMissionArrivalPrefix = arlasMissionPrefix + "arrival_"
   val arlasMissionArrivalLocationLat = arlasMissionArrivalPrefix + "location_lat"
   val arlasMissionArrivalLocationLon = arlasMissionArrivalPrefix + "location_lon"
-  val arlasMissionArrivalLocationTimestamp = arlasMissionArrivalPrefix + "timestamp"
+  val arlasMissionArrivalTimestamp = arlasMissionArrivalPrefix + "timestamp"
 
   val arlasMissionArrivalAddressPrefix = arlasMissionArrivalPrefix + "address_"
   val arlasMissionArrivalAddressState = arlasMissionArrivalAddressPrefix + WithGeoData.statePostfix
