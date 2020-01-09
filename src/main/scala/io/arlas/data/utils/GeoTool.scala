@@ -6,7 +6,8 @@ import org.locationtech.jts.geom._
 import org.locationtech.jts.io.{WKTReader, WKTWriter}
 import org.locationtech.jts.simplify.DouglasPeuckerSimplifier
 
-import scala.collection.immutable
+import scala.collection.mutable.{ArrayBuffer, ListBuffer}
+import scala.collection.{immutable, mutable}
 
 object GeoTool {
 
@@ -235,13 +236,19 @@ object GeoTool {
 
   def removeConsecutiveDuplicatesCoords(withDuplicatesList: List[Coordinate]): List[Coordinate] = {
 
-    withDuplicatesList match {
-      case head :: _ => {
-        val (_, remainlst) = withDuplicatesList.span(_.equals2D(head))
-        head :: removeConsecutiveDuplicatesCoords(remainlst)
+    //the use of a ListBuffer instead of an immutable list + the use of a variable with last element, instead of checking the last list element,
+    //have strong performance benefits
+    var last: Coordinate = null
+    withDuplicatesList
+      .foldLeft(ListBuffer.empty[Coordinate]) {
+        case (resList, coord) =>
+          if (last == null || !last.equals2D(coord)) {
+            last = coord
+            resList += coord
+          }
+          resList
       }
-      case Nil => List()
-    }
+      .toList
   }
 
   def groupConsecutiveValuesByCondition[T, R](conditionalValue: T,
