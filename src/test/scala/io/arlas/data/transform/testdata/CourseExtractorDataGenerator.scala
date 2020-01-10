@@ -20,64 +20,14 @@ class CourseExtractorDataGenerator(spark: SparkSession,
     extends FragmentSummaryDataGenerator(
       spark,
       baseDF,
-      dataModel,
-      speedColumn,
-      tempoProportionsColumns,
-      tempoIrregular,
-      standardDeviationEllipsisNbPoints,
-      arlasCourseIdColumn,
-      (arlasCourseOrStopColumn, ArlasCourseOrStop.COURSE),
-      Seq(
-        StructField(arlasTrackMotionsVisibleDuration, LongType, true),
-        StructField(arlasTrackMotionsVisibleLength, DoubleType, true),
-        StructField(arlasTrackMotionsInvisibleDuration, LongType, true),
-        StructField(arlasTrackMotionsInvisibleLength, DoubleType, true),
-        StructField(arlasTrackPausesDuration, LongType, true),
-        StructField(arlasTrackPausesShortNumber, IntegerType, true),
-        StructField(arlasTrackPausesLongNumber, IntegerType, true),
-        StructField(arlasTrackPausesVisibilityProportion, DoubleType, true),
-        StructField(arlasTrackMotionVisibilityProportionDuration, DoubleType, true),
-        StructField(arlasTrackMotionVisibilityProportionDistance, DoubleType, true),
-        StructField(arlasTrackPausesProportion, DoubleType, true),
-        StructField(arlasDepartureTimestamp, LongType, true),
-        StructField(arlasArrivalTimestamp, LongType, true),
-        StructField(arlasTrackPausesTrail, StringType, true),
-        StructField(arlasTrackMotionsVisibleTrail, StringType, true),
-        StructField(arlasTrackMotionsInvisibleTrail, StringType, true),
-        StructField(arlasDepartureLocationLat, DoubleType, true),
-        StructField(arlasDepartureLocationLon, DoubleType, true),
-        StructField(arlasArrivalLocationLat, DoubleType, true),
-        StructField(arlasArrivalLocationLon, DoubleType, true)
-      ),
-      Seq(
-        StructField(arlasArrivalStopAfterDuration, LongType, true),
-        StructField(arlasArrivalStopAfterLocationLon, DoubleType, true),
-        StructField(arlasArrivalStopAfterLocationLat, DoubleType, true),
-        StructField(arlasArrivalStopAfterLocationPrecisionValueLat, DoubleType, true),
-        StructField(arlasArrivalStopAfterLocationPrecisionValueLon, DoubleType, true),
-        StructField(arlasArrivalStopAfterLocationPrecisionGeometry, StringType, true),
-        StructField(arlasArrivalStopAfterVisibilityProportion, DoubleType, true),
-        StructField(arlasArrivalAddressState, StringType, true),
-        StructField(arlasArrivalAddressPostcode, StringType, true),
-        StructField(arlasArrivalAddressCounty, StringType, true),
-        StructField(arlasArrivalAddressCountry, StringType, true),
-        StructField(arlasArrivalAddressCountryCode, StringType, true),
-        StructField(arlasArrivalAddressCity, StringType, true),
-        StructField(arlasDepartureStopBeforeDuration, LongType, true),
-        StructField(arlasDepartureStopBeforeLocationLon, DoubleType, true),
-        StructField(arlasDepartureStopBeforeLocationLat, DoubleType, true),
-        StructField(arlasDepartureStopBeforeLocationPrecisionValueLat, DoubleType, true),
-        StructField(arlasDepartureStopBeforeLocationPrecisionValueLon, DoubleType, true),
-        StructField(arlasDepartureStopBeforeLocationPrecisionGeometry, StringType, true),
-        StructField(arlasDepartureStopBeforeVisibilityProportion, DoubleType, true),
-        StructField(arlasDepartureAddressState, StringType, true),
-        StructField(arlasDepartureAddressPostcode, StringType, true),
-        StructField(arlasDepartureAddressCounty, StringType, true),
-        StructField(arlasDepartureAddressCountry, StringType, true),
-        StructField(arlasDepartureAddressCountryCode, StringType, true),
-        StructField(arlasDepartureAddressCity, StringType, true)
-      ),
-      (values: ListMap[String, Any], rows: Array[Row]) => {
+      dataModel = dataModel,
+      speedColumn = speedColumn,
+      tempoProportionsColumns = tempoProportionsColumns,
+      tempoIrregular = tempoIrregular,
+      standardDeviationEllipsisNbPoints = standardDeviationEllipsisNbPoints,
+      aggregationColumn = arlasCourseIdColumn,
+      aggregationCondition = (arlasCourseOrStopColumn, ArlasCourseOrStop.COURSE),
+      additionalAggregations = (values: Map[String, Any], rows: Array[Row]) => {
 
         def sumDurationByVisibility[T](visibility: Double) = {
           rows
@@ -116,7 +66,10 @@ class CourseExtractorDataGenerator(spark: SparkSession,
             rows.map(_.getAs[String](arlasCourseStateColumn) == ArlasCourseStates.MOTION)
           )
 
-        val allValues: ListMap[String, Any] = (values ++ ListMap(
+        values ++ Map(
+          //update existing columns
+          arlasTrackTrail -> trailData.get.trail,
+          //add new columns
           arlasTrackVisibilityProportion -> null,
           arlasTrackAddressCity -> null,
           arlasTrackAddressCounty -> null,
@@ -156,21 +109,65 @@ class CourseExtractorDataGenerator(spark: SparkSession,
           arlasDepartureLocationLon -> trailData.get.departureLon,
           arlasArrivalLocationLat -> trailData.get.arrivalLat,
           arlasArrivalLocationLon -> trailData.get.arrivalLon
-        ))
-
-        allValues.map(
-          //existing column must be updated by keeping their insertion order
-          m =>
-            if (m._1 == arlasTrackTrail)
-              arlasTrackTrail -> trailData.get.trail
-            else m)
+        )
       },
-      (rows, schema) => {
+      additionalAggregationsNewColumns = Seq(
+        StructField(arlasTrackMotionsVisibleDuration, LongType, true),
+        StructField(arlasTrackMotionsVisibleLength, DoubleType, true),
+        StructField(arlasTrackMotionsInvisibleDuration, LongType, true),
+        StructField(arlasTrackMotionsInvisibleLength, DoubleType, true),
+        StructField(arlasTrackPausesDuration, LongType, true),
+        StructField(arlasTrackPausesShortNumber, IntegerType, true),
+        StructField(arlasTrackPausesLongNumber, IntegerType, true),
+        StructField(arlasTrackPausesVisibilityProportion, DoubleType, true),
+        StructField(arlasTrackMotionVisibilityProportionDuration, DoubleType, true),
+        StructField(arlasTrackMotionVisibilityProportionDistance, DoubleType, true),
+        StructField(arlasTrackPausesProportion, DoubleType, true),
+        StructField(arlasDepartureTimestamp, LongType, true),
+        StructField(arlasArrivalTimestamp, LongType, true),
+        StructField(arlasTrackPausesTrail, StringType, true),
+        StructField(arlasTrackMotionsVisibleTrail, StringType, true),
+        StructField(arlasTrackMotionsInvisibleTrail, StringType, true),
+        StructField(arlasDepartureLocationLat, DoubleType, true),
+        StructField(arlasDepartureLocationLon, DoubleType, true),
+        StructField(arlasArrivalLocationLat, DoubleType, true),
+        StructField(arlasArrivalLocationLon, DoubleType, true)
+      ),
+      afterTransform = (rows, schema) => {
+        val afterTransformSchema = StructType(
+          schema ++ Seq(
+            StructField(arlasArrivalStopAfterDuration, LongType, true),
+            StructField(arlasArrivalStopAfterLocationLon, DoubleType, true),
+            StructField(arlasArrivalStopAfterLocationLat, DoubleType, true),
+            StructField(arlasArrivalStopAfterLocationPrecisionValueLat, DoubleType, true),
+            StructField(arlasArrivalStopAfterLocationPrecisionValueLon, DoubleType, true),
+            StructField(arlasArrivalStopAfterLocationPrecisionGeometry, StringType, true),
+            StructField(arlasArrivalStopAfterVisibilityProportion, DoubleType, true),
+            StructField(arlasArrivalAddressState, StringType, true),
+            StructField(arlasArrivalAddressPostcode, StringType, true),
+            StructField(arlasArrivalAddressCounty, StringType, true),
+            StructField(arlasArrivalAddressCountry, StringType, true),
+            StructField(arlasArrivalAddressCountryCode, StringType, true),
+            StructField(arlasArrivalAddressCity, StringType, true),
+            StructField(arlasDepartureStopBeforeDuration, LongType, true),
+            StructField(arlasDepartureStopBeforeLocationLon, DoubleType, true),
+            StructField(arlasDepartureStopBeforeLocationLat, DoubleType, true),
+            StructField(arlasDepartureStopBeforeLocationPrecisionValueLat, DoubleType, true),
+            StructField(arlasDepartureStopBeforeLocationPrecisionValueLon, DoubleType, true),
+            StructField(arlasDepartureStopBeforeLocationPrecisionGeometry, StringType, true),
+            StructField(arlasDepartureStopBeforeVisibilityProportion, DoubleType, true),
+            StructField(arlasDepartureAddressState, StringType, true),
+            StructField(arlasDepartureAddressPostcode, StringType, true),
+            StructField(arlasDepartureAddressCounty, StringType, true),
+            StructField(arlasDepartureAddressCountry, StringType, true),
+            StructField(arlasDepartureAddressCountryCode, StringType, true),
+            StructField(arlasDepartureAddressCity, StringType, true)
+          ))
 
-        rows
+        val afterTransformRows = rows
           .groupBy(_.getAs[String](dataModel.idColumn))
           .flatMap {
-            case (id, rows: Seq[Row]) => {
+            case (_, rows: Seq[Row]) => {
               val sortedRows = rows
                 .sortBy(_.getAs[Long](arlasTrackTimestampStart))
 
@@ -223,10 +220,12 @@ class CourseExtractorDataGenerator(spark: SparkSession,
                       arlasDepartureAddressCountryCode -> getStopBeforeValue[String](arlasTrackAddressCountryCode),
                       arlasDepartureAddressCity -> getStopBeforeValue[String](arlasTrackAddressCity)
                     ).values
-                    new GenericRowWithSchema(data.toArray, schema)
+                    new GenericRowWithSchema(data.toArray, afterTransformSchema)
                 }
             }
           }
           .toSeq
+
+        (afterTransformRows, afterTransformSchema)
       }
     )
