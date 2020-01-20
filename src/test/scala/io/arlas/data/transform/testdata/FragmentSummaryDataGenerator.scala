@@ -1,4 +1,6 @@
 package io.arlas.data.transform.testdata
+import java.text.SimpleDateFormat
+
 import io.arlas.data.model.DataModel
 import io.arlas.data.transform.ArlasTestHelper.{mean, stdDev, _}
 import io.arlas.data.transform.ArlasTransformerColumns.{arlasTempoColumn, _}
@@ -113,6 +115,8 @@ class FragmentSummaryDataGenerator(spark: SparkSession,
     val timestampStart = getWindowLongs(arlasTrackTimestampStart).head
     val timestampEnd = getWindowLongs(arlasTrackTimestampEnd).last
     val timestampCenter = mean(Seq(timestampStart, timestampEnd)).toLong
+    val dateFormat = new SimpleDateFormat(arlasPartitionFormat)
+    val arlasPartition = dateFormat.format(timestampCenter * 1000l).toInt
     val duration = getWindowLongs(arlasTrackDuration).sum
 
     val precisionValueLat =
@@ -170,6 +174,7 @@ class FragmentSummaryDataGenerator(spark: SparkSession,
       dataModel.latColumn -> null,
       dataModel.lonColumn -> null,
       speedColumn -> weightAveragedSpeed,
+      arlasPartitionColumn -> arlasPartition,
       arlasTimestampColumn -> timestampCenter,
       arlasTrackId -> trackId,
       arlasTrackNbGeopoints -> nbPoints,

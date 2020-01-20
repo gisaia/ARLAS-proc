@@ -34,7 +34,7 @@ class TransformableDataFrame(df: DataFrame) {
   def asArlasFormattedData(dataModel: DataModel, doubleColumns: Vector[String] = Vector()): DataFrame = {
     df.enrichWithArlas(new DataFrameFormatter(dataModel, doubleColumns), new WithArlasTimestamp(dataModel))
       .withColumn(arlasPartitionColumn,
-                  date_format(to_date(col(dataModel.timestampColumn), dataModel.timeFormat), "yyyyMMdd").cast(IntegerType))
+                  date_format(to_date(col(dataModel.timestampColumn), dataModel.timeFormat), arlasPartitionFormat).cast(IntegerType))
   }
 
   def enrichWithArlas(transformers: ArlasTransformer*): DataFrame = {
