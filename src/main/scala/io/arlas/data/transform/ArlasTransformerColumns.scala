@@ -22,6 +22,9 @@ package io.arlas.data.transform
 import io.arlas.data.transform.features.WithGeoData
 
 object ArlasTransformerColumns {
+
+  val arlasPartitionFormat = "yyyyMMdd"
+
   val arlasTimestampColumn = "arlas_timestamp"
   val arlasPartitionColumn = "arlas_partition"
   val arlasDistanceColumn = "arlas_distance"
