@@ -8,49 +8,29 @@ import org.apache.spark.sql.functions._
 
 /**
   * Standardize the static columns of each object.
-  * If, for an object and a static column, there is no known defined value, use a default value.
-  * Algorithm:
-  * - at first for each row, we compute the number of undefined static columns
-  * - then for each object (unique dataModel.idColumn), we order a window by this number
-  * - finally for each row, the static columns take the value of the first row of the window - if it is defined - or a default value.
-  * We suppose that for each object, there is at least one row with all static values.
-  * @param dataModel
-  * @param cols a map with (static column name -> sequence of possible undefined values for this column).
+  * For a column of any type and for the same value of idCol, its sets all undefined value to null.
+  * Then it tries to replace these null with the first non-null value that is found;
+  * if none is found then a default value is used
+  * @param idColumn
+  * @param cols a map with (static column name -> (default value if no valid is found, sequence of undefined values for this column)).
   *             You don't need to pass `null` as undefined value, this is always checked
   */
-class StaticColumnsStandardizer(dataModel: DataModel, cols: Map[String, Seq[String]])
+class StaticColumnsStandardizer(idColumn: String, cols: Map[String, (Any, Seq[Any])])
     extends ArlasTransformer(Vector(cols.keys.toSeq: _*)) {
-
-  private val TEMP_NB_UNDEFINED = "tmp_nb_undefined"
-
-  def whenColInValuesOrNull(column: Column, values: Seq[String], value: Column, otherwise: Column) = {
-    when(column.isin(values: _*).or(column.isNull), value).otherwise(otherwise)
-  }
-
-  def getFirstIfDefinedOrDefault(colName: String, undefinedCols: Seq[String], window: WindowSpec) = {
-    whenColInValuesOrNull(first(col(colName)).over(window),
-                          undefinedCols,
-                          lit(StaticColumnsStandardizer.DEFAULT_UNDEFINED),
-                          first(col(colName)).over(window))
-  }
 
   override def transform(dataset: Dataset[_]): DataFrame = {
 
-    val withNbUndefinedDF = dataset
-      .withColumn(TEMP_NB_UNDEFINED, cols.map(c => whenColInValuesOrNull(col(c._1), c._2, lit(1), lit(0))).reduce(_ + _))
+    val withNullDF = cols.foldLeft(dataset.toDF()) {
+      case (df, c) => df.withColumn(c._1, when(col(c._1).isin(c._2._2: _*), lit(null)).otherwise(col(c._1)))
+    }
 
-    val window = Window.partitionBy(dataModel.idColumn).orderBy(col(TEMP_NB_UNDEFINED))
+    val window = Window.partitionBy(idColumn)
 
     cols
-      .foldLeft(withNbUndefinedDF) {
+      .foldLeft(withNullDF) {
         case (df, c) =>
-          df.withColumn(c._1, whenColInValuesOrNull(col(c._1), c._2, getFirstIfDefinedOrDefault(c._1, c._2, window), col(c._1)))
+          df.withColumn(c._1, when(first(c._1, true).over(window).isNotNull, first(c._1, true).over(window)).otherwise(lit(c._2._1)))
       }
-      .drop(TEMP_NB_UNDEFINED)
   }
 
-}
-
-object StaticColumnsStandardizer {
-  val DEFAULT_UNDEFINED = "Unknown"
 }

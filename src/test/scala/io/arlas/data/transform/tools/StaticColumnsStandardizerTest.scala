@@ -2,8 +2,9 @@ package io.arlas.data.transform.tools
 
 import io.arlas.data.transform.ArlasTest
 import io.arlas.data.transform.ArlasTestHelper._
-import org.apache.spark.sql.types.{LongType, StringType}
+import org.apache.spark.sql.types.{IntegerType, LongType, StringType}
 import io.arlas.data.sql._
+
 import scala.collection.immutable.ListMap
 
 class StaticColumnsStandardizerTest extends ArlasTest {
@@ -11,13 +12,13 @@ class StaticColumnsStandardizerTest extends ArlasTest {
   val testDF = createDataFrameWithTypes(
     spark,
     List(
-      Seq("id1", 1l, "unknown", "val2", "val3", "val1", "val2", "val3"),
-      Seq("id1", 2l, "val1", "val2", "val3", "val1", "val2", "val3"),
-      Seq("id1", 3l, "undefined", "undefined", "unknown", "val1", "val2", "unknown"),
-      Seq("id1", 4l, null, null, null, "val1", "val2", null),
-      Seq("id2", 1l, "undefined", "notset", "unknown", StaticColumnsStandardizer.DEFAULT_UNDEFINED, "notset", "unknown"),
-      Seq("id3", 1l, "val1", "val2", "val3", "val1", "val2", "val3"),
-      Seq("id4", 1l, null, null, null, StaticColumnsStandardizer.DEFAULT_UNDEFINED, StaticColumnsStandardizer.DEFAULT_UNDEFINED, null)
+      Seq("id1", 1l, "unknown", "val2", "val3", 1, "val1", "val2", "val3", 1),
+      Seq("id1", 2l, "val1", "val2", "val3", null, "val1", "val2", "val3", 1),
+      Seq("id1", 3l, "undefined", "undefined", "unknown", null, "val1", "val2", "unknown", 1),
+      Seq("id1", 4l, null, null, null, null, "val1", "val2", null, 1),
+      Seq("id2", 1l, "undefined", "notset", "unknown", null, "default", "notset", "unknown", 0),
+      Seq("id3", 1l, "val1", "val2", "val3", -1, "val1", "val2", "val3", 0),
+      Seq("id4", 1l, null, null, null, 3, "default", null, null, 3)
     ),
     ListMap(
       dataModel.idColumn -> (StringType, true),
@@ -25,25 +26,30 @@ class StaticColumnsStandardizerTest extends ArlasTest {
       "col1" -> (StringType, true),
       "col2" -> (StringType, true),
       "col3" -> (StringType, true),
+      "col4" -> (IntegerType, true),
       "expected_col1" -> (StringType, true),
       "expected_col2" -> (StringType, true),
-      "expected_col3" -> (StringType, true)
+      "expected_col3" -> (StringType, true),
+      "expected_col4" -> (IntegerType, true)
     )
   )
 
   val expectedDF = testDF
-    .drop("col1", "col2", "col3")
+    .drop("col1", "col2", "col3", "col4")
     .withColumnRenamed("expected_col1", "col1")
     .withColumnRenamed("expected_col2", "col2")
     .withColumnRenamed("expected_col3", "col3")
+    .withColumnRenamed("expected_col4", "col4")
 
   "StaticValuesStandardizerTest" should "standardize static columns by object" in {
 
     val unknownValues = Seq("unknown", "undefined")
 
     val transformedDF = testDF
-      .drop("expected_col1", "expected_col2", "expected_col3")
-      .enrichWithArlas(new StaticColumnsStandardizer(dataModel, Map("col1" -> unknownValues, "col2" -> unknownValues)))
+      .drop("expected_col1", "expected_col2", "expected_col3", "expected_col4")
+      .enrichWithArlas(
+        new StaticColumnsStandardizer(dataModel.idColumn,
+                                      Map("col1" -> ("default", unknownValues), "col2" -> (null, unknownValues), "col4" -> (0, Seq(-1)))))
 
     assertDataFrameEquality(transformedDF, expectedDF)
   }
