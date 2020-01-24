@@ -9,7 +9,7 @@ import org.apache.spark.sql.catalyst.expressions.GenericRowWithSchema
 import org.apache.spark.sql.types.{BooleanType, StringType, StructField, StructType}
 import org.apache.spark.sql.{DataFrame, Row, SparkSession}
 
-import scala.collection.immutable.{SortedSet, TreeSet}
+import scala.collection.immutable.SortedSet
 
 class FragmentSummaryDataGenerator(spark: SparkSession,
                                    baseDF: DataFrame,
@@ -149,13 +149,13 @@ class FragmentSummaryDataGenerator(spark: SparkSession,
       .map(v => (v._1, v._2.map(_._2).sum / duration))
 
     val mainTempo =
-      if (tempoProportions.size == 1 && tempoProportions.head._1 == tempoIrregular)
+      if (tempoProportions.filter(_._2 > 0.0d).size == 1 && tempoProportions.filter(_._2 > 0.0d).head._1 == tempoIrregular)
         tempoIrregular
       else
         tempoProportions
           .filterNot(_._1 == tempoIrregular)
           .toList
-          .sortBy(-_._2)
+          .sortBy(t => (-t._2, t._1))
           .head
           ._1
 
