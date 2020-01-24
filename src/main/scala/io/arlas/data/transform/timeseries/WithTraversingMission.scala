@@ -135,6 +135,9 @@ class WithTraversingMission(spark: SparkSession, dataModel: DataModel, sensorDis
                 val missionEndTs = lastRow.getOrElse(arlasTrackTimestampEnd, UNKNOWN_LONG)
                 val missionGpsDistance =
                   missionTimeseries.map(_.getOrElse(gpsDistanceCol, UNKNOWN_DOUBLE)).sum
+                val missionGpsDistanceStraigthness =
+                  if (missionDistances(index) == 0 || missionGpsDistance == 0) 0
+                  else (missionDistances(index) / missionGpsDistance)
                 val objectId = firstRow.getOrElse(dataModel.idColumn, UNKNOWN_STRING)
 
                 val missionData = Map(
@@ -147,7 +150,7 @@ class WithTraversingMission(spark: SparkSession, dataModel: DataModel, sensorDis
                     .sum,
                   arlasMissionDistanceGpsTravelled -> missionGpsDistance,
                   arlasMissionDistanceGpsStraigthline -> missionDistances(index),
-                  arlasMissionDistanceGpsStraigthness -> missionDistances(index) / missionGpsDistance,
+                  arlasMissionDistanceGpsStraigthness -> missionGpsDistanceStraigthness,
                   arlasMissionDepartureLocationLat -> firstRow.getOrElse(arlasDepartureLocationLat, UNKNOWN_DOUBLE),
                   arlasMissionDepartureLocationLon -> firstRow.getOrElse(arlasDepartureLocationLon, UNKNOWN_DOUBLE),
                   arlasMissionDepartureTimestamp -> firstRow.getOrElse(arlasTrackTimestampStart, UNKNOWN_LONG),
