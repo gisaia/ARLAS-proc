@@ -22,6 +22,9 @@ package io.arlas.data.transform
 import io.arlas.data.transform.features.WithGeoData
 
 object ArlasTransformerColumns {
+
+  val arlasPartitionFormat = "yyyyMMdd"
+
   val arlasTimestampColumn = "arlas_timestamp"
   val arlasPartitionColumn = "arlas_partition"
   val arlasDistanceColumn = "arlas_distance"
@@ -44,6 +47,7 @@ object ArlasTransformerColumns {
   // TRACK COLUMNS
   val arlasTrackPrefix = "arlas_track_"
   val arlasTrackId = arlasTrackPrefix + "id"
+  val arlasTrackSampleId = arlasTrackPrefix + "sample_id"
   val arlasTrackNbGeopoints = arlasTrackPrefix + "nb_geopoints"
   val arlasTrackTrail = arlasTrackPrefix + "trail"
   val arlasTrackTrailGeohashes = arlasTrackPrefix + "trail_geohashes"
@@ -167,7 +171,7 @@ object ArlasTransformerColumns {
   val arlasMissionArrivalPrefix = arlasMissionPrefix + "arrival_"
   val arlasMissionArrivalLocationLat = arlasMissionArrivalPrefix + "location_lat"
   val arlasMissionArrivalLocationLon = arlasMissionArrivalPrefix + "location_lon"
-  val arlasMissionArrivalLocationTimestamp = arlasMissionArrivalPrefix + "timestamp"
+  val arlasMissionArrivalTimestamp = arlasMissionArrivalPrefix + "timestamp"
 
   val arlasMissionArrivalAddressPrefix = arlasMissionArrivalPrefix + "address_"
   val arlasMissionArrivalAddressState = arlasMissionArrivalAddressPrefix + WithGeoData.statePostfix

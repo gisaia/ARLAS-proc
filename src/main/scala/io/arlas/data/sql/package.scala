@@ -47,7 +47,7 @@ package object sql extends DataFrameReader {
       start match {
         case Some(start: ZonedDateTime) => {
           df.where(
-            col(arlasPartitionColumn) >= Integer.valueOf(start.format(DateTimeFormatter.ofPattern("yyyyMMdd")))
+            col(arlasPartitionColumn) >= Integer.valueOf(start.format(DateTimeFormatter.ofPattern(arlasPartitionFormat)))
               && col(arlasTimestampColumn) >= start.toEpochSecond)
         }
         case _ => df
@@ -58,7 +58,7 @@ package object sql extends DataFrameReader {
       stop match {
         case Some(stop: ZonedDateTime) => {
           df.where(
-            col(arlasPartitionColumn) <= Integer.valueOf(stop.format(DateTimeFormatter.ofPattern("yyyyMMdd")))
+            col(arlasPartitionColumn) <= Integer.valueOf(stop.format(DateTimeFormatter.ofPattern(arlasPartitionFormat)))
               && col(arlasTimestampColumn) <= stop.toEpochSecond)
         }
         case _ => df

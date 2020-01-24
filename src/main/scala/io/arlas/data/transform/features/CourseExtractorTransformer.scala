@@ -35,8 +35,7 @@ class CourseExtractorTransformer(spark: SparkSession,
     arlasCourseDurationColumn,
     arlasCourseStateColumn,
     arlasCourseOrStopColumn,
-    arlasMovingStateColumn,
-    arlasPartitionColumn
+    arlasMovingStateColumn
   )
 
   val tmpTrailData = "tmp_trail_data"

@@ -122,7 +122,7 @@ class WithTraversingMissionTest extends ArlasTest {
       )
       .withColumn(arlasMissionDistanceGpsStraigthness, col(arlasMissionDistanceGpsStraigthline) / col(arlasMissionDistanceGpsTravelled))
       .withColumn(arlasMissionDepartureTimestamp, first(arlasTrackTimestampStart).over(window))
-      .withColumn(arlasMissionArrivalLocationTimestamp, last(arlasTrackTimestampEnd).over(window))
+      .withColumn(arlasMissionArrivalTimestamp, last(arlasTrackTimestampEnd).over(window))
     expectedDF
   }
 }

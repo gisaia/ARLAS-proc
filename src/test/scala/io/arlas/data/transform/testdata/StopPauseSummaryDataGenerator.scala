@@ -14,26 +14,20 @@ class StopPauseSummaryDataGenerator(spark: SparkSession,
                                     tempoIrregular: String,
                                     standardDeviationEllipsisNbPoints: Int)
     extends FragmentSummaryDataGenerator(
-      spark,
-      baseDF,
-      dataModel,
-      speedColumn,
-      tempoProportionsColumns,
-      tempoIrregular,
-      standardDeviationEllipsisNbPoints,
-      arlasMotionIdColumn,
-      (arlasMovingStateColumn, ArlasMovingStates.STILL),
-      Seq(StructField(arlasTempoColumn, StringType, true), StructField(arlasTrackTempoEmissionIsMulti, BooleanType, true)),
-      Seq(),
-      (values, rows) => {
-        values.map(
-          m =>
-            if (m._1 == arlasTrackTrail)
-              arlasTrackTrail -> values.getOrElse(arlasTrackLocationPrecisionGeometry, "")
-            else if (m._1 == arlasMotionDurationColumn)
-              arlasMotionDurationColumn -> rows.head.getAs[Long](arlasMotionDurationColumn)
-            else if (m._1 == arlasMotionIdColumn)
-              arlasMotionIdColumn -> rows.head.getAs[Long](arlasMotionIdColumn)
-            else m)
-      }
+      spark = spark,
+      baseDF = baseDF,
+      dataModel = dataModel,
+      speedColumn = speedColumn,
+      tempoProportionsColumns = tempoProportionsColumns,
+      tempoIrregular = tempoIrregular,
+      standardDeviationEllipsisNbPoints = standardDeviationEllipsisNbPoints,
+      aggregationColumn = arlasMotionIdColumn,
+      aggregationCondition = (arlasMovingStateColumn, ArlasMovingStates.STILL),
+      additionalAggregations = (values, rows) =>
+        values ++ Map(
+          //update existing columns
+          arlasTrackTrail -> values.getOrElse(arlasTrackLocationPrecisionGeometry, ""),
+          arlasMotionDurationColumn -> rows.head.getAs[Long](arlasMotionDurationColumn),
+          arlasMotionIdColumn -> rows.head.getAs[Long](arlasMotionIdColumn)
+      )
     )

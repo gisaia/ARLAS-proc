@@ -3,6 +3,8 @@ package io.arlas.data.utils
 import org.locationtech.jts.geom.Coordinate
 import org.scalatest.FlatSpec
 
+import scala.util.Random
+
 class GeoToolTest extends FlatSpec {
 
   "computeStandardDeviationEllipsis " should " compute the standard deviation ellipsis" in {
@@ -54,7 +56,9 @@ LINESTRING (1.373584 43.636883, 1.3735806 43.6369089, 1.3735706 43.636933, 1.373
       new Coordinate(4.0, 4.0),
       new Coordinate(3.0, 3.0),
       new Coordinate(1.0, 1.0),
-      new Coordinate(1.0, 1.0)
+      new Coordinate(1.0, 1.0),
+      new Coordinate(1.0, 1.0),
+      new Coordinate(9.0, 9.0)
     )
 
     val expected = List(
@@ -64,10 +68,16 @@ LINESTRING (1.373584 43.636883, 1.3735806 43.6369089, 1.3735706 43.636933, 1.373
       new Coordinate(5.0, 5.0),
       new Coordinate(4.0, 4.0),
       new Coordinate(3.0, 3.0),
-      new Coordinate(1.0, 1.0)
+      new Coordinate(1.0, 1.0),
+      new Coordinate(9.0, 9.0)
     )
 
     assert(GeoTool.removeConsecutiveDuplicatesCoords(coordinates) == expected)
+  }
+
+  "removeConsecutiveDuplicatesCoords" should "not throw any StackOverflowError with many coordinates" in {
+    val randomList = List.fill(1000000)(new Coordinate(Random.nextDouble(), Random.nextDouble()))
+    GeoTool.removeConsecutiveDuplicatesCoords(randomList)
   }
 
   "groupConsecutiveValuesByCondition" should "group consecutive values based on a condition" in {

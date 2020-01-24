@@ -7,6 +7,7 @@ import io.arlas.data.utils.GeoTool
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql._
 import org.apache.spark.sql.types.{DoubleType, LongType, StringType, StructField, StructType}
+import org.apache.spark.sql.functions.col
 
 import scala.collection.mutable.ListBuffer
 
@@ -60,6 +61,7 @@ class WithTraversingMission(spark: SparkSession, dataModel: DataModel, sensorDis
 
     val interpolatedRows: RDD[Row] = dataset
       .toDF()
+      .repartition(col(dataModel.idColumn))
       .map(row => (row.getString(row.fieldIndex(dataModel.idColumn)), List(row.getValuesMap(columns))))
       .rdd
       .reduceByKey(_ ++ _)
@@ -162,7 +164,7 @@ class WithTraversingMission(spark: SparkSession, dataModel: DataModel, sensorDis
                     .getOrElse(arlasDepartureAddressPostcode, UNKNOWN_STRING),
                   arlasMissionArrivalLocationLat -> lastRow.getOrElse(arlasArrivalLocationLat, UNKNOWN_DOUBLE),
                   arlasMissionArrivalLocationLon -> lastRow.getOrElse(arlasArrivalLocationLon, UNKNOWN_DOUBLE),
-                  arlasMissionArrivalLocationTimestamp -> lastRow.getOrElse(arlasTrackTimestampEnd, UNKNOWN_LONG),
+                  arlasMissionArrivalTimestamp -> lastRow.getOrElse(arlasTrackTimestampEnd, UNKNOWN_LONG),
                   arlasMissionArrivalAddressCountryCode -> lastRow
                     .getOrElse(arlasArrivalAddressCountryCode, UNKNOWN_STRING),
                   arlasMissionArrivalAddressCountry -> lastRow.getOrElse(arlasArrivalAddressCountry, UNKNOWN_STRING),
@@ -202,7 +204,7 @@ class WithTraversingMission(spark: SparkSession, dataModel: DataModel, sensorDis
       .add(StructField(arlasMissionDepartureAddressPostcode, StringType, true))
       .add(StructField(arlasMissionArrivalLocationLat, DoubleType, true))
       .add(StructField(arlasMissionArrivalLocationLon, DoubleType, true))
-      .add(StructField(arlasMissionArrivalLocationTimestamp, LongType, true))
+      .add(StructField(arlasMissionArrivalTimestamp, LongType, true))
       .add(StructField(arlasMissionArrivalAddressCountryCode, StringType, true))
       .add(StructField(arlasMissionArrivalAddressCountry, StringType, true))
       .add(StructField(arlasMissionArrivalAddressCity, StringType, true))

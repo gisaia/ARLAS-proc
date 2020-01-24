@@ -1,13 +1,15 @@
 package io.arlas.data.transform.testdata
+import java.text.SimpleDateFormat
+
 import io.arlas.data.model.DataModel
 import io.arlas.data.transform.ArlasTestHelper.{mean, stdDev, _}
 import io.arlas.data.transform.ArlasTransformerColumns.{arlasTempoColumn, _}
 import io.arlas.data.utils.GeoTool
 import org.apache.spark.sql.catalyst.expressions.GenericRowWithSchema
-import org.apache.spark.sql.types.{StructField, StructType}
+import org.apache.spark.sql.types.{BooleanType, StringType, StructField, StructType}
 import org.apache.spark.sql.{DataFrame, Row, SparkSession}
 
-import scala.collection.immutable.ListMap
+import scala.collection.immutable.SortedSet
 
 class FragmentSummaryDataGenerator(spark: SparkSession,
                                    baseDF: DataFrame,
@@ -16,52 +18,79 @@ class FragmentSummaryDataGenerator(spark: SparkSession,
                                    tempoProportionsColumns: Map[String, String],
                                    tempoIrregular: String,
                                    standardDeviationEllipsisNbPoints: Int,
+                                   // the column on which the rows are grouped
                                    aggregationColumn: String,
+                                   // only rows whose _1 == _2  will be aggregated
                                    aggregationCondition: (String, String),
-                                   aggregationColumns: Seq[StructField],
-                                   afterTransformColumns: Seq[StructField],
-                                   additionalAggregations: (ListMap[String, Any], Array[Row]) => ListMap[String, Any],
-                                   afterTransform: (Seq[Row], StructType) => Seq[Row] = (rows, schema) => rows)
+                                   // Define additional aggregations:
+                                   // for any aggregated rows, Map[String, Any] is a Map of the fragment summary aggregations
+                                   // with (aggregated column name -> value)
+                                   // and Array[Row] are the source aggregated rows.
+                                   // New columns can be added, or existing columns can be updated
+                                   additionalAggregations: (Map[String, Any], Array[Row]) => Map[String, Any] = (values, _) => values,
+                                   // schema of columns added in `additionalAggregations`
+                                   additionalAggregationsNewColumns: Seq[StructField] = Nil,
+                                   // callback executed after rows are aggregated.
+                                   // Seq[Row] is the list of aggregated rows, StructType their related schema.
+                                   // It returns the updated rows with the updated schema.
+                                   afterTransform: (Seq[Row], StructType) => (Seq[Row], StructType) = (rows, schema) => (rows, schema))
     extends TestDataGenerator {
 
   override def get(): DataFrame = {
 
+    // in the schema after all aggregations have been applied, fields are sorted by their name (in order to not manage insertion order)
+    val afterAggregationsSchema = StructType(
+      SortedSet(
+        // arlasTempoColumn and arlasTrackTempoEmissionIsMulti are added or updated by Fragment Summary (depending on whether they already existed or not)
+        (baseDF.schema.fields ++ additionalAggregationsNewColumns :+ StructField(arlasTempoColumn, StringType, true) :+
+          StructField(arlasTrackTempoEmissionIsMulti, BooleanType, true)): _*)(Ordering.by(_.name)).toList)
+
+    //aggregate rows, and keep not aggregated rows (optionnally adding null values for new fields)
     val aggregationData = baseDF
       .collect()
       .groupBy(_.getAs[String](aggregationColumn))
       .flatMap {
-        case (id, rows) => {
+        case (_, rows) => {
 
-          if (rows(0).getAs[String](aggregationCondition._1)
-                != aggregationCondition._2)
-            rowsWithNullForNewFields(rows)
+          if (rows(0).getAs[String](aggregationCondition._1) != aggregationCondition._2)
+            rowsWithNullForNewFields(rows, baseDF.schema, afterAggregationsSchema)
           else {
-            rowsAggregated(rows)
+            rowsAggregated(rows, afterAggregationsSchema)
           }
         }
       }
       .toSeq
 
-    val schema = getSchemaWithColumns(baseDF, aggregationColumns ++ afterTransformColumns)
-    val data = afterTransform(aggregationData, schema)
+    //apply final callback after all aggregations
+    val (data, afterTransformSchema) = afterTransform(aggregationData, afterAggregationsSchema)
 
     spark
       .createDataFrame(
         spark.sparkContext.parallelize(data),
-        schema
+        afterTransformSchema
       )
   }
 
-  private def rowsWithNullForNewFields(rows: Array[Row]) = {
-    rows.map(r =>
-      new GenericRowWithSchema({
-        aggregationColumns.foldLeft(r.toSeq) {
-          case (s, _) => s :+ null
-        }
-      }.toArray, getSchemaWithColumns(baseDF, aggregationColumns)))
+  private def rowsWithNullForNewFields(rows: Array[Row], previousSchema: StructType, newSchema: StructType) = {
+
+    val newFields = newSchema.fieldNames.dropWhile(fn => previousSchema.fieldNames.contains(fn))
+
+    rows.map(r => {
+
+      val valuesByFieldName = r.schema
+        .map(field => {
+          (field.name, r.getAs[Any](field.name))
+        })
+
+      val newValuesByFieldName = newFields.foldLeft(valuesByFieldName) {
+        case (s, c) => if (r.schema.fields.map(_.name).contains(c)) s else s :+ (c, null)
+      }
+
+      new GenericRowWithSchema(newValuesByFieldName.sortBy(_._1).map(_._2).toArray, newSchema)
+    })
   }
 
-  private def rowsAggregated(rows: Array[Row]) = {
+  private def rowsAggregated(rows: Array[Row], afterAggregationsSchema: StructType) = {
 
     val sortedRows = rows.sortBy(_.getAs[Long](arlasTrackTimestampStart))
 
@@ -86,6 +115,8 @@ class FragmentSummaryDataGenerator(spark: SparkSession,
     val timestampStart = getWindowLongs(arlasTrackTimestampStart).head
     val timestampEnd = getWindowLongs(arlasTrackTimestampEnd).last
     val timestampCenter = mean(Seq(timestampStart, timestampEnd)).toLong
+    val dateFormat = new SimpleDateFormat(arlasPartitionFormat)
+    val arlasPartition = dateFormat.format(timestampCenter * 1000l).toInt
     val duration = getWindowLongs(arlasTrackDuration).sum
 
     val precisionValueLat =
@@ -118,13 +149,13 @@ class FragmentSummaryDataGenerator(spark: SparkSession,
       .map(v => (v._1, v._2.map(_._2).sum / duration))
 
     val mainTempo =
-      if (tempoProportions.size == 1 && tempoProportions.head._1 == tempoIrregular)
+      if (tempoProportions.filter(_._2 > 0.0d).size == 1 && tempoProportions.filter(_._2 > 0.0d).head._1 == tempoIrregular)
         tempoIrregular
       else
         tempoProportions
           .filterNot(_._1 == tempoIrregular)
           .toList
-          .sortBy(-_._2)
+          .sortBy(t => (-t._2, t._1))
           .head
           ._1
 
@@ -137,12 +168,13 @@ class FragmentSummaryDataGenerator(spark: SparkSession,
       .map(w => w.getAs[Double](speedColumn) * w.getAs[Long](arlasTrackDuration))
       .sum / duration
 
-    val fragmentSummaryData = ListMap(
+    val fragmentSummaryAggregationData = Map(
       dataModel.idColumn -> sortedRows.head.getAs[String](dataModel.idColumn),
       dataModel.timestampColumn -> null,
       dataModel.latColumn -> null,
       dataModel.lonColumn -> null,
       speedColumn -> weightAveragedSpeed,
+      arlasPartitionColumn -> arlasPartition,
       arlasTimestampColumn -> timestampCenter,
       arlasTrackId -> trackId,
       arlasTrackNbGeopoints -> nbPoints,
@@ -163,11 +195,7 @@ class FragmentSummaryDataGenerator(spark: SparkSession,
       arlasTrackDynamicsGpsBearing -> null,
       arlasTrackPrefix + speedColumn -> null,
       arlasTrackDistanceSensorTravelled -> distanceSensorTravelled,
-      arlasMovingStateColumn -> sortedRows.head.getAs[String](arlasMovingStateColumn)
-    ) ++ ListMap(
-      tempoProportionsColumns
-        .map(t => (t._1, tempoProportions.getOrElse(t._2, -1.0)))
-        .toSeq: _*) ++ ListMap(
+      arlasMovingStateColumn -> sortedRows.head.getAs[String](arlasMovingStateColumn),
       arlasCourseOrStopColumn -> sortedRows.head.getAs[String](arlasCourseOrStopColumn),
       arlasCourseStateColumn -> sortedRows.head.getAs[String](arlasCourseStateColumn),
       arlasMotionIdColumn -> null,
@@ -176,16 +204,18 @@ class FragmentSummaryDataGenerator(spark: SparkSession,
       arlasCourseDurationColumn -> sortedRows.head.getAs[Long](arlasCourseDurationColumn),
       arlasTempoColumn -> mainTempo,
       arlasTrackTempoEmissionIsMulti -> isTempoEmissionMulti
-    )
+    ) ++ Map(
+      tempoProportionsColumns
+        .map(t => (t._1, tempoProportions.getOrElse(t._2, -1.0)))
+        .toSeq: _*)
 
-    val withAdditionalAggregationData = additionalAggregations(fragmentSummaryData, sortedRows)
+    val withAdditionalAggregationData = additionalAggregations(fragmentSummaryAggregationData, sortedRows)
 
-    Seq(new GenericRowWithSchema(withAdditionalAggregationData.values.toArray, getSchemaWithColumns(baseDF, aggregationColumns)))
+    Seq(
+      new GenericRowWithSchema(
+        withAdditionalAggregationData.toList.sortBy(_._1).map(_._2).toArray,
+        afterAggregationsSchema
+      ))
   }
-
-  def getSchemaWithColumns(baseDF: DataFrame, columns: Seq[StructField]) =
-    columns.foldLeft(baseDF.schema) {
-      case (schema, c) => if (schema.fieldNames.contains(c.name)) schema else schema.add(c)
-    }
 
 }

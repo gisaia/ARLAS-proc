@@ -265,6 +265,8 @@ abstract class FragmentSummaryTransformer(spark: SparkSession,
       .drop(tmpAggRowOrder)
 
     val afterTransformedDF = afterTransform(transformedDF)
+      .withColumn(arlasPartitionColumn, // compute new arlas_partition value
+                  from_unixtime(col(arlasTrackTimestampCenter), arlasPartitionFormat).cast(IntegerType))
 
     //apply the origin schema with new columns, i.a. not with only nullable columns
     // First, use the same column order (otherwise we should define the same order in

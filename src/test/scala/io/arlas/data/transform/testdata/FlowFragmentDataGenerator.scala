@@ -1,4 +1,6 @@
 package io.arlas.data.transform.testdata
+import java.text.SimpleDateFormat
+
 import io.arlas.data.model.DataModel
 import io.arlas.data.transform.ArlasTestHelper.{mean, stdDev, _}
 import io.arlas.data.transform.ArlasTransformerColumns._
@@ -47,6 +49,8 @@ class FlowFragmentDataGenerator(
               val timestampStart = window(0).getAs[Long](arlasTimestampColumn)
               val timestampEnd = window(1).getAs[Long](arlasTimestampColumn)
               val timestampCenter = (timestampStart + timestampEnd) / 2
+              val dateFormat = new SimpleDateFormat(arlasPartitionFormat)
+              val arlasPartition = dateFormat.format(timestampCenter * 1000).toInt
 
               val latMean =
                 scaleDouble(mean(Seq(prevLat, curLat)), GeoTool.LOCATION_DIGITS)
@@ -87,6 +91,7 @@ class FlowFragmentDataGenerator(
                 timestampStart,
                 timestampEnd,
                 timestampCenter,
+                arlasPartition,
                 latMean,
                 lonMean,
                 latStd,
@@ -123,6 +128,7 @@ class FlowFragmentDataGenerator(
       .add(StructField(arlasTrackTimestampStart, LongType, true))
       .add(StructField(arlasTrackTimestampEnd, LongType, true))
       .add(StructField(arlasTrackTimestampCenter, LongType, true))
+      .add(StructField(arlasPartitionColumn, IntegerType, true))
       .add(StructField(arlasTrackLocationLat, DoubleType, true))
       .add(StructField(arlasTrackLocationLon, DoubleType, true))
       .add(StructField(arlasTrackLocationPrecisionValueLat, DoubleType, true))
