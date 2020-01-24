@@ -7,6 +7,7 @@ import io.arlas.data.utils.GeoTool
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql._
 import org.apache.spark.sql.types.{DoubleType, LongType, StringType, StructField, StructType}
+import org.apache.spark.sql.functions.col
 
 import scala.collection.mutable.ListBuffer
 
@@ -60,6 +61,7 @@ class WithTraversingMission(spark: SparkSession, dataModel: DataModel, sensorDis
 
     val interpolatedRows: RDD[Row] = dataset
       .toDF()
+      .repartition(col(dataModel.idColumn))
       .map(row => (row.getString(row.fieldIndex(dataModel.idColumn)), List(row.getValuesMap(columns))))
       .rdd
       .reduceByKey(_ ++ _)
