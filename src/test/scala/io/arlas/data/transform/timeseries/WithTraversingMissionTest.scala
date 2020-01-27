@@ -9,7 +9,6 @@ import io.arlas.data.sql.ArlasDataFrame
 import io.arlas.data.utils.GeoTool
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.expressions.Window
-
 import scala.collection.immutable.ListMap
 
 class WithTraversingMissionTest extends ArlasTest {
