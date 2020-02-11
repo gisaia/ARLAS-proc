@@ -43,9 +43,9 @@ class WithRoutingData(trailColumn: String, conditionColumn: Option[String] = Non
                 Some(res.paths.head.distance),
                 Some(res.paths.head.time)
             ))
-          .getOrElse(RoutingResult())
+          .getOrElse(RoutingResult(Some(trail)))
       })
-      .toOption
+      .getOrElse(RoutingResult(Some(trail)))
   })
 
   override def transform(dataset: Dataset[_]): DataFrame = {
