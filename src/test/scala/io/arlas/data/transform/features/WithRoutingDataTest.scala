@@ -73,18 +73,19 @@ class WithRoutingDataTest extends ArlasTest with ArlasMockServer {
     assertDataFrameEquality(transformedDF, expectedDF)
   }
 
-  "WithRefinedTrail" should "return null with invalid trail" in {
+  "WithRefinedTrail" should "return origin trail with invalid trail" in {
 
+    val invalidTrail = when(lit(true), lit("LINESTRING (42.099761 11.782009 , 42.099615 11.781858, 42.100029 11.782359)"))
     val transformedDF = baseDF
       .withColumn("trail",
                   //reverted lat and lon
-                  when(lit(true), lit("LINESTRING (42.099761 11.782009 , 42.099615 11.781858, 42.100029 11.782359)")))
+                  invalidTrail)
       .enrichWithArlas(new WithRoutingData("trail"))
       .drop("trail")
 
     val expectedDF = testDF
       .drop("expected_refined_trail", "expected_refined_distance", "expected_refined_duration")
-      .withColumn(arlasTrackRoutingTrailRefined, lit(null).cast(StringType))
+      .withColumn(arlasTrackRoutingTrailRefined, invalidTrail)
       .withColumn(arlasTrackRoutingDistance, lit(null).cast(DoubleType))
       .withColumn(arlasTrackRoutingDuration, lit(null).cast(LongType))
       .drop("trail")
