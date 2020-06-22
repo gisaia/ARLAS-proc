@@ -2,9 +2,8 @@ ThisBuild / version      := (version in ThisBuild).value
 ThisBuild / scalaVersion := "2.11.8"
 ThisBuild / organization := "io.arlas"
 
-resolvers += "osgeo" at "http://download.osgeo.org/webdav/geotools/"
+resolvers += "osgeo" at "https://repo.osgeo.org/repository/release/"
 resolvers += "gisaia-ml" at s"https://dl.cloudsmith.io/${sys.env.getOrElse("CLOUDSMITH_PRIVATE_TOKEN", "basic")}/gisaia/private/maven"
-resolvers += "boundless" at "http://repo.boundlessgeo.com/main"
 resolvers += "jboss" at "https://repository.jboss.org/maven2/"
 
 val sparkVersion = "2.3.3"
@@ -24,8 +23,8 @@ val tests = Seq(scalaTest, wiremockStandalone)
 val elasticSearch = "org.elasticsearch" %% "elasticsearch-spark-20" % "7.4.2" % "provided"
 val elastic = Seq(elasticSearch)
 
-val gtReferencing = "org.geotools" % "gt-referencing" % "20.1" % "provided"
-val gtGeometry = "org.geotools" % "gt-geometry" % "20.1" % "provided"
+val gtReferencing = "org.geotools" % "gt-referencing" % "20.1" % "provided" exclude("javax.media", "jai_core")
+val gtGeometry = "org.geotools" % "gt-geometry" % "20.1" % "provided" exclude("javax.media", "jai_core")
 val geotools = Seq(gtReferencing, gtGeometry)
 
 val arlasMl = "io.arlas" %% "arlas-ml" % "0.1.1"
