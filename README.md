@@ -1,16 +1,17 @@
-# Spark Application for Ingestion & Processing data  
+# ARLAS-proc
+Spark Library to ingest and process geodata timeseries  
 
 - [Overview](#overview)
   * [Versions used in this project](#versions-used-in-this-project)
-- [Prerequisites](#prerequisites)
-  * [Cloudsmith configuration](#cloudsmith-configuration)
-    + [For Intellij to download from Cloudsmith](#for-intellij-to-download-from-cloudsmith)
 - [Build and deploy application JAR](#build-and-deploy-application-jar)
   * [Build locally](#build-locally)
   * [Deploy JAR to Cloudsmith](#deploy-jar-to-cloudsmith)
   * [Release](#release)
 - [User guide](#user-guide)
   * [Test locally throught spark-shell](#test-locally-throught-spark-shell)
+  * [Unit tests with external API](#unit-tests-with-external-api)
+    + [Capture external API](#capture-external-api)
+    + [Use mock server from scala tests](#use-mock-server-from-scala-tests)
 - [Contributing](#contributing)
 - [Authors](#authors)
 - [License](#license)
@@ -32,31 +33,7 @@ It's very important to check the version of spark being used, here we are using 
 - Spark 2.3.3 for Hadoop 2.7 with OpenJDK 8 (Java 1.8.0)
 - Scala 2.11.8
 - ScyllaDB 2.2.0
-- Spark-cassandra-connector: 2.3.1-S_2.11 
-
-# Prerequisites
-
-## Cloudsmith configuration
-
-You need to set up the following environment variables first:
-- `CLOUDSMITH_USER`
-- `CLOUDSMITH_API_KEY` (see [https://cloudsmith.io/user/settings/api/])
-- `CLOUDSMITH_PRIVATE_TOKEN` (see [https://cloudsmith.io/~gisaia/repos/private/entitlements/])
-
-```bash
-export CLOUDSMITH_USER="your-user"
-export CLOUDSMITH_API_KEY="your-api-key"
-export CLOUDSMITH_PRIVATE_TOKEN="your-private-token"
-``` 
-
-As these value are personal, you may add them to your `.bash_profile` file. This way you won't need to define them again.
-
-### For Intellij to download from Cloudsmith
-
-For Intellij to be able to use these environment variables (in order to download `arlas-ml`), in a terminal you should:
-
-- have the environment variables defined
-- start Intellij from this terminal: `idea`
+- Spark-cassandra-connector: 2.3.1-S_2.11
 
 # Build and deploy application JAR
 
@@ -69,15 +46,29 @@ sbt clean assembly
 
 ## Deploy JAR to Cloudsmith
 
+If you have sufficient permissions to our Cloudsmith repository, you can publish a SNAPSHOT build jar to Cloudsmith.
+
+You need to set up the following environment variables first:
+- `CLOUDSMITH_USER`
+- `CLOUDSMITH_API_KEY` (see [https://cloudsmith.io/user/settings/api/])
+
+```bash
+export CLOUDSMITH_USER="your-user"
+export CLOUDSMITH_API_KEY="your-api-key"
+``` 
+
+As these values are personal, you may add them to your `.bash_profile` file. This way you won't need to define them again.
+
+
 ```bash
 sbt clean publish
 ```
 
 ## Release
 
-Simply type:
+If you have sufficient permissions on Github repository, simply type:
 
-`sbt release`
+`sbt clean release`
 
 You will be asked for the versions to use for release & next version.
 

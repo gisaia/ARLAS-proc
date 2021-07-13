@@ -3,7 +3,7 @@ ThisBuild / scalaVersion := "2.11.8"
 ThisBuild / organization := "io.arlas"
 
 resolvers += "osgeo" at "https://repo.osgeo.org/repository/release/"
-resolvers += "gisaia-ml" at s"https://dl.cloudsmith.io/${sys.env.getOrElse("CLOUDSMITH_PRIVATE_TOKEN", "basic")}/gisaia/private/maven"
+resolvers += "gisaia-ml" at "https://dl.cloudsmith.io/public/gisaia/public/maven/"
 resolvers += "jboss" at "https://repository.jboss.org/maven2/"
 
 val sparkVersion = "2.3.3"
@@ -27,7 +27,7 @@ val gtReferencing = "org.geotools" % "gt-referencing" % "20.1" % "provided" excl
 val gtGeometry = "org.geotools" % "gt-geometry" % "20.1" % "provided" exclude("javax.media", "jai_core")
 val geotools = Seq(gtReferencing, gtGeometry)
 
-val arlasMl = "io.arlas" %% "arlas-ml" % "0.1.1"
+val arlasMl = "io.arlas" %% "arlas-ml" % "0.1.2"
 val arlas = Seq(arlasMl)
 
 lazy val arlasProc = (project in file("."))
@@ -46,7 +46,7 @@ lazy val arlasProc = (project in file("."))
 Test / parallelExecution := false
 
 //publish to external repo
-ThisBuild / publishTo := { Some("Cloudsmith API" at "https://maven.cloudsmith.io/gisaia/private/") }
+ThisBuild / publishTo := { Some("Cloudsmith API" at "https://dl.cloudsmith.io/public/gisaia/public/maven/") }
 ThisBuild / pomIncludeRepository := { x => false }
 ThisBuild / credentials += Credentials("Cloudsmith API", "maven.cloudsmith.io", sys.env.getOrElse("CLOUDSMITH_USER", ""), sys.env.getOrElse("CLOUDSMITH_API_KEY", ""))
 
