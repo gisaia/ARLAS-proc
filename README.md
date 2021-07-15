@@ -87,7 +87,7 @@ docker run -ti \
        -p "4040:4040" \
        gisaia/spark:latest \
        spark-shell \
-        --packages datastax:spark-cassandra-connector:2.3.1-s_2.11,org.elasticsearch:elasticsearch-spark-20_2.11:7.4.2,org.geotools:gt-referencing:20.1,org.geotools:gt-geometry:20.1,org.geotools:gt-epsg-hsql:20.1 \
+        --packages org.elasticsearch:elasticsearch-spark-20_2.11:7.4.2,org.geotools:gt-referencing:20.1,org.geotools:gt-geometry:20.1,org.geotools:gt-epsg-hsql:20.1 \
         --exclude-packages javax.media:jai_core \
         --repositories https://repo.osgeo.org/repository/release/ \
         --jars /opt/proc/target/scala-2.11/arlas-proc-assembly-0.4.0-SNAPSHOT.jar \

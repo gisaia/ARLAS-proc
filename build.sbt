@@ -12,10 +12,6 @@ val sparkSQL = "org.apache.spark" %% "spark-sql" % sparkVersion % "provided"
 val sparkMLlib = "org.apache.spark" %% "spark-mllib" % sparkVersion % "provided"
 val spark = Seq(sparkSQL,sparkMLlib)
 
-val sparkCassandraConnector = "com.datastax.spark" %% "spark-cassandra-connector" % "2.3.2" % "provided"
-
-val cassandra = Seq(sparkCassandraConnector)
-
 val scalaTest = "org.scalatest" %% "scalatest" % "2.2.5" % Test
 val wiremockStandalone = "com.github.tomakehurst" % "wiremock-standalone" % "2.25.1" % Test
 val tests = Seq(scalaTest, wiremockStandalone)
@@ -34,7 +30,6 @@ lazy val arlasProc = (project in file("."))
   .settings(
     name := "arlas-proc",
     libraryDependencies ++= spark,
-    libraryDependencies ++= cassandra,
     libraryDependencies ++= elastic,
     libraryDependencies ++= geotools,
     libraryDependencies ++= arlas,
