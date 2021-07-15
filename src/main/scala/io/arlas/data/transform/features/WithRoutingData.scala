@@ -22,7 +22,6 @@ package io.arlas.data.transform.features
 import com.fasterxml.jackson.annotation.{JsonIgnoreProperties, JsonProperty}
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
-import io.arlas.data.app.ArlasProcConfig
 import io.arlas.data.transform.ArlasTransformer
 import io.arlas.data.transform.ArlasTransformerColumns._
 import io.arlas.data.utils.{GeoTool, RestTool}
@@ -30,16 +29,20 @@ import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types._
 import org.apache.spark.sql.{Column, DataFrame, Dataset}
 
+import java.util.Locale
+
 /**
   * Extract routing data from a trail.
   * The transformers add 3 columns to the dataframe, from an external web-service:
   * - trail refined (i.a. redesigned trail, that matches "real" roads)
   * - distance covered over the refined trail
   * - approximate duration spent over the refined trail
-  * @param trailColumn input trail column
+  *
+  * @param geoServiceUrl url pattern that support variable insertion for trail points (ex http://mygeoservice.com/path?%s)
+  * @param trailColumn input trail column (WKT format)
   * @param conditionColumn if provided, only rows whose value of conditionColumn is "true" are processed
   */
-class WithRoutingData(trailColumn: String, conditionColumn: Option[String] = None) extends ArlasTransformer(Vector(trailColumn)) {
+class WithRoutingData(geoServiceUrl: String, trailColumn: String, conditionColumn: Option[String] = None) extends ArlasTransformer(Vector(trailColumn)) {
 
   @transient lazy val MAPPER = new ObjectMapper().registerModule(DefaultScalaModule)
 
@@ -51,7 +54,7 @@ class WithRoutingData(trailColumn: String, conditionColumn: Option[String] = Non
   val getTrailRefinedUDF = udf((trail: String) => {
 
     RestTool
-      .get(ArlasProcConfig.getRefineTrailUrl(trail))
+      .get(getRefineTrailUrl(geoServiceUrl, trail))
       .map(response => {
         val refinedData = MAPPER.readValue(response, classOf[Route])
         Option(refinedData)
@@ -66,6 +69,16 @@ class WithRoutingData(trailColumn: String, conditionColumn: Option[String] = Non
       })
       .getOrElse(RoutingResult(Some(trail)))
   })
+
+  def getRefineTrailUrl(geoServiceUrl: String, trail: String) : String = {
+    val points =
+    // %2f ensures doubles aren't formatted like an exponential
+      GeoTool
+        .wktToGeometry(trail)
+        .map(c => s"point=%2f,%2f".formatLocal(Locale.ENGLISH, c._1, c._2))
+        .mkString("&")
+    s"${geoServiceUrl}".format(points)
+  }
 
   override def transform(dataset: Dataset[_]): DataFrame = {
     dataset

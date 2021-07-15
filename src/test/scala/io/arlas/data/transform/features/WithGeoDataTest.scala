@@ -73,7 +73,7 @@ class WithGeoDataTest extends ArlasTest with ArlasMockServer {
       .withColumnRenamed("expected_country_code", countryCodeColumn)
       .withColumnRenamed("expected_postcode", postcodeColumn)
 
-    val transformedDF = baseDF.enrichWithArlas(new WithGeoData("lat", "lon", addressColumnsPrefix))
+    val transformedDF = baseDF.enrichWithArlas(new WithGeoData("http://localhost:8080/reverse.php?format=json&lat=%2f&lon=%2f&zoom=%s","lat", "lon", addressColumnsPrefix))
     assertDataFrameEquality(transformedDF, expectedDF)
   }
 
@@ -93,7 +93,7 @@ class WithGeoDataTest extends ArlasTest with ArlasMockServer {
       baseDF
         .withColumn("id", when(col("id").equalTo("id2"), lit(null)).otherwise(col("id")))
         .withColumn("do_get_address", col("id").isNull)
-        .enrichWithArlas(new WithGeoData("lat", "lon", addressColumnsPrefix, Some("do_get_address")))
+        .enrichWithArlas(new WithGeoData("http://localhost:8080/reverse.php?format=json&lat=%2f&lon=%2f&zoom=%s","lat", "lon", addressColumnsPrefix, Some("do_get_address")))
         .withColumn("id", when(col("id") isNull, lit("id2")).otherwise(col("id")))
         .drop("do_get_address")
     assertDataFrameEquality(transformedDF, expectedDF)
@@ -113,7 +113,7 @@ class WithGeoDataTest extends ArlasTest with ArlasMockServer {
     val transformedDF =
       baseDF
         .withColumn("do_get_address", col("lat").equalTo("44.636883"))
-        .enrichWithArlas(new WithGeoData("lat", "lon", addressColumnsPrefix, Some("do_get_address")))
+        .enrichWithArlas(new WithGeoData("http://localhost:8080/reverse.php?format=json&lat=%2f&lon=%2f&zoom=%s", "lat", "lon", addressColumnsPrefix, Some("do_get_address")))
         .drop("do_get_address")
     assertDataFrameEquality(transformedDF, expectedDF)
   }
@@ -138,7 +138,7 @@ class WithGeoDataTest extends ArlasTest with ArlasMockServer {
       .withColumn(countryCodeColumn, when(col("id").equalTo("id2"), col("expected_country_code")).otherwise(lit(null)))
       .withColumn(postcodeColumn, when(col("id").equalTo("id2"), col("expected_postcode")).otherwise(lit(null)))
       .drop("expected_city", "expected_county", "expected_state", "expected_country", "expected_country_code", "expected_postcode")
-      .enrichWithArlas(new WithGeoData("lat", "lon", addressColumnsPrefix, Some("do_get_address")))
+      .enrichWithArlas(new WithGeoData("http://localhost:8080/reverse.php?format=json&lat=%2f&lon=%2f&zoom=%s", "lat", "lon", addressColumnsPrefix, Some("do_get_address")))
       .drop("do_get_address")
     assertDataFrameEquality(transformedDF, expectedDF)
   }
@@ -153,7 +153,7 @@ class WithGeoDataTest extends ArlasTest with ArlasMockServer {
 
     val transformedDF = expectedDF
       .drop("expected_city", "expected_county", "expected_state", "expected_country", "expected_country_code", "expected_postcode")
-      .enrichWithArlas(new WithGeoData("lat", "lon", "expected_"))
+      .enrichWithArlas(new WithGeoData("http://localhost:8080/reverse.php?format=json&lat=%2f&lon=%2f&zoom=%s", "lat", "lon", "expected_"))
 
     assertDataFrameEquality(transformedDF, expectedDF)
   }

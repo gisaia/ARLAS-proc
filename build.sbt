@@ -3,7 +3,7 @@ ThisBuild / scalaVersion := "2.11.8"
 ThisBuild / organization := "io.arlas"
 
 resolvers += "osgeo" at "https://repo.osgeo.org/repository/release/"
-resolvers += "gisaia-ml" at "https://dl.cloudsmith.io/public/gisaia/public/maven/"
+resolvers += "gisaia" at "https://dl.cloudsmith.io/public/gisaia/public/maven/"
 resolvers += "jboss" at "https://repository.jboss.org/maven2/"
 
 val sparkVersion = "2.3.3"

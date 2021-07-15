@@ -95,14 +95,8 @@ docker run -ti \
         --conf spark.es.index.auto.create="true" \
         --conf spark.cassandra.connection.host="gisaia-scylla-db" \
         --conf spark.driver.allowMultipleContexts="true" \
-        --conf spark.rpc.netty.dispatcher.numThreads="2" \
-        --conf spark.driver.CLOUDSMITH_ML_MODELS_TOKEN="$CLOUDSMITH_PRIVATE_TOKEN" \
-        --conf spark.driver.CLOUDSMITH_ML_MODELS_REPO="gisaia/private"
+        --conf spark.rpc.netty.dispatcher.numThreads="2"
 ```
-
-`spark.driver.CLOUDSMITH_ML_MODELS_REPO` and `spark.driver.CLOUDSMITH_ML_MODELS_TOKEN` are required when using ML models from Cloudsmith. 
-
-CLOUDSMITH_ML_MODELS_REPO is the repo hosting the models (e.g. `gisaia/private`), and CLOUDSMITH_ML_MODELS_TOKEN is the token to use to download from this repository.
 
 Paste (using `:paste`) the following code snippet :
 ```scala
