@@ -114,3 +114,8 @@ releaseProcess := Seq[ReleaseStep](
   commitNextVersion,
   pushChanges
   )
+
+// Documentation publication in Github pages : https://gisaia.github.io/ARLAS-proc/latest/api
+enablePlugins(GhpagesPlugin)
+enablePlugins(SiteScaladocPlugin)
+git.remoteRepo := "git@github.com:gisaia/ARLAS-proc.git"
