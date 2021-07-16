@@ -3,7 +3,7 @@ ThisBuild / scalaVersion := "2.11.8"
 ThisBuild / organization := "io.arlas"
 
 resolvers += "osgeo" at "https://repo.osgeo.org/repository/release/"
-resolvers += "gisaia-ml" at "https://dl.cloudsmith.io/public/gisaia/public/maven/"
+resolvers += "gisaia" at "https://dl.cloudsmith.io/public/gisaia/public/maven/"
 resolvers += "jboss" at "https://repository.jboss.org/maven2/"
 
 val sparkVersion = "2.3.3"
@@ -11,10 +11,6 @@ val sparkVersion = "2.3.3"
 val sparkSQL = "org.apache.spark" %% "spark-sql" % sparkVersion % "provided"
 val sparkMLlib = "org.apache.spark" %% "spark-mllib" % sparkVersion % "provided"
 val spark = Seq(sparkSQL,sparkMLlib)
-
-val sparkCassandraConnector = "com.datastax.spark" %% "spark-cassandra-connector" % "2.3.2" % "provided"
-
-val cassandra = Seq(sparkCassandraConnector)
 
 val scalaTest = "org.scalatest" %% "scalatest" % "2.2.5" % Test
 val wiremockStandalone = "com.github.tomakehurst" % "wiremock-standalone" % "2.25.1" % Test
@@ -34,7 +30,6 @@ lazy val arlasProc = (project in file("."))
   .settings(
     name := "arlas-proc",
     libraryDependencies ++= spark,
-    libraryDependencies ++= cassandra,
     libraryDependencies ++= elastic,
     libraryDependencies ++= geotools,
     libraryDependencies ++= arlas,

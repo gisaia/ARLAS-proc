@@ -22,18 +22,20 @@ package io.arlas.data.transform.features
 import com.fasterxml.jackson.annotation.{JsonIgnoreProperties, JsonProperty}
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
-import io.arlas.data.app.ArlasProcConfig
 import io.arlas.data.transform.ArlasTransformer
 import io.arlas.data.utils.RestTool
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types.{StringType, StructField, StructType}
 import org.apache.spark.sql.{Column, DataFrame, Dataset}
 
+import java.util.Locale
+
 /**
   * Get geo data (address data) from geopoints.
   * Target (address) fields are to be specified.
   * A condition can be specified, in this case only rows matching this condition
   * will be searched. Existing values of other rows will be kept.
+  * @param geoServiceUrl url pattern that support variable insertion for lat/lon/zoom (ex http://mygeoservice.com/path?lat=%2f&lon=%2f&zoom=%s)
   * @param latColumn
   * @param lonColumn
   * @param addressColumnsPrefix
@@ -41,7 +43,8 @@ import org.apache.spark.sql.{Column, DataFrame, Dataset}
   *                        If no conditionColumn, then this is applied to every row.
   * @param zoomLevel zoomlevel of the geodata webservice
   */
-class WithGeoData(latColumn: String,
+class WithGeoData(geoServiceUrl: String,
+                   latColumn: String,
                   lonColumn: String,
                   addressColumnsPrefix: String,
                   conditionColumn: Option[String] = None,
@@ -68,7 +71,7 @@ class WithGeoData(latColumn: String,
   val getGeoDataUDF = udf((lat: Double, lon: Double) => {
 
     RestTool
-      .getOrFailOnNotAvailable(ArlasProcConfig.getGeodataUrl(lat, lon, zoomLevel))
+      .getOrFailOnNotAvailable(getGeodataUrl(geoServiceUrl, lat, lon, zoomLevel))
       .map(response => {
         val geoData = MAPPER.readValue(response, classOf[GeoData])
 
@@ -86,6 +89,13 @@ class WithGeoData(latColumn: String,
       })
       .toOption
   })
+
+  def getGeodataUrl(geoServiceUrl: String, lat: Double, lon: Double, zoomLevel: Int): String = {
+    // geoServiceUrl support variable insertion for lat/lon/zoom http://mygeoservice.com/path?lat=%2f&lon=%2f&zoom=%s
+    // %2f ensures doubles aren't formatted like an exponential
+    s"${geoServiceUrl}"
+      .formatLocal(Locale.ENGLISH, lat, lon, zoomLevel)
+  }
 
   def whenConditionOtherwise(expr: Column, otherwise: Column = lit(null)) =
     if (conditionColumn.isDefined)

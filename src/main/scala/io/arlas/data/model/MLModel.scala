@@ -19,15 +19,11 @@
 
 package io.arlas.data.model
 
-import java.security.InvalidParameterException
-
-import io.arlas.data.app.ArlasProcConfig
-import io.arlas.data.utils.RestTool
 import org.apache.spark.sql.SparkSession
 
 import scala.util.{Failure, Try}
 
-abstract sealed class MLModel {
+abstract class MLModel {
   def getModelString(): Try[String]
 }
 
@@ -36,28 +32,4 @@ case class MLModelLocal(spark: SparkSession, path: String) extends MLModel {
   override def getModelString(): Try[String] = {
     Try(spark.sparkContext.textFile(path, 1).toLocalIterator.mkString)
   }
-}
-
-case class MLModelHosted(spark: SparkSession, project: String, modelName: String, version: String = "latest") extends MLModel {
-
-  val CLOUDSMITH_TOKEN_KEY = "spark.driver.CLOUDSMITH_ML_MODELS_TOKEN"
-  val CLOUDSMITH_REPO_KEY = "spark.driver.CLOUDSMITH_ML_MODELS_REPO"
-
-  override def getModelString(): Try[String] = {
-
-    val cloudsmithToken = Try(spark.conf.get(CLOUDSMITH_TOKEN_KEY)).toOption
-    val cloudsmithRepo = Try(spark.conf.get(CLOUDSMITH_REPO_KEY)).toOption
-
-    if (!cloudsmithToken.isDefined) {
-      Failure(
-        new InvalidParameterException(s"${CLOUDSMITH_TOKEN_KEY} conf not set, cannot download ML Model ${modelName}:${version}/${project}"))
-    } else if (!cloudsmithRepo.isDefined) {
-      Failure(
-        new InvalidParameterException(s"${CLOUDSMITH_REPO_KEY} conf not set, cannot download ML Model ${modelName}:${version}/${project}"))
-    } else {
-      RestTool.get(ArlasProcConfig.getCloudsmithModelUrl(cloudsmithToken.get, cloudsmithRepo.get, version, project, modelName))
-    }
-
-  }
-
 }

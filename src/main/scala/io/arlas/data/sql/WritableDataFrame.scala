@@ -22,13 +22,12 @@ package io.arlas.data.sql
 import io.arlas.data.model.DataModel
 import io.arlas.data.transform.ArlasTransformerColumns._
 import io.arlas.data.transform.DataFrameException
-import io.arlas.data.utils.CassandraTool
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types.ArrayType
 import org.apache.spark.sql.{Column, DataFrame, SaveMode, SparkSession}
 import org.elasticsearch.spark.sql._
 
-class WritableDataFrame(df: DataFrame) extends TransformableDataFrame(df) with CassandraTool {
+class WritableDataFrame(df: DataFrame) extends TransformableDataFrame(df) {
 
   val PARQUET_BLOCK_SIZE: Int = 256 * 1024 * 1024
   val arlasElasticsearchIdColumn = "arlas_es_id"
@@ -101,20 +100,6 @@ class WritableDataFrame(df: DataFrame) extends TransformableDataFrame(df) with C
     df.withColumn("dynamicIndex", dynamicIndexColumn)
       .saveToEs(target.replace("{}", "{dynamicIndex}"),
                 Map("es.mapping.id" -> esIdColName, "es.mapping.exclude" -> (mappingExcluded :+ "dynamicIndex").mkString(",")))
-  }
-
-  def writeToScyllaDB(spark: SparkSession, dataModel: DataModel, target: String): Unit = {
-    val targetKeyspace = target.split('.')(0)
-    val targetTable = target.split('.')(1)
-
-    createCassandraKeyspaceIfNotExists(spark, targetKeyspace)
-    createCassandraTableIfNotExists(df, dataModel, targetKeyspace, targetTable)
-
-    df.write
-      .format("org.apache.spark.sql.cassandra")
-      .options(Map("keyspace" -> targetKeyspace, "table" -> targetTable))
-      .mode(SaveMode.Append)
-      .save()
   }
 
   def writeToCsv(target: String, delimiter: String = ";", toSingleFile: Boolean = true) = {
