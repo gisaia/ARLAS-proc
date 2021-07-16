@@ -38,7 +38,7 @@ The scala code in ARLAS-proc project is formatted using [Scalafmt](https://scala
 When your code is ready, you will have to:
 
 - rebase your repository.
-- run [scripts/tests/test.sh](scripts/tests/test.sh) which should exit with a `0` status.
+- run `sbt clean test` which should exit with a `0` status.
 - update documentation, and tests in [src/test](src/test) if relevant.
 - [submit a pull request](https://help.github.com/articles/about-pull-requests/) with a proper title and a reference to the corresponding issue (eg "fix #1234").
 - never force push your branch after submitting. If you need to synchronize with the official repository, it is best you merge master into your branch.

@@ -2,9 +2,8 @@ ThisBuild / version      := (version in ThisBuild).value
 ThisBuild / scalaVersion := "2.11.8"
 ThisBuild / organization := "io.arlas"
 
-resolvers += "osgeo" at "http://download.osgeo.org/webdav/geotools/"
-resolvers += "gisaia-ml" at s"https://dl.cloudsmith.io/${sys.env.getOrElse("CLOUDSMITH_PRIVATE_TOKEN", "basic")}/gisaia/private/maven"
-resolvers += "boundless" at "http://repo.boundlessgeo.com/main"
+resolvers += "osgeo" at "https://repo.osgeo.org/repository/release/"
+resolvers += "gisaia" at "https://dl.cloudsmith.io/public/gisaia/public/maven/"
 resolvers += "jboss" at "https://repository.jboss.org/maven2/"
 
 val sparkVersion = "2.3.3"
@@ -13,36 +12,36 @@ val sparkSQL = "org.apache.spark" %% "spark-sql" % sparkVersion % "provided"
 val sparkMLlib = "org.apache.spark" %% "spark-mllib" % sparkVersion % "provided"
 val spark = Seq(sparkSQL,sparkMLlib)
 
-val sparkCassandraConnector = "com.datastax.spark" %% "spark-cassandra-connector" % "2.3.2" % "provided"
+val scalaTest = "org.scalatest" %% "scalatest" % "2.2.5" % Test
+val wiremockStandalone = "com.github.tomakehurst" % "wiremock-standalone" % "2.25.1" % Test
+val tests = Seq(scalaTest, wiremockStandalone)
 
-val cassandra = Seq(sparkCassandraConnector)
-
-val scalaTest = "org.scalatest" %% "scalatest" % "2.2.5"
-
-val elasticSearch = "org.elasticsearch" %% "elasticsearch-spark-20" % "6.4.0" % "provided"
+val elasticSearch = "org.elasticsearch" %% "elasticsearch-spark-20" % "7.4.2" % "provided"
 val elastic = Seq(elasticSearch)
 
-val gtReferencing = "org.geotools" % "gt-referencing" % "20.1" % "provided"
-val gtGeometry = "org.geotools" % "gt-geometry" % "20.1" % "provided"
+val gtReferencing = "org.geotools" % "gt-referencing" % "20.1" % "provided" exclude("javax.media", "jai_core")
+val gtGeometry = "org.geotools" % "gt-geometry" % "20.1" % "provided" exclude("javax.media", "jai_core")
 val geotools = Seq(gtReferencing, gtGeometry)
 
-val arlasMl = "io.arlas" %% "arlas-ml" % "0.1.1"
+val arlasMl = "io.arlas" %% "arlas-ml" % "0.1.2"
 val arlas = Seq(arlasMl)
 
 lazy val arlasProc = (project in file("."))
   .settings(
     name := "arlas-proc",
     libraryDependencies ++= spark,
-    libraryDependencies ++= cassandra,
     libraryDependencies ++= elastic,
     libraryDependencies ++= geotools,
     libraryDependencies ++= arlas,
-    libraryDependencies += scalaTest % Test
+    libraryDependencies ++= tests
 
     )
 
+//ensures a single instance of wiremock at a time, during tests
+Test / parallelExecution := false
+
 //publish to external repo
-ThisBuild / publishTo := { Some("Cloudsmith API" at "https://maven.cloudsmith.io/gisaia/private/") }
+ThisBuild / publishTo := { Some("Cloudsmith API" at "https://dl.cloudsmith.io/public/gisaia/public/maven/") }
 ThisBuild / pomIncludeRepository := { x => false }
 ThisBuild / credentials += Credentials("Cloudsmith API", "maven.cloudsmith.io", sys.env.getOrElse("CLOUDSMITH_USER", ""), sys.env.getOrElse("CLOUDSMITH_API_KEY", ""))
 
@@ -100,7 +99,7 @@ releaseProcess := Seq[ReleaseStep](
   checkSnapshotDependencies,
   inquireVersions,
   runClean,
-  runTest,
+//  runTest,
   setReleaseVersion,
   commitReleaseVersion,
   pushChanges,                //to make sure develop branch is pulled
@@ -110,3 +109,8 @@ releaseProcess := Seq[ReleaseStep](
   commitNextVersion,
   pushChanges
   )
+
+// Documentation publication in Github pages : https://gisaia.github.io/ARLAS-proc/latest/api
+enablePlugins(GhpagesPlugin)
+enablePlugins(SiteScaladocPlugin)
+git.remoteRepo := "git@github.com:gisaia/ARLAS-proc.git"

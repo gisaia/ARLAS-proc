@@ -20,20 +20,21 @@
 package io.arlas.data.sql
 
 import io.arlas.data.model.DataModel
-import io.arlas.data.transform._
 import io.arlas.data.transform.ArlasTransformerColumns._
+import io.arlas.data.transform._
+import io.arlas.data.transform.features._
+import io.arlas.data.transform.tools.DataFrameFormatter
 import org.apache.spark.ml.Pipeline
-import org.apache.spark.sql.functions.{col, lit, struct}
-import org.apache.spark.sql.types.{DataType, StringType}
-import org.apache.spark.sql.{DataFrame}
+import org.apache.spark.sql.DataFrame
+import org.apache.spark.sql.functions.{col, date_format, lit, to_date}
+import org.apache.spark.sql.types.{DataType, IntegerType, StringType}
 
 class TransformableDataFrame(df: DataFrame) {
 
-  def asArlasFormattedData(dataModel: DataModel): DataFrame = {
-    doPipelineTransform(df,
-                        new DataFrameFormatter(dataModel),
-                        new WithArlasTimestamp(dataModel),
-                        new WithArlasPartition(dataModel))
+  def asArlasFormattedData(dataModel: DataModel, doubleColumns: Vector[String] = Vector()): DataFrame = {
+    df.enrichWithArlas(new DataFrameFormatter(dataModel, doubleColumns), new WithArlasTimestamp(dataModel))
+      .withColumn(arlasPartitionColumn,
+                  date_format(to_date(col(dataModel.timestampColumn), dataModel.timeFormat), arlasPartitionFormat).cast(IntegerType))
   }
 
   def enrichWithArlas(transformers: ArlasTransformer*): DataFrame = {
@@ -48,18 +49,5 @@ class TransformableDataFrame(df: DataFrame) {
 
   def withEmptyCol(colName: String, colType: DataType = StringType) =
     df.withColumn(colName, lit(null).cast(colType))
-
-  def asArlasVisibleSequencesFromTimestamp(dataModel: DataModel,
-                                           visibilityTimeout: Int): DataFrame = {
-    doPipelineTransform(
-      df,
-      new WithArlasVisibilityStateFromTimestamp(dataModel, visibilityTimeout),
-      new WithStateIdFromState(dataModel,
-                               arlasVisibilityStateColumn,
-                               arlasTimestampColumn,
-                               ArlasVisibilityStates.APPEAR.toString,
-                               arlasVisibleSequenceIdColumn)
-    )
-  }
 
 }
