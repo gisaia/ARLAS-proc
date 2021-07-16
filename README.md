@@ -78,22 +78,19 @@ You will be asked for the versions to use for release & next version.
 
 Start an interactive spark-shell session. For example :
 ```bash
+sbt clean assembly
 docker run -ti \
-       --network gisaia-network \
        -w /opt/work \
        -v ${PWD}:/opt/proc \
        -v $HOME/.m2:/root/.m2 \
        -v $HOME/.ivy2:/root/.ivy2 \
        -p "4040:4040" \
-       gisaia/spark:latest \
+       gisaia/spark:2.3.3 \
        spark-shell \
         --packages org.elasticsearch:elasticsearch-spark-20_2.11:7.4.2,org.geotools:gt-referencing:20.1,org.geotools:gt-geometry:20.1,org.geotools:gt-epsg-hsql:20.1 \
         --exclude-packages javax.media:jai_core \
-        --repositories https://repo.osgeo.org/repository/release/ \
-        --jars /opt/proc/target/scala-2.11/arlas-proc-assembly-0.4.0-SNAPSHOT.jar \
-        --conf spark.es.nodes="gisaia-elasticsearch" \
-        --conf spark.es.index.auto.create="true" \
-        --conf spark.cassandra.connection.host="gisaia-scylla-db" \
+        --repositories https://repo.osgeo.org/repository/release/,https://dl.cloudsmith.io/public/gisaia/public/maven/,https://repository.jboss.org/maven2/ \
+        --jars /opt/proc/target/scala-2.11/arlas-proc-assembly-0.6.1-SNAPSHOT.jar \
         --conf spark.driver.allowMultipleContexts="true" \
         --conf spark.rpc.netty.dispatcher.numThreads="2"
 ```
@@ -108,8 +105,6 @@ Paste (using `:paste`) the following code snippet :
       idColumn = "mmsi",
       latColumn = "latitude",
       lonColumn = "longitude",
-      speedColumn = "sog",
-      dynamicFields = Array("latitude", "longitude", "sog", "cog", "heading", "rot", "draught"),
       timeFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSX"
     )
     val period = getPeriod(
