@@ -7,7 +7,7 @@
  * not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
@@ -17,12 +17,11 @@
  * under the License.
  */
 
-package io.arlas.data.transform.features
+package io.arlas.data.transform.fragments
 
 import io.arlas.data.model.DataModel
+import io.arlas.data.transform.ArlasMovingStates
 import io.arlas.data.transform.ArlasTransformerColumns._
-import io.arlas.data.transform.fragments.FragmentSummaryTransformer
-import io.arlas.data.transform.{ArlasMovingStates, VisibilityChange}
 import io.arlas.data.utils.GeoTool
 import org.apache.spark.sql.expressions.WindowSpec
 import org.apache.spark.sql.functions._
@@ -31,54 +30,50 @@ import org.apache.spark.sql.{Column, SparkSession}
 import scala.collection.immutable.ListMap
 import scala.collection.mutable.WrappedArray
 
-class MovingFragmentSampleSummarizer(spark: SparkSession,
-                                     dataModel: DataModel,
-                                     standardDeviationEllipsisNbPoint: Int,
-                                     irregularTempo: String,
-                                     tempoPropotionColumns: Map[String, String],
-                                     weightAveragedColumns: Seq[String])
+/**
+  * @param spark                            Spark Session
+  * @param dataModel                        Data model containing names of structuring columns (id, lat, lon, time)
+  * @param standardDeviationEllipsisNbPoint number of points to compute the standard deviation ellipses
+  * @param irregularTempo                   value of the irregular tempo (i.a. greater than defined tempos, so there were probably pauses)
+  * @param tempoProportionColumns           Map of (tempo proportion column -> related tempo column)
+  * @param weightAveragedColumns            columns to weight average over track duration, in aggregations
+  */
+class StopPauseSummaryTransformer(spark: SparkSession,
+                                  dataModel: DataModel,
+                                  standardDeviationEllipsisNbPoint: Int = 12,
+                                  irregularTempo: String,
+                                  tempoProportionColumns: Map[String, String],
+                                  weightAveragedColumns: Seq[String])
     extends FragmentSummaryTransformer(
       spark,
       dataModel,
       standardDeviationEllipsisNbPoint,
       irregularTempo,
-      tempoPropotionColumns,
+      tempoProportionColumns,
       weightAveragedColumns
     ) {
 
-  override def getAggregationColumn(): String = arlasTrackSampleId
+  override def getAggregationColumn(): String = arlasMotionIdColumn
 
   override def getAggregateCondition(): Column =
-    col(arlasMovingStateColumn).equalTo(ArlasMovingStates.MOVE)
+    col(arlasMovingStateColumn).equalTo(ArlasMovingStates.STILL)
 
   override def getAggregatedRowsColumns(window: WindowSpec): ListMap[String, Column] =
     ListMap(
+      arlasTrackLocationPrecisionGeometry -> getStandardDeviationEllipsis(
+        col(arlasTrackLocationLat),
+        col(arlasTrackLocationLon),
+        when(col(arlasTrackLocationPrecisionValueLat).leq(0.001), col(arlasTrackLocationPrecisionValueLat)).otherwise(0.001),
+        when(col(arlasTrackLocationPrecisionValueLon).leq(0.001), col(arlasTrackLocationPrecisionValueLon)).otherwise(0.001)
+      ),
       arlasTrackTrail -> getTrailUDF(
         collect_list(col(arlasTrackTrail)).over(window),
         collect_list(col(arlasTrackLocationLat)).over(window),
         collect_list(col(arlasTrackLocationLon)).over(window),
-        collect_list(col(arlasMovingStateColumn).equalTo(lit(ArlasMovingStates.MOVE)))
+        collect_list(col(arlasMovingStateColumn).equalTo(lit(ArlasMovingStates.STILL)))
           .over(window)
-      ),
-      arlasTrackVisibilityChange ->
-        when(
-          (lit(VisibilityChange.APPEAR).equalTo(first(arlasTrackVisibilityChange).over(window))
-            || lit(VisibilityChange.APPEAR_DISAPPEAR).equalTo(first(arlasTrackVisibilityChange).over(window)))
-            && (lit(VisibilityChange.DISAPPEAR).equalTo(last(arlasTrackVisibilityChange).over(window))
-              || lit(VisibilityChange.APPEAR_DISAPPEAR).equalTo(last(arlasTrackVisibilityChange).over(window))),
-          VisibilityChange.APPEAR_DISAPPEAR
-        ).when(
-            lit(VisibilityChange.APPEAR).equalTo(first(arlasTrackVisibilityChange).over(window))
-              || lit(VisibilityChange.APPEAR_DISAPPEAR).equalTo(first(arlasTrackVisibilityChange).over(window)),
-            VisibilityChange.APPEAR
-          )
-          .when(
-            lit(VisibilityChange.DISAPPEAR).equalTo(last(arlasTrackVisibilityChange).over(window))
-              || lit(VisibilityChange.APPEAR_DISAPPEAR).equalTo(last(arlasTrackVisibilityChange).over(window)),
-            VisibilityChange.DISAPPEAR
-          )
-          .otherwise(null),
-      arlasTrackVisibilityProportion -> mean(col(arlasTrackVisibilityProportion)).over(window)
+      )
+      //      arlasTrackTrail -> col(arlasTrackLocationPrecisionGeometry)
     )
 
   def getTrailUDF =
@@ -92,8 +87,12 @@ class MovingFragmentSampleSummarizer(spark: SparkSession,
   override def getPropagatedColumns(): Seq[String] = {
     Seq(
       arlasMovingStateColumn,
-      arlasMotionDurationColumn,
+      arlasCourseOrStopColumn,
+      arlasCourseStateColumn,
       arlasMotionIdColumn,
+      arlasMotionDurationColumn,
+      arlasCourseIdColumn,
+      arlasCourseDurationColumn,
       dataModel.idColumn
     )
   }

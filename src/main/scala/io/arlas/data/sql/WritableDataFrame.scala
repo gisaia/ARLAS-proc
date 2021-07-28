@@ -71,6 +71,16 @@ class WritableDataFrame(df: DataFrame) extends TransformableDataFrame(df) {
       .parquet(target)
   }
 
+  def writeToParquetOverride(spark: SparkSession, target: String): Unit = {
+    df.repartition(col(arlasPartitionColumn))
+      .write
+      .option("compression", "snappy")
+      .option("parquet.block.size", PARQUET_BLOCK_SIZE.toString)
+      .mode(SaveMode.Overwrite)
+      .partitionBy(arlasPartitionColumn)
+      .parquet(target)
+  }
+
   def asArlasEsData(dataModel: DataModel): DataFrame = {
     df.withColumn(arlasGeoPointColumn, concat(col(dataModel.latColumn), lit(","), col(dataModel.lonColumn)))
       .withColumn(arlasIdColumn, concat(col(dataModel.idColumn), lit("#"), col(arlasTimestampColumn)))

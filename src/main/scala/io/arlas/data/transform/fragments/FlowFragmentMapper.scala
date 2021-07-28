@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package io.arlas.data.transform.timeseries
+package io.arlas.data.transform.fragments
 
 import io.arlas.data.model.DataModel
 import io.arlas.data.transform.ArlasTransformer
@@ -28,6 +28,13 @@ import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types._
 import org.apache.spark.sql.{Column, DataFrame, Dataset, SparkSession}
 
+/**
+  * @param dataModel
+  * @param spark
+  * @param aggregationColumnName
+  * @param averageColumns
+  * @param standardDeviationEllipsisNbPoints
+  */
 class FlowFragmentMapper(dataModel: DataModel,
                          spark: SparkSession,
                          aggregationColumnName: String,
@@ -91,8 +98,10 @@ class FlowFragmentMapper(dataModel: DataModel,
       .withColumn(arlasPartitionColumn, // compute new arlas partition value
                   from_unixtime(col(arlasTrackTimestampCenter), arlasPartitionFormat).cast(IntegerType))
 
-//    coalesce force field in schema to be not null
+      //    coalesce force field in schema to be not null
       .withColumn(arlasTimestampColumn, coalesce(col(arlasTrackTimestampCenter), lit(0)))
+      .withColumn(arlasTrackEndLocationLat, col(dataModel.latColumn))
+      .withColumn(arlasTrackEndLocationLon, col(dataModel.lonColumn))
       .withColumn( // track_location_lat = mean(latitude start, latitude end)
         arlasTrackLocationLat,
         whenPreviousPointExists(round(mean(dataModel.latColumn).over(window.rowsBetween(-1, 0)), GeoTool.LOCATION_DIGITS))

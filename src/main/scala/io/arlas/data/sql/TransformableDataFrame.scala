@@ -21,7 +21,7 @@ package io.arlas.data.sql
 
 import io.arlas.data.model.DataModel
 import io.arlas.data.transform.ArlasTransformerColumns._
-import io.arlas.data.transform._
+import io.arlas.data.transform.{ArlasTransformer}
 import io.arlas.data.transform.features._
 import io.arlas.data.transform.tools.DataFrameFormatter
 import org.apache.spark.ml.Pipeline

@@ -17,17 +17,17 @@
  * under the License.
  */
 
-package io.arlas.data.transform.features
+package io.arlas.data.transform.fragments
 
 import io.arlas.data.model.DataModel
 import io.arlas.data.transform.ArlasTransformer
 import io.arlas.data.transform.ArlasTransformerColumns.{arlasTrackTimestampStart, _}
 import io.arlas.data.utils.GeoTool
+import org.apache.spark.sql._
 import org.apache.spark.sql.catalyst.encoders.RowEncoder
 import org.apache.spark.sql.expressions.{Window, WindowSpec}
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types._
-import org.apache.spark.sql._
 
 import scala.collection.immutable.ListMap
 
@@ -78,7 +78,8 @@ abstract class FragmentSummaryTransformer(spark: SparkSession,
         arlasTrackNbGeopoints,
         arlasTrackLocationLat,
         arlasTrackLocationLon,
-        arlasTrackDistanceSensorTravelled
+        arlasTrackEndLocationLat,
+        arlasTrackEndLocationLon
       ) ++ weightAveragedColumns ++ tempoProportionColumns.keys) {
 
   val tmpAggRowOrder = "tmp_agg_row_order"
@@ -132,21 +133,18 @@ abstract class FragmentSummaryTransformer(spark: SparkSession,
       arlasTrackNbGeopoints -> (sum(arlasTrackNbGeopoints).over(window) - count(lit(1))
         .over(window) + lit(1)).cast(IntegerType),
       arlasTrackTimestampStart -> min(arlasTrackTimestampStart).over(window),
-      arlasTrackTimestampEnd -> (max(arlasTrackTimestampEnd).over(window)).cast(LongType),
+      arlasTrackTimestampEnd -> max(arlasTrackTimestampEnd).over(window),
       arlasTrackDuration -> sum(arlasTrackDuration).over(window),
       arlasTrackLocationPrecisionValueLat -> round(stddev_pop(arlasTrackLocationLat).over(window), GeoTool.LOCATION_PRECISION_DIGITS),
       arlasTrackLocationPrecisionValueLon -> round(stddev_pop(arlasTrackLocationLon).over(window), GeoTool.LOCATION_PRECISION_DIGITS),
       arlasTrackLocationLat -> round(mean(arlasTrackLocationLat).over(window), GeoTool.LOCATION_DIGITS),
       arlasTrackLocationLon -> round(mean(arlasTrackLocationLon).over(window), GeoTool.LOCATION_DIGITS),
-      arlasTrackDistanceSensorTravelled -> sum(arlasTrackDistanceSensorTravelled).over(window),
+      arlasTrackEndLocationLat -> last(arlasTrackEndLocationLat).over(window),
+      arlasTrackEndLocationLon -> last(arlasTrackEndLocationLon).over(window),
       arlasTrackTimestampCenter -> ((col(arlasTrackTimestampStart) + col(arlasTrackTimestampEnd)) / 2)
         .cast(LongType),
       arlasTimestampColumn -> col(arlasTrackTimestampCenter),
       arlasTrackId -> concat(col(dataModel.idColumn), lit("#"), col(arlasTrackTimestampStart), lit("_"), col(arlasTrackTimestampEnd)),
-      arlasTrackLocationPrecisionGeometry -> getStandardDeviationEllipsis(col(arlasTrackLocationLat),
-                                                                          col(arlasTrackLocationLon),
-                                                                          col(arlasTrackLocationPrecisionValueLat),
-                                                                          col(arlasTrackLocationPrecisionValueLon)),
       arlasTrackTempoEmissionIsMulti ->
         when(getNbTemposWithSignificantProportions(tempoProportionColumns.filter(_._2 != irregularTempo).keys.toSeq, lit(0))
                .gt(1),
@@ -258,6 +256,7 @@ abstract class FragmentSummaryTransformer(spark: SparkSession,
               else lit(null))
           )
         }
+        .withColumn(arlasTrackDynamicsGpsSpeedKmh, col(arlasTrackDistanceGpsTravelled) / col(arlasTrackDuration) * 1.9438444924406) // Recompute gps speed for the new created fragments
 
     //keep only one result row for aggregations
     val transformedDF = aggregatedDF

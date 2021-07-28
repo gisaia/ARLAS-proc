@@ -1,3 +1,5 @@
+package io.arlas.data.transform.ml
+
 /*
  * Licensed to Gisaïa under one or more contributor
  * license agreements. See the NOTICE.txt file distributed with
@@ -16,8 +18,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
-package io.arlas.data.transform.ml
 
 import io.arlas.data.model.MLModel
 import io.arlas.data.transform.ArlasTransformer
@@ -145,7 +145,7 @@ class HmmProcessor(sourceColumn: String, hmmModel: MLModel, partitionColumn: Str
 
     //we also add the UNIQUE_ID_COLUMN to initial data and join on it
     windowedPartitionedDF
-      .join(hmmDF, UNIQUE_ID_COLUMN)
+      .join(hmmDF, Seq(UNIQUE_ID_COLUMN), "left") // Sometimes not all the data coincide, use left avoid to drop data
       .drop(UNIQUE_ID_COLUMN, ROW_NUMBER_ON_PARTITION_COLUMN, WINDOW_ID_COLUMN)
   }
 }
