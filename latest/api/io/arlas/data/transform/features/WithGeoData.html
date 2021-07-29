@@ -94,7 +94,7 @@ will be searched. Existing values of other rows will be kept.</p></div><div clas
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="io.arlas.data.transform.features.WithGeoData#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="&lt;init&gt;(latColumn:String,lonColumn:String,addressColumnsPrefix:String,conditionColumn:Option[String],zoomLevel:Int):io.arlas.data.transform.features.WithGeoData"></a>
+      <a id="&lt;init&gt;(geoServiceUrl:String,latColumn:String,lonColumn:String,addressColumnsPrefix:String,conditionColumn:Option[String],zoomLevel:Int):io.arlas.data.transform.features.WithGeoData"></a>
       <a id="&lt;init&gt;:WithGeoData"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -102,14 +102,14 @@ will be searched. Existing values of other rows will be kept.</p></div><div clas
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">WithGeoData</span><span class="params">(<span name="latColumn">latColumn: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="lonColumn">lonColumn: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="addressColumnsPrefix">addressColumnsPrefix: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="conditionColumn">conditionColumn: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol">None</span></span>, <span name="zoomLevel">zoomLevel: <span class="extype" name="scala.Int">Int</span> = <span class="symbol">10</span></span>)</span>
+        <span class="name">WithGeoData</span><span class="params">(<span name="geoServiceUrl">geoServiceUrl: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="latColumn">latColumn: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="lonColumn">lonColumn: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="addressColumnsPrefix">addressColumnsPrefix: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="conditionColumn">conditionColumn: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol">None</span></span>, <span name="zoomLevel">zoomLevel: <span class="extype" name="scala.Int">Int</span> = <span class="symbol">10</span></span>)</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../../index.html#io.arlas.data.transform.features.WithGeoData@&lt;init&gt;(latColumn:String,lonColumn:String,addressColumnsPrefix:String,conditionColumn:Option[String],zoomLevel:Int):io.arlas.data.transform.features.WithGeoData" title="Permalink" target="_top">
+      <a href="../../../../../index.html#io.arlas.data.transform.features.WithGeoData@&lt;init&gt;(geoServiceUrl:String,latColumn:String,lonColumn:String,addressColumnsPrefix:String,conditionColumn:Option[String],zoomLevel:Int):io.arlas.data.transform.features.WithGeoData" title="Permalink" target="_top">
         <img src="../../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt class="param">conditionColumn</dt><dd class="cmt"><p>optional column name that be checked; transformation will be applied to each row whose value is 'true'.
+      <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt class="param">geoServiceUrl</dt><dd class="cmt"><p>url pattern that support variable insertion for lat/lon/zoom (ex http://mygeoservice.com/path?lat=%2f&amp;lon=%2f&amp;zoom=%s)</p></dd><dt class="param">conditionColumn</dt><dd class="cmt"><p>optional column name that be checked; transformation will be applied to each row whose value is 'true'.
                        If no conditionColumn, then this is applied to every row.</p></dd><dt class="param">zoomLevel</dt><dd class="cmt"><p>zoomlevel of the geodata webservice</p></dd></dl></div>
     </li></ol>
             </div>
@@ -586,6 +586,23 @@ will be searched. Existing values of other rows will be kept.</p></div><div clas
       </span>
       </h4><span class="permalink">
       <a href="../../../../../index.html#io.arlas.data.transform.features.WithGeoData@getGeoDataUDF:org.apache.spark.sql.expressions.UserDefinedFunction" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="io.arlas.data.transform.features.WithGeoData#getGeodataUrl" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="getGeodataUrl(geoServiceUrl:String,lat:Double,lon:Double,zoomLevel:Int):String"></a>
+      <a id="getGeodataUrl(String,Double,Double,Int):String"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">getGeodataUrl</span><span class="params">(<span name="geoServiceUrl">geoServiceUrl: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="lat">lat: <span class="extype" name="scala.Double">Double</span></span>, <span name="lon">lon: <span class="extype" name="scala.Double">Double</span></span>, <span name="zoomLevel">zoomLevel: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#io.arlas.data.transform.features.WithGeoData@getGeodataUrl(geoServiceUrl:String,lat:Double,lon:Double,zoomLevel:Int):String" title="Permalink" target="_top">
         <img src="../../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>

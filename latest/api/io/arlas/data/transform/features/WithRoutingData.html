@@ -53,7 +53,8 @@
 The transformers add 3 columns to the dataframe, from an external web-service:
 - trail refined (i.a. redesigned trail, that matches &quot;real&quot; roads)
 - distance covered over the refined trail
-- approximate duration spent over the refined trail</p></div><div class="toggleContainer block">
+- approximate duration spent over the refined trail
+</p></div><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
           <div class="superTypes hiddenContent"><a href="../ArlasTransformer.html" class="extype" name="io.arlas.data.transform.ArlasTransformer">ArlasTransformer</a>, <span class="extype" name="org.apache.spark.ml.Transformer">Transformer</span>, <span class="extype" name="org.apache.spark.ml.PipelineStage">PipelineStage</span>, <span class="extype" name="org.apache.spark.internal.Logging">Logging</span>, <span class="extype" name="org.apache.spark.ml.param.Params">Params</span>, <span class="extype" name="scala.Serializable">Serializable</span>, <span class="extype" name="java.io.Serializable">Serializable</span>, <span class="extype" name="org.apache.spark.ml.util.Identifiable">Identifiable</span>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div></div>
@@ -93,7 +94,7 @@ The transformers add 3 columns to the dataframe, from an external web-service:
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="io.arlas.data.transform.features.WithRoutingData#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="&lt;init&gt;(trailColumn:String,conditionColumn:Option[String]):io.arlas.data.transform.features.WithRoutingData"></a>
+      <a id="&lt;init&gt;(geoServiceUrl:String,trailColumn:String,conditionColumn:Option[String]):io.arlas.data.transform.features.WithRoutingData"></a>
       <a id="&lt;init&gt;:WithRoutingData"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -101,14 +102,14 @@ The transformers add 3 columns to the dataframe, from an external web-service:
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">WithRoutingData</span><span class="params">(<span name="trailColumn">trailColumn: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="conditionColumn">conditionColumn: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol">None</span></span>)</span>
+        <span class="name">WithRoutingData</span><span class="params">(<span name="geoServiceUrl">geoServiceUrl: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="trailColumn">trailColumn: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="conditionColumn">conditionColumn: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol">None</span></span>)</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../../index.html#io.arlas.data.transform.features.WithRoutingData@&lt;init&gt;(trailColumn:String,conditionColumn:Option[String]):io.arlas.data.transform.features.WithRoutingData" title="Permalink" target="_top">
+      <a href="../../../../../index.html#io.arlas.data.transform.features.WithRoutingData@&lt;init&gt;(geoServiceUrl:String,trailColumn:String,conditionColumn:Option[String]):io.arlas.data.transform.features.WithRoutingData" title="Permalink" target="_top">
         <img src="../../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt class="param">trailColumn</dt><dd class="cmt"><p>input trail column</p></dd><dt class="param">conditionColumn</dt><dd class="cmt"><p>if provided, only rows whose value of conditionColumn is &quot;true&quot; are processed</p></dd></dl></div>
+      <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt class="param">geoServiceUrl</dt><dd class="cmt"><p>url pattern that support variable insertion for trail points (ex http://mygeoservice.com/path?%s)</p></dd><dt class="param">trailColumn</dt><dd class="cmt"><p>input trail column (WKT format)</p></dd><dt class="param">conditionColumn</dt><dd class="cmt"><p>if provided, only rows whose value of conditionColumn is &quot;true&quot; are processed</p></dd></dl></div>
     </li></ol>
             </div>
 
@@ -537,6 +538,23 @@ The transformers add 3 columns to the dataframe, from an external web-service:
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Params</dd></dl></div>
+    </li><li name="io.arlas.data.transform.features.WithRoutingData#getRefineTrailUrl" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="getRefineTrailUrl(geoServiceUrl:String,trail:String):String"></a>
+      <a id="getRefineTrailUrl(String,String):String"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">getRefineTrailUrl</span><span class="params">(<span name="geoServiceUrl">geoServiceUrl: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="trail">trail: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#io.arlas.data.transform.features.WithRoutingData@getRefineTrailUrl(geoServiceUrl:String,trail:String):String" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
     </li><li name="io.arlas.data.transform.features.WithRoutingData#getTrailRefinedUDF" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="getTrailRefinedUDF:org.apache.spark.sql.expressions.UserDefinedFunction"></a>
       <a id="getTrailRefinedUDF:UserDefinedFunction"></a>
