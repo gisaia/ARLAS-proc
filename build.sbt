@@ -41,7 +41,7 @@ lazy val arlasProc = (project in file("."))
 Test / parallelExecution := false
 
 //publish to external repo
-ThisBuild / publishTo := { Some("Cloudsmith API" at "https://dl.cloudsmith.io/public/gisaia/public/maven/") }
+ThisBuild / publishTo := { Some("Cloudsmith API" at "https://maven.cloudsmith.io/gisaia/public/") }
 ThisBuild / pomIncludeRepository := { x => false }
 ThisBuild / credentials += Credentials("Cloudsmith API", "maven.cloudsmith.io", sys.env.getOrElse("CLOUDSMITH_USER", ""), sys.env.getOrElse("CLOUDSMITH_API_KEY", ""))
 
