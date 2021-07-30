@@ -61,22 +61,21 @@ class WritableDataFrame(df: DataFrame) extends TransformableDataFrame(df) {
       }
   }
 
-  def writeToParquet(spark: SparkSession, target: String): Unit = {
+  /**
+    * @param target Path of the parquet file to store data
+    * @param saveMode Mode of storage: "append" (add data to parquet file) or "overwrite" (erase existing data)
+    */
+  def writeToParquet(target: String, saveMode: String = "append"): Unit = {
+    val dfSaveMode = saveMode match {
+      case "overwrite" => SaveMode.Overwrite
+      case "append"    => SaveMode.Append
+      case _           => SaveMode.Append
+    }
     df.repartition(col(arlasPartitionColumn))
       .write
       .option("compression", "snappy")
       .option("parquet.block.size", PARQUET_BLOCK_SIZE.toString)
-      .mode(SaveMode.Append)
-      .partitionBy(arlasPartitionColumn)
-      .parquet(target)
-  }
-
-  def writeToParquetOverride(spark: SparkSession, target: String): Unit = {
-    df.repartition(col(arlasPartitionColumn))
-      .write
-      .option("compression", "snappy")
-      .option("parquet.block.size", PARQUET_BLOCK_SIZE.toString)
-      .mode(SaveMode.Overwrite)
+      .mode(dfSaveMode)
       .partitionBy(arlasPartitionColumn)
       .parquet(target)
   }
