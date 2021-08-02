@@ -29,7 +29,7 @@ import org.apache.spark.sql.{DataFrame, Dataset}
   * Compute mean speed in a given unit from distance (m) and duration (s).
   *
   * @param speedColumn Name of the target speed column
-  * @param speedUnit Unit of the computed speed
+  * @param speedUnit Unit of the computed speed ("m/s", "km/h" or "nd")
   * @param durationSecondsColumn Name of the duration (s) column
   * @param distanceMetersColumn Name of the distance (m) column
   */

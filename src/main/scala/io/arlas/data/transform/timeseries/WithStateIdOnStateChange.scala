@@ -19,22 +19,22 @@
 
 package io.arlas.data.transform.timeseries
 
-import io.arlas.data.model.DataModel
 import org.apache.spark.sql.expressions.Window
 import org.apache.spark.sql.functions._
 
 /**
   * Compute ID column, the same ID is set for all consecutive rows with the same state
-  * @param dataModel
-  * @param stateColumn
-  * @param targetIdColumn
+  * @param idColumn Column containing the id used to create sequences
+  * @param stateColumn Column containing the state to use
+  * @param orderColumn Column containing the field to order sequences (usually timestamp)
+  * @param targetIdColumn Column to store the new created id
   */
-class WithStateIdOnStateChange(dataModel: DataModel, stateColumn: String, orderColumn: String, targetIdColumn: String)
+class WithStateIdOnStateChange(idColumn: String, stateColumn: String, orderColumn: String, targetIdColumn: String)
     extends WithStateId(
-      dataModel,
+      idColumn,
       orderColumn,
       targetIdColumn, {
-        val window = Window.partitionBy(dataModel.idColumn).orderBy(orderColumn)
+        val window = Window.partitionBy(idColumn).orderBy(orderColumn)
         lag(stateColumn, 1)
           .over(window)
           .notEqual(col(stateColumn))

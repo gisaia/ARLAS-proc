@@ -31,12 +31,14 @@ import scala.collection.immutable.ListMap
 import scala.collection.mutable.WrappedArray
 
 /**
+  * Concatenate all fragments associated to a stop/pause to create a single stop/pause fragment
   * @param spark                            Spark Session
   * @param dataModel                        Data model containing names of structuring columns (id, lat, lon, time)
-  * @param standardDeviationEllipsisNbPoint number of points to compute the standard deviation ellipses
+  * @param standardDeviationEllipsisNbPoint Number of points to compute the standard deviation ellipses
   * @param irregularTempo                   value of the irregular tempo (i.a. greater than defined tempos, so there were probably pauses)
-  * @param tempoProportionColumns           Map of (tempo proportion column -> related tempo column)
-  * @param weightAveragedColumns            columns to weight average over track duration, in aggregations
+  * @param tempoProportionColumns           Map with all tempo proportion column associated to tempo value
+  *                                         (ex: Map("tempo_emission_proportion_tempo_10s" -> "tempo_10s") )
+  * @param weightAveragedColumns            Columns to weight average over track duration, in aggregations
   */
 class StopPauseSummaryTransformer(spark: SparkSession,
                                   dataModel: DataModel,

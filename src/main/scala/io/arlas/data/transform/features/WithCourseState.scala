@@ -27,7 +27,8 @@ import org.apache.spark.sql.{DataFrame, Dataset}
 
 /**
   * Determine the course state (MOTION, PAUSE) for course fragments
-  * Requires courseOrStop column and movingState column
+  * Requires arlasCourseOrStopColumn, produced by the transformer "WithCourseOrStop"
+  * Requires arlasMovingStateColumn, produced by the transformer "WithMovingState"
   */
 class WithCourseState() extends ArlasTransformer(Vector(arlasCourseOrStopColumn, arlasMovingStateColumn)) {
 

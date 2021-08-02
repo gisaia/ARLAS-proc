@@ -82,13 +82,5 @@ class WithOutlierPropagated(dataModel: DataModel, outlierColumn: String, aggrega
       )
       .drop(outlierColumn, "is_all_outlier", "is_return_point", "is_local_outlier")
       .withColumnRenamed("is_final_outlier", outlierColumn)
-
   }
-
-  override def transformSchema(schema: StructType): StructType = {
-    checkSchema(schema)
-      .add(StructField("is_return_point", BooleanType, false))
-      .add(StructField("is_local_outlier", BooleanType, false))
-  }
-
 }

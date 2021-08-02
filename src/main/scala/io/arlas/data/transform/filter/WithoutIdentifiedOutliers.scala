@@ -24,7 +24,7 @@ import org.apache.spark.sql.functions._
 import org.apache.spark.sql.{DataFrame, Dataset}
 
 /**
-  * Remove outliers and clean temporary associated columns
+  * Remove outliers and clean outlier column
   *
   * @param outlierColumn Name of boolean column containing outlier identification (True: outlier)
   */
@@ -35,6 +35,6 @@ class WithoutIdentifiedOutliers(outlierColumn: String) extends ArlasTransformer(
     dataset
       .toDF()
       .filter(not(col(outlierColumn)))
-      .drop(outlierColumn, "is_return_point", "is_local_outlier")
+      .drop(outlierColumn)
   }
 }

@@ -26,28 +26,29 @@ import org.apache.spark.sql.types.{IntegerType, StructField, StructType}
 import org.apache.spark.sql.{Column, DataFrame, Dataset}
 
 /**
-  * @param dataModel Data model containing names of structuring columns (id, lat, lon, time)
+  * Compute the duration since last observation of the same object
+  * @param idColumn Column containing the object identifier
+  * @param timestampColumn Column containing the timestamp of observations
   * @param targetDurationColumn Name of the column to store computed duration (s)
   */
-class WithDuration(dataModel: DataModel, targetDurationColumn: String)
-    extends ArlasTransformer(Vector(dataModel.idColumn, dataModel.timestampColumn)) {
+class WithDuration(idColumn: String, timestampColumn: String, targetDurationColumn: String)
+    extends ArlasTransformer(Vector(idColumn, timestampColumn)) {
 
   override def transform(dataset: Dataset[_]): DataFrame = {
     // spark window
     val window = Window
-      .partitionBy(dataModel.idColumn)
-      .orderBy(dataModel.timestampColumn)
+      .partitionBy(idColumn)
+      .orderBy(timestampColumn)
 
     def whenPreviousPointExists(expression: Column, offset: Int = 1, default: Any = null) =
-      when(lag(dataModel.timestampColumn, offset).over(window).isNull, default)
+      when(lag(timestampColumn, offset).over(window).isNull, default)
         .otherwise(expression)
 
     dataset
       .toDF()
       .withColumn( // track_duration_s = ts(start) - ts(end)
-        targetDurationColumn,
-        whenPreviousPointExists(col(dataModel.timestampColumn) - lag(dataModel.timestampColumn, 1).over(window))
-      )
+                  targetDurationColumn,
+                  whenPreviousPointExists(col(timestampColumn) - lag(timestampColumn, 1).over(window)))
   }
 
   override def transformSchema(schema: StructType): StructType = {

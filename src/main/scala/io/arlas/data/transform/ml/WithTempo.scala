@@ -37,7 +37,7 @@ import org.apache.spark.sql.{DataFrame, Dataset, SparkSession}
   * @param hmmWindowSize Size of the max length of hmm sequence
   * @param tempoIrregular Path to the HMM model used to identify tempo
   */
-class WithTempo(dataModel: DataModel,
+class WithTempo(idColumn: String,
                 durationColumn: String,
                 targetTempoColumn: String,
                 spark: SparkSession,
@@ -47,7 +47,7 @@ class WithTempo(dataModel: DataModel,
     extends HmmProcessor(
       durationColumn,
       MLModelLocal(spark, tempoModelPath),
-      dataModel.idColumn,
+      idColumn,
       targetTempoColumn,
       hmmWindowSize
     ) {
@@ -58,5 +58,10 @@ class WithTempo(dataModel: DataModel,
       .withColumn(targetTempoColumn,
                   when(col(targetTempoColumn).equalTo(null), lit(tempoIrregular))
                     .otherwise(col(targetTempoColumn)))
+  }
+
+  override def transformSchema(schema: StructType): StructType = {
+    checkSchema(schema)
+      .add(StructField(targetTempoColumn, StringType, false))
   }
 }

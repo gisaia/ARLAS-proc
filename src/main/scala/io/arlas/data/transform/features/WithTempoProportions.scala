@@ -25,10 +25,12 @@ import org.apache.spark.sql.types.{BooleanType, StructField, StructType}
 import org.apache.spark.sql.{DataFrame, Dataset}
 
 /**
-  * Initialize tempo proportion of the fragment (1 for predicted, 0 for others) -> Unique tempo
-  *
-  * @param tempoColumn Name of the predicted tempo column
-  * @param targetIsMultiColumn Unit of the computed speed
+  * Initialize the emission tempo proportion over the fragment
+  * As the initial fragments are only composed of 2 observations, only the associated tempo is represented (1 for predicted, 0 for others)
+  * At this step, the fragment have then a unique tempo
+  * @param tempoColumn Name of the predicted tempo column (identified mode of time duration between observations)
+  * @param targetIsMultiColumn : Name of the column to store the multi tempo information
+  *                            (True if the fragment is composed of multiple tempo, Fase else)
   * @param proportionColumnMap Map linking tempo proportion column name to tempo values.
   *                            Ex: Map(tempoIrregularProportion -> tempoIrregular)
   */
