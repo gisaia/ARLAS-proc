@@ -32,9 +32,7 @@ object ArlasTransformerColumns {
   val arlasVisibleSequenceIdColumn = "arlas_visible_sequence_id"
   val arlasGeoPointColumn = "arlas_geopoint"
   val arlasIdColumn = "arlas_id"
-  val arlasDeltaTimestampColumn = "arlas_delta_timestamp"
-  val arlasPreviousDeltaTimestampColumn = "arlas_previous_delta_timestamp"
-  val arlasDeltaTimestampVariationColumn = "arlas_delta_timestamp_variation"
+  val arlasGapState = "arlas_gap_state"
   val arlasMovingStateColumn = "arlas_moving_state"
   val arlasTempoColumn = "arlas_tempo"
   val arlasMotionIdColumn = "arlas_motion_id"
@@ -43,10 +41,9 @@ object ArlasTransformerColumns {
   val arlasCourseStateColumn = "arlas_course_state"
   val arlasCourseIdColumn = "arlas_course_id"
   val arlasCourseDurationColumn = "arlas_course_duration"
-  val arlasGapState = "gap_state"
 
   // TRACK COLUMNS
-  val arlasTrackPrefix = "arlas_track_"
+  val arlasTrackPrefix: String = "arlas_track_"
   val arlasTrackId = arlasTrackPrefix + "id"
   val arlasTrackSampleId = arlasTrackPrefix + "sample_id"
   val arlasTrackNbGeopoints = arlasTrackPrefix + "nb_geopoints"
@@ -58,10 +55,10 @@ object ArlasTransformerColumns {
   val arlasTrackTimestampCenter = arlasTrackPrefix + "timestamp_center"
   val arlasTrackLocationLat = arlasTrackPrefix + "location_lat"
   val arlasTrackLocationLon = arlasTrackPrefix + "location_lon"
-  val arlasTrackLocation = "track_location"
-  val arlasTrackEndLocation = "track_end_location"
-  val arlasTrackEndLocationLat = "track_end_location_lat"
-  val arlasTrackEndLocationLon = "track_end_location_lon"
+  val arlasTrackLocation = arlasTrackPrefix + "location"
+  val arlasTrackEndLocation = arlasTrackPrefix + "end_location"
+  val arlasTrackEndLocationLat = arlasTrackPrefix + "end_location_lat"
+  val arlasTrackEndLocationLon = arlasTrackPrefix + "end_location_lon"
   val arlasTrackVisibilityProportion = arlasTrackPrefix + "visibility_proportion"
   val arlasTrackVisibilityChange = arlasTrackPrefix + "visibility_change"
   val arlasTrackLocationPrecisionValueLon = arlasTrackPrefix + "location_precision_value_lon"
@@ -75,6 +72,7 @@ object ArlasTransformerColumns {
   val arlasTrackDistanceSensorTravelled = arlasTrackPrefix + "distance_sensor_travelled_m"
   val arlasTrackTempoEmissionIsMulti = arlasTrackPrefix + "tempo_emission_is_multi"
 
+  // Address Geo Data
   val arlasTrackAddressPrefix = arlasTrackPrefix + "address_"
   val arlasTrackAddressState = arlasTrackAddressPrefix + WithGeoData.statePostfix
   val arlasTrackAddressPostcode = arlasTrackAddressPrefix + WithGeoData.postcodePostfix
@@ -82,27 +80,41 @@ object ArlasTransformerColumns {
   val arlasTrackAddressCountry = arlasTrackAddressPrefix + WithGeoData.countryPostfix
   val arlasTrackAddressCountryCode = arlasTrackAddressPrefix + WithGeoData.countryCodePostfix
   val arlasTrackAddressCity = arlasTrackAddressPrefix + WithGeoData.cityPostfix
+
   val arlasTrackMotionsVisibleDuration = arlasTrackPrefix + "motions_visible_duration_s"
   val arlasTrackMotionsVisibleLength = arlasTrackPrefix + "motions_visible_length_m"
   val arlasTrackMotionsInvisibleDuration = arlasTrackPrefix + "motions_invisible_duration_s"
   val arlasTrackMotionsInvisibleLength = arlasTrackPrefix + "motions_invisible_length_m"
+  val arlasTrackMotionVisibilityProportionDuration =
+    arlasTrackPrefix + "motion_visibility_proportion_duration"
+  val arlasTrackMotionVisibilityProportionDistance =
+    arlasTrackPrefix + "motion_visibility_proportion_distance"
+  val arlasTrackMotionsVisibleTrail = arlasTrackPrefix + "motions_visible_trail"
+  val arlasTrackMotionsInvisibleTrail = arlasTrackPrefix + "motions_invisible_trail"
+
+  val arlasTrackPausesLocation = arlasTrackPrefix + "pauses_location"
   val arlasTrackPausesDuration = arlasTrackPrefix + "pauses_duration_s"
   val arlasTrackPausesShortNumber = arlasTrackPrefix + "pauses_short_number"
   val arlasTrackPausesLongNumber = arlasTrackPrefix + "pauses_long_number"
   val arlasTrackPausesVisibilityProportion = arlasTrackPrefix + "pauses_visibility_proportion"
   val arlasTrackPausesTrail = arlasTrackPrefix + "pauses_trail"
-  val arlasTrackMotionVisibilityProportionDuration =
-    arlasTrackPrefix + "motion_visibility_proportion_duration"
-  val arlasTrackMotionVisibilityProportionDistance =
-    arlasTrackPrefix + "motion_visibility_proportion_distance"
   val arlasTrackPausesProportion = arlasTrackPrefix + "pauses_proportion"
-  val arlasTrackMotionsVisibleTrail = arlasTrackPrefix + "motions_visible_trail"
-  val arlasTrackMotionsInvisibleTrail = arlasTrackPrefix + "motions_invisible_trail"
 
-  // For course mode
-  val arlasDepartureStopBeforeLocation = "departure_stop_before_location"
-  val arlasArrivalStopAfterLocation = "arrival_stop_after_location"
-  val arlasTrackPausesLocation = "track_pauses_location"
+  // Routing (itinerary)
+  val arlasTrackRoutingPrefix = arlasTrackPrefix + "routing_"
+  val arlasTrackRoutingTrailRefined = arlasTrackRoutingPrefix + "trail_refined"
+  val arlasTrackRoutingDistance = arlasTrackRoutingPrefix + "distance"
+  val arlasTrackRoutingDuration = arlasTrackRoutingPrefix + "duration"
+
+  // Course info (for flow mode)
+  val arlasCoursePrefix = "arlas_course_"
+  val arlasCourseDistanceGpsTravelled = arlasCoursePrefix + "distance_gps_travelled"
+  val arlasCourseDistanceGpsStraightLine = arlasCoursePrefix + "distance_gps_straight_line"
+  val arlasCourseDistanceGpsStraightness = arlasCoursePrefix + "distance_gps_straightness"
+  val arlasCourseDepartureLocation = arlasCoursePrefix + "departure_location"
+  val arlasCourseDepartureTimestamp = arlasCoursePrefix + "departure_timestamp"
+  val arlasCourseArrivalLocation = arlasCoursePrefix + "arrival_location"
+  val arlasCourseArrivalTimestamp = arlasCoursePrefix + "arrival_timestamp"
 
   // DEPARTURE COLUMNS
   val arlasDeparturePrefix = "arlas_departure_"
@@ -110,6 +122,7 @@ object ArlasTransformerColumns {
   val arlasDepartureLocationLat = arlasDeparturePrefix + "location_lat"
   val arlasDepartureLocationLon = arlasDeparturePrefix + "location_lon"
   val arlasDepartureStopBeforeDuration = arlasDeparturePrefix + "stop_before_duration_s"
+  val arlasDepartureStopBeforeLocation = arlasDeparturePrefix + "stop_before_location"
   val arlasDepartureStopBeforeLocationLon = arlasDeparturePrefix + "stop_before_location_lon"
   val arlasDepartureStopBeforeLocationLat = arlasDeparturePrefix + "stop_before_location_lat"
   val arlasDepartureStopBeforeLocationPrecisionValueLat =
@@ -120,6 +133,8 @@ object ArlasTransformerColumns {
     arlasDeparturePrefix + "stop_before_location_precision_geometry"
   val arlasDepartureStopBeforeVisibilityProportion =
     arlasDeparturePrefix + "stop_before_visibility_proportion"
+
+  // Address Geo Data
   val arlasDepartureAddressPrefix = arlasDeparturePrefix + "address_"
   val arlasDepartureAddressState = arlasDepartureAddressPrefix + WithGeoData.statePostfix
   val arlasDepartureAddressPostcode = arlasDepartureAddressPrefix + WithGeoData.postcodePostfix
@@ -134,6 +149,7 @@ object ArlasTransformerColumns {
   val arlasArrivalLocationLat = arlasArrivalPrefix + "location_lat"
   val arlasArrivalLocationLon = arlasArrivalPrefix + "location_lon"
   val arlasArrivalStopAfterDuration = arlasArrivalPrefix + "stop_after_duration_s"
+  val arlasArrivalStopAfterLocation = arlasArrivalPrefix + "stop_after_location"
   val arlasArrivalStopAfterLocationLon = arlasArrivalPrefix + "stop_after_location_lon"
   val arlasArrivalStopAfterLocationLat = arlasArrivalPrefix + "stop_after_location_lat"
   val arlasArrivalStopAfterLocationPrecisionValueLat =
@@ -143,6 +159,8 @@ object ArlasTransformerColumns {
   val arlasArrivalStopAfterLocationPrecisionGeometry =
     arlasArrivalPrefix + "stop_after_location_precision_geometry"
   val arlasArrivalStopAfterVisibilityProportion = arlasArrivalPrefix + "stop_after_visibility_proportion"
+
+  // Address Geo Data
   val arlasArrivalAddressPrefix = arlasArrivalPrefix + "address_"
   val arlasArrivalAddressState = arlasArrivalAddressPrefix + WithGeoData.statePostfix
   val arlasArrivalAddressPostcode = arlasArrivalAddressPrefix + WithGeoData.postcodePostfix
@@ -151,12 +169,7 @@ object ArlasTransformerColumns {
   val arlasArrivalAddressCountryCode = arlasArrivalAddressPrefix + WithGeoData.countryCodePostfix
   val arlasArrivalAddressCity = arlasArrivalAddressPrefix + WithGeoData.cityPostfix
 
-  val arlasTrackRoutingPrefix = arlasTrackPrefix + "routing_"
-  val arlasTrackRoutingTrailRefined = arlasTrackRoutingPrefix + "trail_refined"
-  val arlasTrackRoutingDistance = arlasTrackRoutingPrefix + "distance"
-  val arlasTrackRoutingDuration = arlasTrackRoutingPrefix + "duration"
-
-  //MISSION COLUMNS
+  // MISSION COLUMNS
   val arlasMissionPrefix = "arlas_mission_"
   val arlasMissionId = arlasMissionPrefix + "id"
   val arlasMissionDuration = arlasMissionPrefix + "duration"
@@ -165,10 +178,11 @@ object ArlasTransformerColumns {
   val arlasMissionDistanceGpsStraigthline = arlasMissionPrefix + "distance_gps_straightline"
   val arlasMissionDistanceGpsStraigthness = arlasMissionPrefix + "distance_gps_straightness"
 
+  // MISSION Departure
   val arlasMissionDeparturePrefix = arlasMissionPrefix + "departure_"
   val arlasMissionDepartureLocationLat = arlasMissionDeparturePrefix + "location_lat"
   val arlasMissionDepartureLocationLon = arlasMissionDeparturePrefix + "location_lon"
-  val arlasMissionDepartureLocation = "mission_departure_location"
+  val arlasMissionDepartureLocation = arlasMissionDeparturePrefix + "location"
   val arlasMissionDepartureTimestamp = arlasMissionDeparturePrefix + "timestamp"
 
   val arlasMissionDepartureAddressPrefix = arlasMissionDeparturePrefix + "address_"
@@ -179,8 +193,9 @@ object ArlasTransformerColumns {
   val arlasMissionDepartureAddressCountryCode = arlasMissionDepartureAddressPrefix + WithGeoData.countryCodePostfix
   val arlasMissionDepartureAddressCity = arlasMissionDepartureAddressPrefix + WithGeoData.cityPostfix
 
+  // MISSION Arrival
   val arlasMissionArrivalPrefix = arlasMissionPrefix + "arrival_"
-  val arlasMissionArrivalLocation = "mission_arrival_location"
+  val arlasMissionArrivalLocation = arlasMissionArrivalPrefix + "location"
   val arlasMissionArrivalLocationLat = arlasMissionArrivalPrefix + "location_lat"
   val arlasMissionArrivalLocationLon = arlasMissionArrivalPrefix + "location_lon"
   val arlasMissionArrivalTimestamp = arlasMissionArrivalPrefix + "timestamp"
@@ -192,6 +207,8 @@ object ArlasTransformerColumns {
   val arlasMissionArrivalAddressCountry = arlasMissionArrivalAddressPrefix + WithGeoData.countryPostfix
   val arlasMissionArrivalAddressCountryCode = arlasMissionArrivalAddressPrefix + WithGeoData.countryCodePostfix
   val arlasMissionArrivalAddressCity = arlasMissionArrivalAddressPrefix + WithGeoData.cityPostfix
+
+  // Temporary Outlier detection columns
 
 }
 
