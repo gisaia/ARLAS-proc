@@ -26,7 +26,7 @@ import org.apache.spark.sql.types.{ArrayType, DoubleType, StringType, StructFiel
 import org.apache.spark.sql.{DataFrame, Dataset, SparkSession}
 
 /**
-  * Identify if fragments correspond to still or move state
+  * Identify if fragments correspond to still or move state with a HMM model based on speed
   *
   * @param spark Spark Session
   * @param idColumn Column containing the id used to identify sequence

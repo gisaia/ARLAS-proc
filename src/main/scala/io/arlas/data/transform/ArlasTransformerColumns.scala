@@ -43,7 +43,7 @@ object ArlasTransformerColumns {
   val arlasCourseDurationColumn = "arlas_course_duration"
 
   // TRACK COLUMNS
-  val arlasTrackPrefix: String = "arlas_track_"
+  val arlasTrackPrefix = "arlas_track_"
   val arlasTrackId = arlasTrackPrefix + "id"
   val arlasTrackSampleId = arlasTrackPrefix + "sample_id"
   val arlasTrackNbGeopoints = arlasTrackPrefix + "nb_geopoints"
@@ -207,9 +207,6 @@ object ArlasTransformerColumns {
   val arlasMissionArrivalAddressCountry = arlasMissionArrivalAddressPrefix + WithGeoData.countryPostfix
   val arlasMissionArrivalAddressCountryCode = arlasMissionArrivalAddressPrefix + WithGeoData.countryCodePostfix
   val arlasMissionArrivalAddressCity = arlasMissionArrivalAddressPrefix + WithGeoData.cityPostfix
-
-  // Temporary Outlier detection columns
-
 }
 
 /**
