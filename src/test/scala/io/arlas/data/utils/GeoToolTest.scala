@@ -20,11 +20,12 @@
 package io.arlas.data.utils
 
 import org.locationtech.jts.geom.Coordinate
-import org.scalatest.FlatSpec
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should._
 
 import scala.util.Random
 
-class GeoToolTest extends FlatSpec {
+class GeoToolTest extends AnyFlatSpec {
 
   "computeStandardDeviationEllipsis " should " compute the standard deviation ellipsis" in {
 

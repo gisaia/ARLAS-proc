@@ -30,18 +30,22 @@ A spark java application to submit a spark job on our spark cluster:
 
 ## Versions used in this project
 It's very important to check the version of spark being used, here we are using the following:   
-- Spark 2.3.3 for Hadoop 2.7 with OpenJDK 8 (Java 1.8.0)
-- Scala 2.11.8
-- ScyllaDB 2.2.0
-- Spark-cassandra-connector: 2.3.1-S_2.11
+- Spark 3.1.2 for Hadoop 2.7 with OpenJDK 8 (Java 1.8.0)
+- Scala 2.12.10
 
 # Build and deploy application JAR
 
 ## Build locally
 
 ```bash
-# Build jar
-sbt clean assembly
+# Run tests and build jar
+docker run --rm \
+        -w /opt/work \
+        -v $PWD:/opt/work \
+        -v $HOME/.m2:/root/.m2 \
+        -v $HOME/.ivy2:/root/.ivy2 \
+        gisaia/sbt:1.5.5_jdk8 \
+        sbt clean test assembly
 ```
 
 ## Deploy JAR to Cloudsmith
@@ -59,16 +63,33 @@ export CLOUDSMITH_API_KEY="your-api-key"
 
 As these values are personal, you may add them to your `.bash_profile` file. This way you won't need to define them again.
 
-
 ```bash
-sbt clean publish
+docker run --rm \
+        -w /opt/work \
+        -v $PWD:/opt/work \
+        -v $HOME/.m2:/root/.m2 \
+        -v $HOME/.ivy2:/root/.ivy2 \
+        -e CLOUDSMITH_USER=${CLOUDSMITH_USER} \
+        -e CLOUDSMITH_API_KEY=${CLOUDSMITH_API_KEY} \
+        gisaia/sbt:1.5.5_jdk8 \
+        sbt clean publish
 ```
 
 ## Release
 
 If you have sufficient permissions on Github repository, simply type:
 
-`sbt clean release`
+```bash
+docker run -ti \
+        -w /opt/work \
+        -v $PWD:/opt/work \
+        -v $HOME/.m2:/root/.m2 \
+        -v $HOME/.ivy2:/root/.ivy2 \
+        -e CLOUDSMITH_USER=${CLOUDSMITH_USER} \
+        -e CLOUDSMITH_API_KEY=${CLOUDSMITH_API_KEY} \
+        gisaia/sbt:1.5.5_jdk8 \
+        sbt clean release
+```
 
 You will be asked for the versions to use for release & next version.
 
@@ -78,19 +99,27 @@ You will be asked for the versions to use for release & next version.
 
 Start an interactive spark-shell session. For example :
 ```bash
-sbt clean assembly
+# Build fat jar
+docker run --rm \
+        -w /opt/work \
+        -v ${PWD}:/opt/work \
+        -v $HOME/.m2:/root/.m2 \
+        -v $HOME/.ivy2:/root/.ivy2 \
+        gisaia/sbt:1.5.5_jdk8 \
+        /bin/bash -c 'sbt clean assembly; cp target/scala-2.12/arlas-proc-assembly*.jar target/scala-2.12/arlas-proc-assembly.jar'
+# Build spark-shell
 docker run -ti \
        -w /opt/work \
        -v ${PWD}:/opt/proc \
        -v $HOME/.m2:/root/.m2 \
        -v $HOME/.ivy2:/root/.ivy2 \
        -p "4040:4040" \
-       gisaia/spark:2.3.3 \
+       gisaia/spark:3.1.2 \
        spark-shell \
-        --packages org.elasticsearch:elasticsearch-spark-20_2.11:7.4.2,org.geotools:gt-referencing:20.1,org.geotools:gt-geometry:20.1,org.geotools:gt-epsg-hsql:20.1 \
+        --packages org.elasticsearch:elasticsearch-spark-30_2.12:7.13.4,org.geotools:gt-referencing:20.1,org.geotools:gt-geometry:20.1,org.geotools:gt-epsg-hsql:20.1 \
         --exclude-packages javax.media:jai_core \
         --repositories https://repo.osgeo.org/repository/release/,https://dl.cloudsmith.io/public/gisaia/public/maven/,https://repository.jboss.org/maven2/ \
-        --jars /opt/proc/target/scala-2.11/arlas-proc-assembly-0.6.1-SNAPSHOT.jar \
+        --jars /opt/proc/target/scala-2.12/arlas-proc-assembly.jar \
         --conf spark.driver.allowMultipleContexts="true" \
         --conf spark.rpc.netty.dispatcher.numThreads="2"
 ```
