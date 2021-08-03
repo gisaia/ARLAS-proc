@@ -1,29 +1,39 @@
 ThisBuild / version      := (version in ThisBuild).value
-ThisBuild / scalaVersion := "2.11.8"
+ThisBuild / scalaVersion := "2.12.10"
 ThisBuild / organization := "io.arlas"
+
+javacOptions ++= Seq("-source", "1.8", "-target", "1.8", "-Xlint")
+initialize := {
+  val _ = initialize.value
+  val javaVersion = sys.props("java.specification.version")
+  if (javaVersion != "1.8")
+    sys.error("Java 1.8 is required for this project. Found " + javaVersion + " instead")
+}
 
 resolvers += "osgeo" at "https://repo.osgeo.org/repository/release/"
 resolvers += "gisaia" at "https://dl.cloudsmith.io/public/gisaia/public/maven/"
 resolvers += "jboss" at "https://repository.jboss.org/maven2/"
 
-val sparkVersion = "2.3.3"
+val sparkVersion = "3.1.2"
+val scalaTestVersion = "3.2.3"
 
 val sparkSQL = "org.apache.spark" %% "spark-sql" % sparkVersion % "provided"
 val sparkMLlib = "org.apache.spark" %% "spark-mllib" % sparkVersion % "provided"
 val spark = Seq(sparkSQL,sparkMLlib)
 
-val scalaTest = "org.scalatest" %% "scalatest" % "2.2.5" % Test
+val scalaTest = "org.scalatest" %% "scalatest" % scalaTestVersion % Test
+val scalaTestFlatSpec = "org.scalatest" %% "scalatest-flatspec" % scalaTestVersion % Test
 val wiremockStandalone = "com.github.tomakehurst" % "wiremock-standalone" % "2.25.1" % Test
-val tests = Seq(scalaTest, wiremockStandalone)
+val tests = Seq(scalaTest, scalaTestFlatSpec, wiremockStandalone)
 
-val elasticSearch = "org.elasticsearch" %% "elasticsearch-spark-20" % "7.4.2" % "provided"
+val elasticSearch = "org.elasticsearch" %% "elasticsearch-spark-30" % "7.13.4" % "provided"
 val elastic = Seq(elasticSearch)
 
 val gtReferencing = "org.geotools" % "gt-referencing" % "20.1" % "provided" exclude("javax.media", "jai_core")
 val gtGeometry = "org.geotools" % "gt-geometry" % "20.1" % "provided" exclude("javax.media", "jai_core")
 val geotools = Seq(gtReferencing, gtGeometry)
 
-val arlasMl = "io.arlas" %% "arlas-ml" % "0.1.2"
+val arlasMl = "io.arlas" %% "arlas-ml" % "0.2.0"
 val arlas = Seq(arlasMl)
 
 lazy val arlasProc = (project in file("."))
@@ -59,6 +69,12 @@ lazy val arlasProcAssembly = project
       },
       addArtifact(artifact in (Compile, assembly), assembly)
       )
+ThisBuild / assemblyMergeStrategy := {
+  case "module-info.class" => MergeStrategy.discard
+  case x =>
+    val oldStrategy = (ThisBuild / assemblyMergeStrategy).value
+    oldStrategy(x)
+}
 
 //sbt-release
 import ReleaseTransformations._

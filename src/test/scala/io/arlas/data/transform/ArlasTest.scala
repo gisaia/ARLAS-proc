@@ -32,11 +32,12 @@ import io.arlas.data.transform.timeseries._
 import io.arlas.data.{DataFrameTester, TestSparkSession}
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types._
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.matchers.should._
+import org.scalatest.flatspec.AnyFlatSpec
 
 import scala.collection.immutable.ListMap
 
-trait ArlasTest extends FlatSpec with Matchers with TestSparkSession with DataFrameTester {
+trait ArlasTest extends AnyFlatSpec with Matchers with TestSparkSession with DataFrameTester {
 
   val dataModel = DataModel(timeFormat = "dd/MM/yyyy HH:mm:ssXXX")
   val speedColumn = "speed"
