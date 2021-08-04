@@ -29,3 +29,5 @@ jobs:
           CLOUDSMITH_USER: ${{ secrets.CLOUDSMITH_USER }}
           CLOUDSMITH_API_KEY: ${{ secrets.CLOUDSMITH_API_KEY }}
         run: sbt clean publish
+      - name: Publish scaladoc
+        run: sbt ghpagesPushSite
