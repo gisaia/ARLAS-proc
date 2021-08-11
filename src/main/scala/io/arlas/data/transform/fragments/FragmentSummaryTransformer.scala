@@ -53,15 +53,15 @@ import scala.collection.immutable.ListMap
   * A a consequence, a problem with the duplicated row is that not-aggregated fields keep their originating value, which is not reliable.
   * Our solution is to set null to every columns, except columns that are aggregated + columns from the so-called "propagated columns"
   *
-  * @param dataModel the input Datamodel
-  * @param standardDeviationEllipsisNbPoint number of points to compute the standard deviation ellipses
+  * @param dataModel Data model containing names of structuring columns (id, lat, lon, time)
+  * @param standardDeviationEllipsisNbPoint Number of points to compute the standard deviation ellipses
   * @param irregularTempo value of the irregular tempo (i.a. greater than defined tempos, so there were probably pauses)
   * @param tempoProportionColumns Map of (tempo proportion column -> related tempo column)
   * @param weightAveragedColumns columns to weight average over track duration, in aggregations
   */
 abstract class FragmentSummaryTransformer(spark: SparkSession,
                                           dataModel: DataModel,
-                                          standardDeviationEllipsisNbPoint: Int,
+                                          standardDeviationEllipsisNbPoint: Int = 12,
                                           irregularTempo: String,
                                           tempoProportionColumns: Map[String, String],
                                           weightAveragedColumns: Seq[String])

@@ -32,12 +32,14 @@ import scala.collection.immutable.ListMap
 import scala.collection.mutable.WrappedArray
 
 /**
+  * Concatenate all fragments associated to a course to create a single course fragment
   * @param spark Spark Session
   * @param dataModel Data model containing names of structuring columns (id, lat, lon, time)
-  * @param standardDeviationEllipsisNbPoint number of points to compute the standard deviation ellipses
-  * @param irregularTempo                   value of the irregular tempo (i.a. greater than defined tempos, so there were probably pauses)
-  * @param tempoColumns
-  * @param weightAveragedColumns            columns to weight average over track duration, in aggregations
+  * @param standardDeviationEllipsisNbPoint Number of points to compute the standard deviation ellipses
+  * @param irregularTempo Value of the irregular tempo. Irregular tempo cannot be the main tempo of a course if another is represented.
+  * @param tempoColumns Map with all tempo proportion column associated to tempo value
+  *                     (ex: Map("tempo_emission_proportion_tempo_10s" -> "tempo_10s") )
+  * @param weightAveragedColumns Columns to weight average over track duration, in aggregations
   */
 class CourseExtractorTransformer(spark: SparkSession,
                                  dataModel: DataModel,

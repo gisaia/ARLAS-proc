@@ -1,5 +1,3 @@
-package io.arlas.data.transform.ml
-
 /*
  * Licensed to Gisaïa under one or more contributor
  * license agreements. See the NOTICE.txt file distributed with
@@ -18,6 +16,8 @@ package io.arlas.data.transform.ml
  * specific language governing permissions and limitations
  * under the License.
  */
+
+package io.arlas.data.transform.ml
 
 import io.arlas.data.model.MLModel
 import io.arlas.data.transform.ArlasTransformer

@@ -29,19 +29,20 @@ import org.apache.spark.sql.types._
 import org.apache.spark.sql.{Column, DataFrame, Dataset, SparkSession}
 
 /**
-  * @param dataModel
-  * @param spark
-  * @param aggregationColumnName
-  * @param averageColumns
-  * @param standardDeviationEllipsisNbPoints
+  * Create basic fragments from geopoints. Each fragment correspond to the interval between two observations.
+  * @param dataModel Data model containing names of structuring columns (id, lat, lon, time)
+  * @param spark Spark Session
+  * @param aggregationColumnName Name of the column containing the identifier of the object
+  * @param averageNumericColumns Numeric columns that will be averaged to estimate value over the fragment: mean of the two observations
+  * @param standardDeviationEllipsisNbPoints Number of points to compute the standard deviation ellipses
   */
 class FlowFragmentMapper(dataModel: DataModel,
                          spark: SparkSession,
                          aggregationColumnName: String,
-                         averageColumns: List[String] = Nil,
+                         averageNumericColumns: List[String] = Nil,
                          standardDeviationEllipsisNbPoints: Int = 12)
     extends ArlasTransformer(
-      Vector(arlasTimestampColumn, aggregationColumnName, dataModel.latColumn, dataModel.lonColumn) ++ averageColumns.toVector) {
+      Vector(arlasTimestampColumn, aggregationColumnName, dataModel.latColumn, dataModel.lonColumn) ++ averageNumericColumns.toVector) {
 
   override def transform(dataset: Dataset[_]): DataFrame = {
 
@@ -162,7 +163,7 @@ class FlowFragmentMapper(dataModel: DataModel,
       )
 
     // Averaged track columns addition
-    val trackDFWithAveragedColumns = averageColumns.foldLeft(trackDF) { (dataframe, columnName) =>
+    val trackDFWithAveragedColumns = averageNumericColumns.foldLeft(trackDF) { (dataframe, columnName) =>
       {
         dataframe.withColumn(
           arlasTrackPrefix + columnName,
@@ -206,7 +207,7 @@ class FlowFragmentMapper(dataModel: DataModel,
       .add(StructField(arlasTrackDistanceGpsStraigthness, DoubleType, true))
       .add(StructField(arlasTrackDynamicsGpsSpeedKmh, DoubleType, true))
       .add(StructField(arlasTrackDynamicsGpsBearing, DoubleType, true))
-    averageColumns.foldLeft(s) { (currentSchema, columnName) =>
+    averageNumericColumns.foldLeft(s) { (currentSchema, columnName) =>
       {
         currentSchema.add(StructField(arlasTrackPrefix + columnName, DoubleType, true))
       }

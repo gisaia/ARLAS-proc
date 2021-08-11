@@ -19,42 +19,35 @@
 
 package io.arlas.data.transform.features
 
-import io.arlas.data.transform.ArlasTransformer
+import io.arlas.data.transform.{ArlasMovingStates, ArlasTransformer}
 import io.arlas.data.transform.ArlasTransformerColumns.arlasTrackDuration
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types.{DoubleType, StructField, StructType}
 import org.apache.spark.sql.{DataFrame, Dataset}
 
 /**
-  * Compute mean speed in a given unit from distance (m) and duration (s).
+  * Identify a gap when the duration between two measures is longer than a threshold
   *
-  * @param speedColumn Name of the target speed column
-  * @param speedUnit Unit of the computed speed ("m/s", "km/h" or "nd")
+  * @param gapStateColumn Name of the target gap state column
   * @param durationSecondsColumn Name of the duration (s) column
-  * @param distanceMetersColumn Name of the distance (m) column
+  * @param durationThreshold Minimum duration between observation to be considered as a gap
   */
-class WithSpeed(speedColumn: String, speedUnit: String, durationSecondsColumn: String = arlasTrackDuration, distanceMetersColumn: String)
-    extends ArlasTransformer(Vector(durationSecondsColumn, distanceMetersColumn)) {
+class WithGapState(gapStateColumn: String = "gap_state",
+                   durationSecondsColumn: String = arlasTrackDuration,
+                   durationThreshold: Long = 43200)
+    extends ArlasTransformer(Vector(durationSecondsColumn)) {
 
   override def transform(dataset: Dataset[_]): DataFrame = {
 
-    def coef(unit: String): Double = unit match {
-      case "m/s"  => 1.0
-      case "km/h" => 1.0 / 3.6
-      case "nd"   => 1.9438444924406
-      case _      => 1.0
-    }
-
     dataset
       .toDF()
-      .withColumn(
-        speedColumn,
-        col(distanceMetersColumn) / col(durationSecondsColumn) * lit(coef(speedUnit))
-      )
+      .withColumn(gapStateColumn,
+                  when(col(durationSecondsColumn).gt(lit(durationThreshold)), lit(ArlasMovingStates.GAP))
+                    .otherwise(lit("not_a_gap")))
   }
 
   override def transformSchema(schema: StructType): StructType = {
     checkSchema(schema)
-      .add(StructField(speedColumn, DoubleType, false))
+      .add(StructField(gapStateColumn, DoubleType, false))
   }
 }

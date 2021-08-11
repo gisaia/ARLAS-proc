@@ -19,40 +19,55 @@
 
 package io.arlas.data.transform.features
 
+import io.arlas.data.model.DataModel
 import io.arlas.data.transform.ArlasTransformer
+import io.arlas.data.utils.GeoTool
 import org.apache.spark.sql.expressions.Window
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types.{IntegerType, StructField, StructType}
-import org.apache.spark.sql.{Column, DataFrame, Dataset}
+import org.apache.spark.sql.{Column, DataFrame, Dataset, SparkSession}
 
 /**
-  * Compute the duration since last observation of the same object
-  * @param idColumn Column containing the object identifier
-  * @param timestampColumn Column containing the timestamp of observations
-  * @param targetDurationColumn Name of the column to store computed duration (s)
+  * Compute the travelled distance (m) between previous and current observations
+  *
+  * @param dataModel Data model containing names of structuring columns (id, lat, lon, time)
+  * @param targetDistanceColumn Name of the column containing dis
+  * @param spark Spark Session
   */
-class WithDuration(idColumn: String, timestampColumn: String, targetDurationColumn: String)
-    extends ArlasTransformer(Vector(idColumn, timestampColumn)) {
+class WithGeoDistanceMeters(dataModel: DataModel, targetDistanceColumn: String, spark: SparkSession)
+    extends ArlasTransformer(Vector(dataModel.idColumn, dataModel.latColumn, dataModel.lonColumn)) {
+
+  // Function to apply before the fragments creation
+  spark.udf.register("getDistanceTravelled", GeoTool.getDistanceBetween _)
 
   override def transform(dataset: Dataset[_]): DataFrame = {
+
     // spark window
     val window = Window
-      .partitionBy(idColumn)
-      .orderBy(timestampColumn)
+      .partitionBy(dataModel.idColumn)
+      .orderBy(dataModel.timestampColumn)
 
     def whenPreviousPointExists(expression: Column, offset: Int = 1, default: Any = null) =
-      when(lag(timestampColumn, offset).over(window).isNull, default)
+      when(lag(dataModel.timestampColumn, offset).over(window).isNull, default)
         .otherwise(expression)
 
     dataset
       .toDF()
-      .withColumn( // track_duration_s = ts(start) - ts(end)
-                  targetDurationColumn,
-                  whenPreviousPointExists(col(timestampColumn) - lag(timestampColumn, 1).over(window)))
+      .withColumn( //track_distance_travelled_m = distance between previous and current point
+        targetDistanceColumn,
+        whenPreviousPointExists(
+          callUDF(
+            "getDistanceTravelled",
+            lag(dataModel.latColumn, 1).over(window),
+            lag(dataModel.lonColumn, 1).over(window),
+            col(dataModel.latColumn),
+            col(dataModel.lonColumn)
+          ))
+      )
   }
 
   override def transformSchema(schema: StructType): StructType = {
     checkSchema(schema)
-      .add(StructField(targetDurationColumn, IntegerType, false))
+      .add(StructField(targetDistanceColumn, IntegerType, false))
   }
 }
