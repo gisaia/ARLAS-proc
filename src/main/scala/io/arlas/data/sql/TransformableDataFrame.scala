@@ -32,9 +32,11 @@ import org.apache.spark.sql.types.{DataType, IntegerType, StringType}
 class TransformableDataFrame(df: DataFrame) {
 
   def asArlasFormattedData(dataModel: DataModel, doubleColumns: Vector[String] = Vector()): DataFrame = {
-    df.enrichWithArlas(new DataFrameFormatter(dataModel, doubleColumns), new WithArlasTimestamp(dataModel))
-      .withColumn(arlasPartitionColumn,
-                  date_format(to_date(col(dataModel.timestampColumn), dataModel.timeFormat), arlasPartitionFormat).cast(IntegerType))
+    df.enrichWithArlas(
+      new DataFrameFormatter(dataModel, doubleColumns),
+      new WithArlasTimestamp(dataModel),
+      new WithArlasPartition(arlasTimestampColumn)
+    )
   }
 
   def enrichWithArlas(transformers: ArlasTransformer*): DataFrame = {
