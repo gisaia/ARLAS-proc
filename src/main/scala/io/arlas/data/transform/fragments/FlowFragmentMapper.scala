@@ -147,7 +147,7 @@ class FlowFragmentMapper(dataModel: DataModel,
                   arlasTrackDistanceGpsStraigthness,
                   whenPreviousPointExists(lit(1.0)))
       .withColumn( // track_dynamics_gps_speed_kmh = track_distance_travelled_m / arlas_track_duration_s / 1000 * 3600
-        arlasTrackDynamicsGpsSpeedKmh,
+        arlasTrackDynamicsGpsSpeed,
         whenPreviousPointExists((col(arlasTrackDistanceGpsTravelled) / col(arlasTrackDuration)) / lit(1000) * lit(3600))
       )
       .withColumn( // track_dynamics_gps_bearing = getGPSBearing previous_point current_point
@@ -205,7 +205,7 @@ class FlowFragmentMapper(dataModel: DataModel,
       .add(StructField(arlasTrackDistanceGpsTravelled, DoubleType, true))
       .add(StructField(arlasTrackDistanceGpsStraigthLine, DoubleType, true))
       .add(StructField(arlasTrackDistanceGpsStraigthness, DoubleType, true))
-      .add(StructField(arlasTrackDynamicsGpsSpeedKmh, DoubleType, true))
+      .add(StructField(arlasTrackDynamicsGpsSpeed, DoubleType, true))
       .add(StructField(arlasTrackDynamicsGpsBearing, DoubleType, true))
     averageNumericColumns.foldLeft(s) { (currentSchema, columnName) =>
       {

@@ -67,7 +67,7 @@ object ArlasTransformerColumns {
   val arlasTrackDistanceGpsTravelled = arlasTrackPrefix + "distance_gps_travelled_m"
   val arlasTrackDistanceGpsStraigthLine = arlasTrackPrefix + "distance_gps_straigth_line_m"
   val arlasTrackDistanceGpsStraigthness = arlasTrackPrefix + "distance_gps_straigthness"
-  val arlasTrackDynamicsGpsSpeedKmh = arlasTrackPrefix + "dynamics_gps_speed_kmh"
+  val arlasTrackDynamicsGpsSpeed = arlasTrackPrefix + "dynamics_gps_speed"
   val arlasTrackDynamicsGpsBearing = arlasTrackPrefix + "dynamics_gps_bearing"
   val arlasTrackDistanceSensorTravelled = arlasTrackPrefix + "distance_sensor_travelled_m"
   val arlasTrackTempoEmissionIsMulti = arlasTrackPrefix + "tempo_emission_is_multi"

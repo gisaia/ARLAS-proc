@@ -71,7 +71,7 @@ abstract class FragmentSummaryTransformer(spark: SparkSession,
         arlasTrackTimestampStart,
         arlasTrackTimestampEnd,
         arlasTrackDuration,
-        arlasTrackDynamicsGpsSpeedKmh,
+        arlasTrackDynamicsGpsSpeed,
         arlasTrackDynamicsGpsBearing,
         arlasTrackTrail,
         arlasTrackDistanceGpsTravelled,
@@ -256,7 +256,7 @@ abstract class FragmentSummaryTransformer(spark: SparkSession,
               else lit(null))
           )
         }
-        .withColumn(arlasTrackDynamicsGpsSpeedKmh, col(arlasTrackDistanceGpsTravelled) / col(arlasTrackDuration) * 1.9438444924406) // Recompute gps speed for the new created fragments
+        .withColumn(arlasTrackDynamicsGpsSpeed, col(arlasTrackDistanceGpsTravelled) / col(arlasTrackDuration) * 1.9438444924406) // Recompute gps speed for the new created fragments
 
     //keep only one result row for aggregations
     val transformedDF = aggregatedDF

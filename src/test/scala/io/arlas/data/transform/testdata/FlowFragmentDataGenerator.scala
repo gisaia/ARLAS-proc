@@ -156,7 +156,7 @@ class FlowFragmentDataGenerator(
       .add(StructField(arlasTrackDistanceGpsTravelled, DoubleType, true))
       .add(StructField(arlasTrackDistanceGpsStraigthLine, DoubleType, true))
       .add(StructField(arlasTrackDistanceGpsStraigthness, DoubleType, true))
-      .add(StructField(arlasTrackDynamicsGpsSpeedKmh, DoubleType, true))
+      .add(StructField(arlasTrackDynamicsGpsSpeed, DoubleType, true))
       .add(StructField(arlasTrackDynamicsGpsBearing, DoubleType, true))
 
     averagedColumns.foldLeft(schema) { (s, c) =>
