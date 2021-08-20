@@ -39,7 +39,6 @@ class DataFrameFormatter(dataModel: DataModel, doubleColumns: Vector[String] = V
 
   override def transform(dataset: Dataset[_]): DataFrame = {
     dataset.toDF
-      .transform(withValidColumnNames())
       .transform(withNoDuplicates())
       .transform(withRequiredColumns())
       .transform(withValidDoubleColumns())
@@ -94,7 +93,7 @@ class DataFrameFormatter(dataModel: DataModel, doubleColumns: Vector[String] = V
     StructType(
       checkSchema(schema)
         .map(field => {
-          StructField(getValidColumnName(field.name), field.dataType, field.nullable)
+          StructField(field.name, field.dataType, field.nullable)
         })
     )
   }
