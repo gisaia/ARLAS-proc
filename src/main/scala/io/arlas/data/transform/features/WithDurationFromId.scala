@@ -29,10 +29,11 @@ import org.apache.spark.sql.{DataFrame, Dataset}
 /**
   * For a ID that is hold by multiple rows, it computes the 'duration of this id'
   * i.a. <oldest row with this id> - <earlier row with this id>
-  * @param idColumn
-  * @param durationColumn
+  * It requires the fragment start and end timestamps, created by the transformer
+  * @param idColumn Column containing the identifier of the group
+  * @param targetDurationColumn Column to store the computed duration
   */
-class WithDurationFromId(idColumn: String, durationColumn: String)
+class WithDurationFromId(idColumn: String, targetDurationColumn: String)
     extends ArlasTransformer(Vector(idColumn, arlasTrackTimestampStart, arlasTrackTimestampEnd)) {
 
   override def transform(dataset: Dataset[_]): DataFrame = {
@@ -44,10 +45,10 @@ class WithDurationFromId(idColumn: String, durationColumn: String)
 
     dataset
       .toDF()
-      .withColumn(durationColumn, last(arlasTrackTimestampEnd).over(window) - first(arlasTrackTimestampStart).over(window))
+      .withColumn(targetDurationColumn, last(arlasTrackTimestampEnd).over(window) - first(arlasTrackTimestampStart).over(window))
   }
 
   override def transformSchema(schema: StructType): StructType = {
-    super.transformSchema(schema).add(StructField(durationColumn, LongType, true))
+    super.transformSchema(schema).add(StructField(targetDurationColumn, LongType, true))
   }
 }

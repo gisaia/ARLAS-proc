@@ -19,6 +19,7 @@
 
 package io.arlas.data.transform.timeseries
 
+import io.arlas.data.transform.ArlasTransformerColumns.arlasTimestampColumn
 import org.apache.spark.sql.expressions.Window
 import org.apache.spark.sql.functions.{col, lag}
 
@@ -33,9 +34,9 @@ import org.apache.spark.sql.functions.{col, lag}
   */
 class WithStateIdOnStateChangeOrUnique(idColumn: String,
                                        stateColumn: String,
-                                       orderColumn: String,
+                                       orderColumn: String = arlasTimestampColumn,
                                        targetIdColumn: String,
-                                       uniqueState: String)
+                                       uniqueState: String = "")
     extends WithStateId(
       idColumn,
       orderColumn,

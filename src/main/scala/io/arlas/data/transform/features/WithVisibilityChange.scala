@@ -21,7 +21,7 @@ package io.arlas.data.transform.features
 
 import io.arlas.data.model.DataModel
 import io.arlas.data.transform.ArlasTransformer
-import io.arlas.data.transform.ArlasTransformerColumns.{arlasTrackVisibilityChange, arlasTrackVisibilityProportion}
+import io.arlas.data.transform.ArlasTransformerColumns.{arlasTimestampColumn, arlasTrackVisibilityChange, arlasTrackVisibilityProportion}
 import io.arlas.data.transform.VisibilityChange.{APPEAR, APPEAR_DISAPPEAR, DISAPPEAR}
 import org.apache.spark.sql.expressions.Window
 import org.apache.spark.sql.functions._
@@ -41,11 +41,11 @@ import org.apache.spark.sql.{DataFrame, Dataset}
 class WithVisibilityChange(visibilityChangeColumn: String = arlasTrackVisibilityChange,
                            visibilityProportionColumn: String = arlasTrackVisibilityProportion,
                            dataModel: DataModel)
-    extends ArlasTransformer(Vector(visibilityProportionColumn)) {
+    extends ArlasTransformer(Vector(visibilityProportionColumn, arlasTimestampColumn)) {
 
   override def transform(dataset: Dataset[_]): DataFrame = {
 
-    val window = Window.partitionBy(dataModel.idColumn).orderBy(dataModel.timestampColumn)
+    val window = Window.partitionBy(dataModel.idColumn).orderBy(arlasTimestampColumn)
 
     val previousVisibilityProportion = lag(visibilityProportionColumn, 1).over(window)
     val nextVisibilityProportion = lead(visibilityProportionColumn, 1).over(window)

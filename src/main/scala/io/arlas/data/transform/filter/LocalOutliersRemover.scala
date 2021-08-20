@@ -21,6 +21,7 @@ package io.arlas.data.transform.filter
 
 import io.arlas.data.model.DataModel
 import io.arlas.data.transform.ArlasTransformer
+import io.arlas.data.transform.ArlasTransformerColumns.arlasTimestampColumn
 import org.apache.spark.sql.expressions.{Window, WindowSpec}
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.{DataFrame, Dataset}
@@ -43,12 +44,12 @@ class LocalOutliersRemover(dataModel: DataModel,
                            halfWindowSize: Long,
                            threshold: Double,
                            keepInnovation: Boolean = false)
-    extends ArlasTransformer(Vector(idColumn, dataModel.timestampColumn, dataModel.latColumn, dataModel.lonColumn)) {
+    extends ArlasTransformer(Vector(idColumn, arlasTimestampColumn, dataModel.latColumn, dataModel.lonColumn)) {
 
   override def transform(dataset: Dataset[_]): DataFrame = {
     val window = Window
       .partitionBy(idColumn)
-      .orderBy(dataModel.timestampColumn)
+      .orderBy(arlasTimestampColumn)
       .rowsBetween(-halfWindowSize, halfWindowSize)
 
     var filterData = dataset.toDF().withColumn(targetOutlierColumn, lit(false))

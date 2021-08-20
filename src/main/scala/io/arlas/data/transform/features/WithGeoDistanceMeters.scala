@@ -21,6 +21,7 @@ package io.arlas.data.transform.features
 
 import io.arlas.data.model.DataModel
 import io.arlas.data.transform.ArlasTransformer
+import io.arlas.data.transform.ArlasTransformerColumns.arlasTimestampColumn
 import io.arlas.data.utils.GeoTool
 import org.apache.spark.sql.expressions.Window
 import org.apache.spark.sql.functions._
@@ -35,7 +36,7 @@ import org.apache.spark.sql.{Column, DataFrame, Dataset, SparkSession}
   * @param spark Spark Session
   */
 class WithGeoDistanceMeters(dataModel: DataModel, targetDistanceColumn: String, spark: SparkSession)
-    extends ArlasTransformer(Vector(dataModel.idColumn, dataModel.latColumn, dataModel.lonColumn)) {
+    extends ArlasTransformer(Vector(dataModel.idColumn, dataModel.latColumn, dataModel.lonColumn, arlasTimestampColumn)) {
 
   // Function to apply before the fragments creation
   spark.udf.register("getDistanceTravelled", GeoTool.getDistanceBetween _)
@@ -45,10 +46,10 @@ class WithGeoDistanceMeters(dataModel: DataModel, targetDistanceColumn: String, 
     // spark window
     val window = Window
       .partitionBy(dataModel.idColumn)
-      .orderBy(dataModel.timestampColumn)
+      .orderBy(arlasTimestampColumn)
 
     def whenPreviousPointExists(expression: Column, offset: Int = 1, default: Any = null) =
-      when(lag(dataModel.timestampColumn, offset).over(window).isNull, default)
+      when(lag(arlasTimestampColumn, offset).over(window).isNull, default)
         .otherwise(expression)
 
     dataset

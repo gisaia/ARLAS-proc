@@ -21,6 +21,7 @@ package io.arlas.data.transform.filter
 
 import io.arlas.data.model.DataModel
 import io.arlas.data.transform.ArlasTransformer
+import io.arlas.data.transform.ArlasTransformerColumns.arlasTimestampColumn
 import org.apache.spark.sql.expressions.Window
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.{Column, DataFrame, Dataset}
@@ -39,20 +40,20 @@ class WithOutliersToStore(dataModel: DataModel,
                           aggregationColumnName: String,
                           targetTrailColumn: String,
                           targetLocationColumn: String)
-    extends ArlasTransformer(Vector(aggregationColumnName, dataModel.timestampColumn, dataModel.latColumn, dataModel.lonColumn)) {
+    extends ArlasTransformer(Vector(aggregationColumnName, arlasTimestampColumn, dataModel.latColumn, dataModel.lonColumn)) {
 
   override def transform(dataset: Dataset[_]): DataFrame = {
     // spark window
     val window = Window
       .partitionBy(aggregationColumnName)
-      .orderBy(dataModel.timestampColumn)
+      .orderBy(arlasTimestampColumn)
 
     def whenPreviousPointExists(expression: Column, offset: Int = 1, default: Any = null) =
-      when(lag(dataModel.timestampColumn, offset).over(window).isNull, default)
+      when(lag(arlasTimestampColumn, offset).over(window).isNull, default)
         .otherwise(expression)
 
     def whenNextPointExists(expression: Column, offset: Int = 1, default: Any = null) =
-      when(lead(dataModel.timestampColumn, offset).over(window).isNull, default)
+      when(lead(arlasTimestampColumn, offset).over(window).isNull, default)
         .otherwise(expression)
 
     dataset
