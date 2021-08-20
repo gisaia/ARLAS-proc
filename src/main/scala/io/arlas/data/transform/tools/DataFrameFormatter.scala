@@ -20,11 +20,21 @@
 package io.arlas.data.transform.tools
 
 import io.arlas.data.model.DataModel
+import io.arlas.data.transform.ArlasTransformerColumns.{arlasPartitionColumn, arlasPartitionFormat}
 import io.arlas.data.transform.{ArlasTransformer, DataFrameException}
-import org.apache.spark.sql.functions.{col, regexp_replace}
-import org.apache.spark.sql.types.{DoubleType, StringType, StructField, StructType}
+import org.apache.spark.sql.functions.{col, date_format, regexp_replace, to_date}
+import org.apache.spark.sql.types.{DoubleType, IntegerType, StringType, StructField, StructType}
 import org.apache.spark.sql.{DataFrame, Dataset}
 
+/**
+  * Reformat the input dataframe to make it processable:
+  *  - Transform columns name to lower case without special characters
+  *  - Drop duplicated observation (same identifier and timestamp)
+  *  - Make sure basic columns are available (id, lat, lon, timestamp)
+  *  - Store double type column in the correct type
+  * @param dataModel Data model containing names of structuring columns (id, lat, lon, time)
+  * @param doubleColumns Vector containing the names of column containing double type field
+  */
 class DataFrameFormatter(dataModel: DataModel, doubleColumns: Vector[String] = Vector.empty) extends ArlasTransformer() {
 
   override def transform(dataset: Dataset[_]): DataFrame = {

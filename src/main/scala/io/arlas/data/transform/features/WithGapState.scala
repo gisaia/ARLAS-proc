@@ -28,11 +28,11 @@ import org.apache.spark.sql.{DataFrame, Dataset}
 /**
   * Identify a gap when the duration between two measures is longer than a threshold
   *
-  * @param gapStateColumn Name of the target gap state column
+  * @param targetGapStateColumn Name of the target gap state column
   * @param durationSecondsColumn Name of the duration (s) column
   * @param durationThreshold Minimum duration between observation to be considered as a gap
   */
-class WithGapState(gapStateColumn: String = "gap_state",
+class WithGapState(targetGapStateColumn: String = "gap_state",
                    durationSecondsColumn: String = arlasTrackDuration,
                    durationThreshold: Long = 43200)
     extends ArlasTransformer(Vector(durationSecondsColumn)) {
@@ -41,13 +41,13 @@ class WithGapState(gapStateColumn: String = "gap_state",
 
     dataset
       .toDF()
-      .withColumn(gapStateColumn,
+      .withColumn(targetGapStateColumn,
                   when(col(durationSecondsColumn).gt(lit(durationThreshold)), lit(ArlasMovingStates.GAP))
                     .otherwise(lit("not_a_gap")))
   }
 
   override def transformSchema(schema: StructType): StructType = {
     checkSchema(schema)
-      .add(StructField(gapStateColumn, DoubleType, false))
+      .add(StructField(targetGapStateColumn, DoubleType, false))
   }
 }
