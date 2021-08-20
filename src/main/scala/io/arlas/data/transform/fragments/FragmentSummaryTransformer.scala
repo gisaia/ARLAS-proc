@@ -54,17 +54,16 @@ import scala.collection.immutable.ListMap
   * Our solution is to set null to every columns, except columns that are aggregated + columns from the so-called "propagated columns"
   *
   * @param dataModel Data model containing names of structuring columns (id, lat, lon, time)
-  * @param standardDeviationEllipsisNbPoint Number of points to compute the standard deviation ellipses
   * @param irregularTempo value of the irregular tempo (i.a. greater than defined tempos, so there were probably pauses)
   * @param tempoProportionColumns Map of (tempo proportion column -> related tempo column)
   * @param weightAveragedColumns columns to weight average over track duration, in aggregations
   */
 abstract class FragmentSummaryTransformer(spark: SparkSession,
                                           dataModel: DataModel,
-                                          standardDeviationEllipsisNbPoint: Int = 12,
                                           irregularTempo: String,
-                                          tempoProportionColumns: Map[String, String],
-                                          weightAveragedColumns: Seq[String])
+                                          tempoProportionColumns: Map[String, String] = Map(),
+                                          weightAveragedColumns: Seq[String] = Seq(),
+                                          computePrecision: Boolean = false)
     extends ArlasTransformer(
       Vector(
         arlasTimestampColumn,
@@ -124,7 +123,30 @@ abstract class FragmentSummaryTransformer(spark: SparkSession,
     * @param window
     * @return a ListMap (target field -> related Column instance)
     */
-  private def getFragmentAggregatedRowsColumns(window: WindowSpec): ListMap[String, Column] =
+  private def getFragmentAggregatedRowsColumns(window: WindowSpec): ListMap[String, Column] = {
+
+    val listMapTempo = if (tempoProportionColumns.isEmpty) {
+      ListMap(
+        arlasTrackTempoEmissionIsMulti ->
+          when(getNbTemposWithSignificantProportions(tempoProportionColumns.filter(_._2 != irregularTempo).keys.toSeq, lit(0))
+                 .gt(1),
+               lit(true))
+            .otherwise(lit(false)),
+        arlasTempoColumn -> getMainTempo(tempoProportionColumns)
+      )
+    } else {
+      ListMap.empty[String, Column]
+    }
+
+    val listMapPrecision = if (computePrecision) {
+      ListMap(
+        arlasTrackLocationPrecisionValueLat -> round(stddev_pop(arlasTrackLocationLat).over(window), GeoTool.LOCATION_PRECISION_DIGITS),
+        arlasTrackLocationPrecisionValueLon -> round(stddev_pop(arlasTrackLocationLon).over(window), GeoTool.LOCATION_PRECISION_DIGITS)
+      )
+    } else {
+      ListMap.empty[String, Column]
+    }
+
     ListMap(
       arlasTrackDistanceGpsStraigthLine -> getStraightLineDistanceUDF(first(arlasTrackTrail).over(window),
                                                                       last(arlasTrackTrail).over(window)),
@@ -135,8 +157,6 @@ abstract class FragmentSummaryTransformer(spark: SparkSession,
       arlasTrackTimestampStart -> min(arlasTrackTimestampStart).over(window),
       arlasTrackTimestampEnd -> max(arlasTrackTimestampEnd).over(window),
       arlasTrackDuration -> sum(arlasTrackDuration).over(window),
-      arlasTrackLocationPrecisionValueLat -> round(stddev_pop(arlasTrackLocationLat).over(window), GeoTool.LOCATION_PRECISION_DIGITS),
-      arlasTrackLocationPrecisionValueLon -> round(stddev_pop(arlasTrackLocationLon).over(window), GeoTool.LOCATION_PRECISION_DIGITS),
       arlasTrackLocationLat -> round(mean(arlasTrackLocationLat).over(window), GeoTool.LOCATION_DIGITS),
       arlasTrackLocationLon -> round(mean(arlasTrackLocationLon).over(window), GeoTool.LOCATION_DIGITS),
       arlasTrackEndLocationLat -> last(arlasTrackEndLocationLat).over(window),
@@ -145,27 +165,30 @@ abstract class FragmentSummaryTransformer(spark: SparkSession,
         .cast(LongType),
       arlasTimestampColumn -> col(arlasTrackTimestampCenter),
       arlasTrackId -> concat(col(dataModel.idColumn), lit("#"), col(arlasTrackTimestampStart), lit("_"), col(arlasTrackTimestampEnd)),
-      arlasTrackTempoEmissionIsMulti ->
-        when(getNbTemposWithSignificantProportions(tempoProportionColumns.filter(_._2 != irregularTempo).keys.toSeq, lit(0))
-               .gt(1),
-             lit(true))
-          .otherwise(lit(false)),
-      arlasTempoColumn -> getMainTempo(tempoProportionColumns)
-    )
+    ) ++ listMapPrecision ++ listMapTempo
+  }
 
   override def transformSchema(schema: StructType): StructType = {
     checkRequiredColumns(schema, Vector(getAggregationColumn()) ++ getPropagatedColumns() ++ tempoProportionColumns.keys)
 
-    Seq(
+    val tempoSeq = if (tempoProportionColumns.isEmpty) {
+      Seq((arlasTrackTempoEmissionIsMulti, BooleanType), (arlasTempoColumn, StringType))
+    } else {
+      Seq()
+    }
+    val precisionSeq = if (computePrecision) {
+      Seq((arlasTrackLocationPrecisionValueLat, DoubleType),
+          (arlasTrackLocationPrecisionValueLon, DoubleType),
+          (arlasTrackLocationPrecisionGeometry, StringType))
+    } else {
+      Seq()
+    }
+
+    (precisionSeq ++ tempoSeq ++ Seq(
       (arlasTrackDistanceGpsStraigthLine, DoubleType),
       (arlasTrackDistanceGpsStraigthness, DoubleType),
-      (arlasTrackLocationPrecisionValueLat, DoubleType),
-      (arlasTrackLocationPrecisionValueLon, DoubleType),
-      (arlasTrackId, StringType),
-      (arlasTrackLocationPrecisionGeometry, StringType),
-      (arlasTrackTempoEmissionIsMulti, BooleanType),
-      (arlasTempoColumn, StringType)
-    ).foldLeft(checkSchema(schema)) { (sc, c) =>
+      (arlasTrackId, StringType)
+    )).foldLeft(checkSchema(schema)) { (sc, c) =>
       if (sc.fieldNames.contains(c._1)) sc
       else sc.add(StructField(c._1, c._2, true))
     }
@@ -284,7 +307,7 @@ abstract class FragmentSummaryTransformer(spark: SparkSession,
   }
 
   val getStandardDeviationEllipsis = udf((latCenter: Double, lonCenter: Double, latStd: Double, lonStd: Double) => {
-    GeoTool.getStandardDeviationEllipsis(latCenter, lonCenter, latStd, lonStd, standardDeviationEllipsisNbPoint)
+    GeoTool.getStandardDeviationEllipsis(latCenter, lonCenter, latStd, lonStd, 12)
   })
 
   val getStraightLineDistanceUDF = udf(

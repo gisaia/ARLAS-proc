@@ -40,7 +40,8 @@ class FlowFragmentMapper(dataModel: DataModel,
                          spark: SparkSession,
                          aggregationColumnName: String,
                          averageNumericColumns: List[String] = Nil,
-                         standardDeviationEllipsisNbPoints: Int = 12)
+                         standardDeviationEllipsisNbPoints: Int = 12,
+                         computePrecision: Boolean = false)
     extends ArlasTransformer(
       Vector(arlasTimestampColumn, aggregationColumnName, dataModel.latColumn, dataModel.lonColumn) ++ averageNumericColumns.toVector) {
 
@@ -111,24 +112,6 @@ class FlowFragmentMapper(dataModel: DataModel,
         arlasTrackLocationLon,
         whenPreviousPointExists(round(mean(dataModel.lonColumn).over(window.rowsBetween(-1, 0)), GeoTool.LOCATION_DIGITS))
       )
-      .withColumn( // track_location_precision_value_lat = standard deviation of latitude
-        arlasTrackLocationPrecisionValueLat,
-        whenPreviousPointExists(stddev_pop(dataModel.latColumn).over(window.rowsBetween(-1, 0)))
-      )
-      .withColumn( // track_location_precision_value_lon = standard deviation of longitude
-        arlasTrackLocationPrecisionValueLon,
-        whenPreviousPointExists(stddev_pop(dataModel.lonColumn).over(window.rowsBetween(-1, 0)))
-      )
-      .withColumn( // track_location_precision_geometry = ellipsis of standard deviation around the geocenter
-        arlasTrackLocationPrecisionGeometry,
-        whenPreviousPointExists(callUDF(
-          "getStandardDeviationEllipsis",
-          col(arlasTrackLocationLat),
-          col(arlasTrackLocationLon),
-          col(arlasTrackLocationPrecisionValueLat),
-          col(arlasTrackLocationPrecisionValueLon)
-        ))
-      )
       .withColumn( //track_distance_travelled_m = distance between previous and current point
         arlasTrackDistanceGpsTravelled,
         whenPreviousPointExists(callUDF(
@@ -162,17 +145,45 @@ class FlowFragmentMapper(dataModel: DataModel,
           ))
       )
 
-    // Averaged track columns addition
-    val trackDFWithAveragedColumns = averageNumericColumns.foldLeft(trackDF) { (dataframe, columnName) =>
-      {
-        dataframe.withColumn(
-          arlasTrackPrefix + columnName,
-          whenPreviousPointExists(mean(columnName).over(window.rowsBetween(-1, 0)))
+    val trackDF2 = if (computePrecision) {
+      trackDF
+        .withColumn( // track_location_precision_value_lat = standard deviation of latitude
+          arlasTrackLocationPrecisionValueLat,
+          whenPreviousPointExists(stddev_pop(dataModel.latColumn).over(window.rowsBetween(-1, 0)))
         )
+        .withColumn( // track_location_precision_value_lon = standard deviation of longitude
+          arlasTrackLocationPrecisionValueLon,
+          whenPreviousPointExists(stddev_pop(dataModel.lonColumn).over(window.rowsBetween(-1, 0)))
+        )
+        .withColumn( // track_location_precision_geometry = ellipsis of standard deviation around the geocenter
+          arlasTrackLocationPrecisionGeometry,
+          whenPreviousPointExists(
+            callUDF(
+              "getStandardDeviationEllipsis",
+              col(arlasTrackLocationLat),
+              col(arlasTrackLocationLon),
+              col(arlasTrackLocationPrecisionValueLat),
+              col(arlasTrackLocationPrecisionValueLon)
+            ))
+        )
+    } else {
+      trackDF
+    }
+
+    // Averaged track columns addition
+    val trackDFWithAveragedColumns = averageNumericColumns.foldLeft(trackDF2) { (dataframe, columnName) =>
+      {
+        dataframe
+          .withColumn(
+            arlasTrackPrefix + columnName,
+            whenPreviousPointExists(mean(columnName).over(window.rowsBetween(-1, 0)))
+          )
+          .drop(columnName)
       }
     }
 
-    trackDFWithAveragedColumns.filter(col(arlasTrackId).isNotNull) // remove first points that are not considered as fragment
+    trackDFWithAveragedColumns
+      .filter(col(arlasTrackId).isNotNull) // remove first points that are not considered as fragment
   }
 
   private def registerUDF() = {

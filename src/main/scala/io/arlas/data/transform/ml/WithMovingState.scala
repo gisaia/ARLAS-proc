@@ -30,19 +30,19 @@ import org.apache.spark.sql.{DataFrame, Dataset, SparkSession}
   *
   * @param spark Spark Session
   * @param idColumn Column containing the id used to identify sequence
-  * @param gapStateColumn Column containing the gap state of the fragment
   * @param speedColumn Column containing the speed used for HMM
   * @param targetMovingState Column to store the moving state
   * @param stillMoveModelPath Path of the still move hmm model
   * @param hmmWindowSize Max size of sequence for HMM
+  * @param gapStateColumn Column containing the gap state of the fragment
   */
 class WithMovingState(spark: SparkSession,
                       idColumn: String,
-                      gapStateColumn: String,
                       speedColumn: String,
                       targetMovingState: String,
                       stillMoveModelPath: String,
-                      hmmWindowSize: Int = 5000)
+                      hmmWindowSize: Int = 5000,
+                      gapStateColumn: String = "")
     extends HmmProcessor(
       speedColumn,
       MLModelLocal(spark, stillMoveModelPath),
@@ -52,16 +52,21 @@ class WithMovingState(spark: SparkSession,
     ) {
 
   override def transform(dataset: Dataset[_]): DataFrame = {
-    super
-      .transform(dataset)
-      .withColumn(
-        targetMovingState,
-        when(
-          col(gapStateColumn)
-            .equalTo(ArlasMovingStates.GAP),
-          lit(ArlasMovingStates.GAP)
-        ).otherwise(col(targetMovingState))
-      )
+    if (gapStateColumn.isEmpty) {
+      super.transform(dataset)
+    } else {
+      super
+        .transform(dataset)
+        .withColumn(
+          targetMovingState,
+          when(
+            col(gapStateColumn)
+              .equalTo(ArlasMovingStates.GAP),
+            lit(ArlasMovingStates.GAP)
+          ).otherwise(col(targetMovingState))
+        )
+    }
+
   }
 
   override def transformSchema(schema: StructType): StructType = {

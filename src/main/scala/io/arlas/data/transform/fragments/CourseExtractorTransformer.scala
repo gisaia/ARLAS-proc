@@ -35,7 +35,6 @@ import scala.collection.mutable.WrappedArray
   * Concatenate all fragments associated to a course to create a single course fragment
   * @param spark Spark Session
   * @param dataModel Data model containing names of structuring columns (id, lat, lon, time)
-  * @param standardDeviationEllipsisNbPoint Number of points to compute the standard deviation ellipses
   * @param irregularTempo Value of the irregular tempo. Irregular tempo cannot be the main tempo of a course if another is represented.
   * @param tempoColumns Map with all tempo proportion column associated to tempo value
   *                     (ex: Map("tempo_emission_proportion_tempo_10s" -> "tempo_10s") )
@@ -43,29 +42,31 @@ import scala.collection.mutable.WrappedArray
   */
 class CourseExtractorTransformer(spark: SparkSession,
                                  dataModel: DataModel,
-                                 standardDeviationEllipsisNbPoint: Int,
-                                 irregularTempo: String,
-                                 tempoColumns: Map[String, String],
-                                 weightAveragedColumns: Seq[String])
+                                 propagatedColumns: Seq[String] = Seq(),
+                                 weightAveragedColumns: Seq[String] = Seq(),
+                                 irregularTempo: String = "tempo_irregular",
+                                 tempoColumns: Map[String, String] = Map(),
+                                 computePrecision: Boolean = false)
     extends FragmentSummaryTransformer(
       spark,
       dataModel,
-      standardDeviationEllipsisNbPoint,
       irregularTempo,
       tempoColumns,
-      weightAveragedColumns
+      weightAveragedColumns,
+      computePrecision
     ) {
 
   override def getAggregationColumn(): String = arlasCourseIdColumn
   override def getAggregateCondition(): Column =
     col(arlasCourseOrStopColumn).notEqual(lit(ArlasCourseOrStop.STOP))
-  override def getPropagatedColumns(): Seq[String] = Seq(
-    dataModel.idColumn,
-    arlasCourseDurationColumn,
-    arlasCourseStateColumn,
-    arlasCourseOrStopColumn,
-    arlasMovingStateColumn
-  )
+  override def getPropagatedColumns(): Seq[String] =
+    Seq(
+      dataModel.idColumn,
+      arlasCourseDurationColumn,
+      arlasCourseStateColumn,
+      arlasCourseOrStopColumn,
+      arlasMovingStateColumn
+    ) ++ propagatedColumns
 
   val tmpTrailData = "tmp_trail_data"
   val tmpIsVisible = "tmp_is_visible"

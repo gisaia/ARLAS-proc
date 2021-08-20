@@ -31,16 +31,21 @@ import org.apache.spark.sql.{Column, SparkSession}
 import scala.collection.immutable.ListMap
 import scala.collection.mutable.WrappedArray
 
+/**
+  * @param spark
+  * @param dataModel             Data model containing names of structuring columns (id, lat, lon, time)
+  * @param irregularTempo        value of the irregular tempo (i.a. greater than defined tempos, so there were probably pauses)
+  * @param tempoPropotionColumns
+  * @param weightAveragedColumns columns to weight average over track duration, in aggregations
+  */
 class MovingFragmentSampleSummarizer(spark: SparkSession,
                                      dataModel: DataModel,
-                                     standardDeviationEllipsisNbPoint: Int,
-                                     irregularTempo: String,
-                                     tempoPropotionColumns: Map[String, String],
-                                     weightAveragedColumns: Seq[String])
+                                     irregularTempo: String = "irregular_tempo",
+                                     tempoPropotionColumns: Map[String, String] = Map(),
+                                     weightAveragedColumns: Seq[String] = Seq())
     extends FragmentSummaryTransformer(
       spark,
       dataModel,
-      standardDeviationEllipsisNbPoint,
       irregularTempo,
       tempoPropotionColumns,
       weightAveragedColumns

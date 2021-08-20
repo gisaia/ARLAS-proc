@@ -31,7 +31,7 @@ import org.apache.spark.sql.{DataFrame, Dataset}
   * Requires the motion duration columns, produced by the "WithDurationFromId" transformer
   * @param courseTimeout Minimum duration (s) for a still to be considered as a stop
   */
-class WithCourseOrStop(courseTimeout: Int) extends ArlasTransformer(Vector(arlasMovingStateColumn, arlasMotionDurationColumn)) {
+class WithCourseOrStop(courseTimeout: Int = 600) extends ArlasTransformer(Vector(arlasMovingStateColumn, arlasMotionDurationColumn)) {
 
   override def transform(dataset: Dataset[_]): DataFrame = {
 

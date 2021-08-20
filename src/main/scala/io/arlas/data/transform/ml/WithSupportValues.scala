@@ -29,14 +29,14 @@ import org.apache.spark.sql.{DataFrame, Dataset, Row}
   * It allows to take add weight to these values when using hmm classifier
   * @param supportColumn  Name of the column containing values used as input for hmm model
   * @param targetSupportedColumn Name of the new column containing supported values
-  * @param supportValueDeltaTime Duration between two created "support points"
-  * @param supportValueMaxNumberInGap Maximum number of "support points" (duplicated value) creted within a fragment
+  * @param supportValueDeltaTime Duration (s) between two created "support points"
+  * @param supportValueMaxNumberInGap Maximum number of "support points" (duplicated value) created within a fragment
   * @param durationColumn Name of the column containing fragment duration
   */
 class WithSupportValues(supportColumn: String,
                         targetSupportedColumn: String,
-                        supportValueDeltaTime: Int,
-                        supportValueMaxNumberInGap: Int,
+                        supportValueDeltaTime: Int = 120,
+                        supportValueMaxNumberInGap: Int = 10,
                         durationColumn: String)
     extends ArlasTransformer(Vector(supportColumn, durationColumn)) {
 

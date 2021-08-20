@@ -34,7 +34,6 @@ import scala.collection.mutable.WrappedArray
   * Concatenate all fragments associated to a stop/pause to create a single stop/pause fragment
   * @param spark                            Spark Session
   * @param dataModel                        Data model containing names of structuring columns (id, lat, lon, time)
-  * @param standardDeviationEllipsisNbPoint Number of points to compute the standard deviation ellipses
   * @param irregularTempo                   value of the irregular tempo (i.a. greater than defined tempos, so there were probably pauses)
   * @param tempoProportionColumns           Map with all tempo proportion column associated to tempo value
   *                                         (ex: Map("tempo_emission_proportion_tempo_10s" -> "tempo_10s") )
@@ -42,17 +41,18 @@ import scala.collection.mutable.WrappedArray
   */
 class StopPauseSummaryTransformer(spark: SparkSession,
                                   dataModel: DataModel,
-                                  standardDeviationEllipsisNbPoint: Int = 12,
-                                  irregularTempo: String,
-                                  tempoProportionColumns: Map[String, String],
-                                  weightAveragedColumns: Seq[String])
+                                  propagatedColumns: Seq[String] = Seq(),
+                                  weightAveragedColumns: Seq[String] = Seq(),
+                                  irregularTempo: String = "tempo_irregular",
+                                  tempoProportionColumns: Map[String, String] = Map(),
+                                  computePrecision: Boolean = false)
     extends FragmentSummaryTransformer(
       spark,
       dataModel,
-      standardDeviationEllipsisNbPoint,
       irregularTempo,
       tempoProportionColumns,
-      weightAveragedColumns
+      weightAveragedColumns,
+      computePrecision
     ) {
 
   override def getAggregationColumn(): String = arlasMotionIdColumn
@@ -60,14 +60,20 @@ class StopPauseSummaryTransformer(spark: SparkSession,
   override def getAggregateCondition(): Column =
     col(arlasMovingStateColumn).equalTo(ArlasMovingStates.STILL)
 
-  override def getAggregatedRowsColumns(window: WindowSpec): ListMap[String, Column] =
+  override def getAggregatedRowsColumns(window: WindowSpec): ListMap[String, Column] = {
+    val listMapPrecision = if (computePrecision) {
+      ListMap(
+        arlasTrackLocationPrecisionGeometry -> getStandardDeviationEllipsis(
+          col(arlasTrackLocationLat),
+          col(arlasTrackLocationLon),
+          when(col(arlasTrackLocationPrecisionValueLat).leq(0.001), col(arlasTrackLocationPrecisionValueLat)).otherwise(0.001),
+          when(col(arlasTrackLocationPrecisionValueLon).leq(0.001), col(arlasTrackLocationPrecisionValueLon)).otherwise(0.001)
+        )
+      )
+    } else {
+      ListMap.empty[String, Column]
+    }
     ListMap(
-      arlasTrackLocationPrecisionGeometry -> getStandardDeviationEllipsis(
-        col(arlasTrackLocationLat),
-        col(arlasTrackLocationLon),
-        when(col(arlasTrackLocationPrecisionValueLat).leq(0.001), col(arlasTrackLocationPrecisionValueLat)).otherwise(0.001),
-        when(col(arlasTrackLocationPrecisionValueLon).leq(0.001), col(arlasTrackLocationPrecisionValueLon)).otherwise(0.001)
-      ),
       arlasTrackTrail -> getTrailUDF(
         collect_list(col(arlasTrackTrail)).over(window),
         collect_list(col(arlasTrackLocationLat)).over(window),
@@ -76,7 +82,8 @@ class StopPauseSummaryTransformer(spark: SparkSession,
           .over(window)
       )
       //      arlasTrackTrail -> col(arlasTrackLocationPrecisionGeometry)
-    )
+    ) ++ listMapPrecision
+  }
 
   def getTrailUDF =
     udf(
@@ -96,6 +103,6 @@ class StopPauseSummaryTransformer(spark: SparkSession,
       arlasCourseIdColumn,
       arlasCourseDurationColumn,
       dataModel.idColumn
-    )
+    ) ++ propagatedColumns
   }
 }
