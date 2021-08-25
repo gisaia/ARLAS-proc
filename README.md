@@ -146,7 +146,7 @@ docker run -ti \
         --packages org.elasticsearch:elasticsearch-spark-30_2.12:7.13.4,org.geotools:gt-referencing:20.1,org.geotools:gt-geometry:20.1,org.geotools:gt-epsg-hsql:20.1 \
         --exclude-packages javax.media:jai_core \
         --repositories https://repo.osgeo.org/repository/release/,https://dl.cloudsmith.io/public/gisaia/public/maven/,https://repository.jboss.org/maven2/ \
-        --jars /opt/proc/target/scala-2.12/arlas-proc-assembly-0.6.2-SNAPSHOT.jar
+        --jars /opt/proc/target/scala-2.12/arlas-proc-assembly.jar
 ```
 
 Paste (using `:paste`) the following code snippet :
