@@ -241,7 +241,7 @@ val moving_data = visibility_data.enrichWithArlas(
   // Create a common identifier for consecutive fragment sharing the same moving state
   new WithStateIdOnStateChangeOrUnique("MMSI", "arlas_moving_state", "arlas_track_timestamp_start", "arlas_motion_id"),
   // Update the motion identifier as MMSI#timestampStart_timestampEnd
-  new IdUpdater("arlas_motion_id", "MMSI"),
+  new IdUpdater(idColumn = "arlas_motion_id", dataModel = dataModel),
   // Compute the duration of each motion
   new WithDurationFromId("arlas_motion_id", "arlas_motion_duration")
 )
@@ -258,7 +258,7 @@ val course_data = moving_data.enrichWithArlas(
     orderColumn = "arlas_track_timestamp_start",
     targetIdColumn = "arlas_course_id"),
   // Update the course identifier as MMSI#timestampStart_timestampEnd
-  new IdUpdater(idColumn = "arlas_course_id", objectIdColumn = "MMSI"),
+  new IdUpdater(dataModel = dataModel, idColumn = "arlas_course_id"),
   // Compute the course duration
   new WithDurationFromId(idColumn = "arlas_course_id", targetDurationColumn = "arlas_course_duration")
 )

@@ -19,6 +19,7 @@
 
 package io.arlas.data.transform.timeseries
 
+import io.arlas.data.model.DataModel
 import io.arlas.data.transform.ArlasTransformer
 import io.arlas.data.transform.ArlasTransformerColumns._
 import org.apache.spark.sql.expressions.Window
@@ -27,13 +28,13 @@ import org.apache.spark.sql.{DataFrame, Dataset}
 
 /**
   * For a ID that is hold by multiple rows, it updates the id value as follows
-  * <ObjectIdColumn>#<earliest timestamp with this id>_<oldest timestamp with this id>
+  * <dataModel.idColumn>#<earliest timestamp with this id>_<oldest timestamp with this id>
   * Requires the arlas_track_timestamp_start and arlas_track_timestamp_end columns, produced by the FlowFragmentMapper transformer
+  * @param dataModel Data model containing names of structuring columns (id, lat, lon, time)
   * @param idColumn Column containing the identifier to update
-  * @param objectIdColumn Column containing the Object Identifier
   */
-class IdUpdater(idColumn: String, objectIdColumn: String)
-    extends ArlasTransformer(Vector(idColumn, arlasTrackTimestampStart, arlasTrackTimestampEnd, objectIdColumn)) {
+class IdUpdater(dataModel: DataModel, idColumn: String)
+    extends ArlasTransformer(Vector(idColumn, arlasTrackTimestampStart, arlasTrackTimestampEnd, dataModel.idColumn)) {
 
   override def transform(dataset: Dataset[_]): DataFrame = {
 
@@ -45,7 +46,7 @@ class IdUpdater(idColumn: String, objectIdColumn: String)
     dataset
       .toDF()
       .withColumn(idColumn,
-                  concat(col(objectIdColumn),
+                  concat(col(dataModel.idColumn),
                          lit("#"),
                          first(arlasTrackTimestampStart).over(window),
                          lit("_"),
