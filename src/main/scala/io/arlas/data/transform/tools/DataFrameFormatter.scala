@@ -88,14 +88,4 @@ class DataFrameFormatter(dataModel: DataModel, doubleColumns: Vector[String] = V
         } else dataframe
       }
   }
-
-  override def transformSchema(schema: StructType): StructType = {
-    StructType(
-      checkSchema(schema)
-        .map(field => {
-          StructField(field.name, field.dataType, field.nullable)
-        })
-    )
-  }
-
 }
