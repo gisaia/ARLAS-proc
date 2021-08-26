@@ -179,9 +179,9 @@ trait ArlasTest extends AnyFlatSpec with Matchers with TestSparkSession with Dat
         )
       )
       .enrichWithArlas(
-        new WithStateIdOnStateChange(dataModel, arlasMovingStateColumn, arlasTrackTimestampStart, arlasMotionIdColumn),
+        new WithStateIdOnStateChangeOrUnique(dataModel, arlasMovingStateColumn, arlasTrackTimestampStart, arlasMotionIdColumn),
         new WithDurationFromId(arlasMotionIdColumn, arlasMotionDurationColumn),
-        new WithStateIdOnStateChange(dataModel, arlasCourseOrStopColumn, arlasTrackTimestampStart, arlasCourseIdColumn),
+        new WithStateIdOnStateChangeOrUnique(dataModel, arlasCourseOrStopColumn, arlasTrackTimestampStart, arlasCourseIdColumn),
         new WithDurationFromId(arlasCourseIdColumn, arlasCourseDurationColumn)
       )
 

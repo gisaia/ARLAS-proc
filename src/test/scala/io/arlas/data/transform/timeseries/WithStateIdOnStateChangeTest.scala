@@ -53,7 +53,7 @@ class WithStateIdOnStateChangeTest extends ArlasTest {
 
     val expectedDF = testDF.withColumnRenamed("expected_state_id", "state_id")
 
-    val transformedDF = baseDF.enrichWithArlas(new WithStateIdOnStateChange(dataModel, "state", arlasTimestampColumn, "state_id"))
+    val transformedDF = baseDF.enrichWithArlas(new WithStateIdOnStateChangeOrUnique(dataModel, "state", arlasTimestampColumn, "state_id"))
 
     assertDataFrameEquality(transformedDF, expectedDF)
   }
