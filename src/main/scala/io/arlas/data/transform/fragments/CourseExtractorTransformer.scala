@@ -42,10 +42,10 @@ import scala.collection.mutable.WrappedArray
   */
 class CourseExtractorTransformer(spark: SparkSession,
                                  dataModel: DataModel,
-                                 propagatedColumns: Seq[String] = Seq(),
-                                 weightAveragedColumns: Seq[String] = Seq(),
+                                 propagatedColumns: Option[Seq[String]] = None,
+                                 weightAveragedColumns: Option[Seq[String]] = None,
                                  irregularTempo: String = "tempo_irregular",
-                                 tempoColumns: Map[String, String] = Map(),
+                                 tempoColumns: Option[Map[String, String]] = None,
                                  computePrecision: Boolean = false)
     extends FragmentSummaryTransformer(
       spark,
@@ -66,7 +66,10 @@ class CourseExtractorTransformer(spark: SparkSession,
       arlasCourseStateColumn,
       arlasCourseOrStopColumn,
       arlasMovingStateColumn
-    ) ++ propagatedColumns
+    ) ++ (propagatedColumns match {
+      case Some(propagatedColumnsSeq) => propagatedColumnsSeq
+      case None                       => Seq()
+    })
 
   val tmpTrailData = "tmp_trail_data"
   val tmpIsVisible = "tmp_is_visible"

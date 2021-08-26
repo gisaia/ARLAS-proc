@@ -56,13 +56,13 @@ import scala.collection.immutable.ListMap
   * @param dataModel Data model containing names of structuring columns (id, lat, lon, time)
   * @param irregularTempo value of the irregular tempo (i.a. greater than defined tempos, so there were probably pauses)
   * @param tempoProportionColumns Map of (tempo proportion column -> related tempo column)
-  * @param weightAveragedColumns columns to weight average over track duration, in aggregations
+  * @param weightAveragedColumns Columns to weight average over track duration, in aggregations
   */
 abstract class FragmentSummaryTransformer(spark: SparkSession,
                                           dataModel: DataModel,
-                                          irregularTempo: String,
-                                          tempoProportionColumns: Map[String, String] = Map(),
-                                          weightAveragedColumns: Seq[String] = Seq(),
+                                          irregularTempo: String = "tempo_irregular",
+                                          tempoProportionColumns: Option[Map[String, String]] = None,
+                                          weightAveragedColumns: Option[Seq[String]] = None,
                                           computePrecision: Boolean = false)
     extends ArlasTransformer(
       Vector(
@@ -79,7 +79,13 @@ abstract class FragmentSummaryTransformer(spark: SparkSession,
         arlasTrackLocationLon,
         arlasTrackEndLocationLat,
         arlasTrackEndLocationLon
-      ) ++ weightAveragedColumns ++ tempoProportionColumns.keys) {
+      ) ++ (weightAveragedColumns match {
+        case Some(weightAverageColumnsSeq) => weightAverageColumnsSeq
+        case None                          => Seq()
+      }) ++ (tempoProportionColumns match {
+        case Some(tempoProportionColumnsMap) => tempoProportionColumnsMap.keys
+        case None                            => Seq()
+      })) {
 
   val tmpAggRowOrder = "tmp_agg_row_order"
 
@@ -125,17 +131,17 @@ abstract class FragmentSummaryTransformer(spark: SparkSession,
     */
   private def getFragmentAggregatedRowsColumns(window: WindowSpec): ListMap[String, Column] = {
 
-    val listMapTempo = if (tempoProportionColumns.isEmpty) {
-      ListMap(
-        arlasTrackTempoEmissionIsMulti ->
-          when(getNbTemposWithSignificantProportions(tempoProportionColumns.filter(_._2 != irregularTempo).keys.toSeq, lit(0))
-                 .gt(1),
-               lit(true))
-            .otherwise(lit(false)),
-        arlasTempoColumn -> getMainTempo(tempoProportionColumns)
-      )
-    } else {
-      ListMap.empty[String, Column]
+    val listMapTempo = tempoProportionColumns match {
+      case Some(tempoProportionColumnsMap) =>
+        ListMap(
+          arlasTrackTempoEmissionIsMulti ->
+            when(getNbTemposWithSignificantProportions(tempoProportionColumnsMap.filter(_._2 != irregularTempo).keys.toSeq, lit(0))
+                   .gt(1),
+                 lit(true))
+              .otherwise(lit(false)),
+          arlasTempoColumn -> getMainTempo(tempoProportionColumnsMap)
+        )
+      case None => ListMap.empty[String, Column]
     }
 
     val listMapPrecision = if (computePrecision) {
@@ -169,7 +175,15 @@ abstract class FragmentSummaryTransformer(spark: SparkSession,
   }
 
   override def transformSchema(schema: StructType): StructType = {
-    checkRequiredColumns(schema, Vector(getAggregationColumn()) ++ getPropagatedColumns() ++ tempoProportionColumns.keys)
+    checkRequiredColumns(
+      schema,
+      Vector(getAggregationColumn()) ++
+        getPropagatedColumns() ++
+        (tempoProportionColumns match {
+          case Some(tempoProportionColumnsMap) => tempoProportionColumnsMap.keys
+          case None                            => Seq()
+        })
+    )
 
     val tempoSeq = if (tempoProportionColumns.isEmpty) {
       Seq((arlasTrackTempoEmissionIsMulti, BooleanType), (arlasTempoColumn, StringType))
@@ -244,26 +258,34 @@ abstract class FragmentSummaryTransformer(spark: SparkSession,
         } else Seq(r)
       })(RowEncoder(allColsNullableSchema))
 
-    //weight average the columns by track_duration
-    val weightAveragedDF = weightAveragedColumns.foldLeft(withAggResultRowDF) { (df, spec) =>
-      df.withColumn(
-        spec,
-        whenAggregateAndKeep((sum(col(spec) * col(arlasTrackDuration)).over(window) / sum(arlasTrackDuration).over(window)).as(spec))
-          .otherwise(col(spec)))
+    // Weight average the columns by track_duration
+    val weightAveragedDF = weightAveragedColumns match {
+      case Some(weightAverageColumnsSeq) =>
+        weightAverageColumnsSeq.foldLeft(withAggResultRowDF) { (df, spec) =>
+          df.withColumn(
+            spec,
+            whenAggregateAndKeep((sum(col(spec) * col(arlasTrackDuration)).over(window) / sum(arlasTrackDuration).over(window)).as(spec))
+              .otherwise(col(spec)))
+        }
+      case None => withAggResultRowDF
     }
 
     //process tempo proportions columns
-    val tempoProportionsDF = tempoProportionColumns.keys.foldLeft(weightAveragedDF) { (df, spec) =>
-      df.withColumn(
-        spec,
-        whenAggregateAndKeep(
-          sum(col(spec) * col(arlasTrackDuration))
-            .over(window)
-            .divide(sum(arlasTrackDuration).over(window))
-            .as(spec)).otherwise(
-          col(spec)
-        )
-      )
+    val tempoProportionsDF = tempoProportionColumns match {
+      case Some(tempoProportionColumnsMap) =>
+        tempoProportionColumnsMap.keys.foldLeft(weightAveragedDF) { (df, spec) =>
+          df.withColumn(
+            spec,
+            whenAggregateAndKeep(
+              sum(col(spec) * col(arlasTrackDuration))
+                .over(window)
+                .divide(sum(arlasTrackDuration).over(window))
+                .as(spec)).otherwise(
+              col(spec)
+            )
+          )
+        }
+      case None => weightAveragedDF
     }
 
     val aggregatedDF =

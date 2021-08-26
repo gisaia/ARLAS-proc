@@ -41,10 +41,10 @@ import scala.collection.mutable.WrappedArray
   */
 class StopPauseSummaryTransformer(spark: SparkSession,
                                   dataModel: DataModel,
-                                  propagatedColumns: Seq[String] = Seq(),
-                                  weightAveragedColumns: Seq[String] = Seq(),
+                                  propagatedColumns: Option[Seq[String]] = None,
+                                  weightAveragedColumns: Option[Seq[String]] = None,
                                   irregularTempo: String = "tempo_irregular",
-                                  tempoProportionColumns: Map[String, String] = Map(),
+                                  tempoProportionColumns: Option[Map[String, String]] = None,
                                   computePrecision: Boolean = false)
     extends FragmentSummaryTransformer(
       spark,
@@ -103,6 +103,9 @@ class StopPauseSummaryTransformer(spark: SparkSession,
       arlasCourseIdColumn,
       arlasCourseDurationColumn,
       dataModel.idColumn
-    ) ++ propagatedColumns
+    ) ++ (propagatedColumns match {
+      case Some(value) => value
+      case None        => Seq()
+    })
   }
 }

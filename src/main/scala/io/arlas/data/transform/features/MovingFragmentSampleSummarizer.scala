@@ -32,17 +32,20 @@ import scala.collection.immutable.ListMap
 import scala.collection.mutable.WrappedArray
 
 /**
-  * @param spark
+  * Merge fragments sharing a same "sample id" winthin a single fragment (used for resampling)
+  * Require the arlas_track_sample_id produced by the transformer WithFragmentSampleId
+  * Require arlas_moving_state produced by the transformer WithMovingState
+  * @param spark                 SparkSession
   * @param dataModel             Data model containing names of structuring columns (id, lat, lon, time)
-  * @param irregularTempo        value of the irregular tempo (i.a. greater than defined tempos, so there were probably pauses)
-  * @param tempoPropotionColumns
+  * @param irregularTempo        Value of the irregular tempo (i.a. greater than defined tempos, so there were probably pauses)
+  * @param tempoPropotionColumns Map of (tempo proportion column -> related tempo column)
   * @param weightAveragedColumns columns to weight average over track duration, in aggregations
   */
 class MovingFragmentSampleSummarizer(spark: SparkSession,
                                      dataModel: DataModel,
                                      irregularTempo: String = "irregular_tempo",
-                                     tempoPropotionColumns: Map[String, String] = Map(),
-                                     weightAveragedColumns: Seq[String] = Seq())
+                                     tempoPropotionColumns: Option[Map[String, String]] = None,
+                                     weightAveragedColumns: Option[Seq[String]] = None)
     extends FragmentSummaryTransformer(
       spark,
       dataModel,

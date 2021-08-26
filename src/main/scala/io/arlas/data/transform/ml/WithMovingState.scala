@@ -42,7 +42,7 @@ class WithMovingState(spark: SparkSession,
                       targetMovingState: String,
                       stillMoveModelPath: String,
                       hmmWindowSize: Int = 5000,
-                      gapStateColumn: String = "")
+                      gapStateColumn: Option[String] = None)
     extends HmmProcessor(
       speedColumn,
       MLModelLocal(spark, stillMoveModelPath),
@@ -52,21 +52,20 @@ class WithMovingState(spark: SparkSession,
     ) {
 
   override def transform(dataset: Dataset[_]): DataFrame = {
-    if (gapStateColumn.isEmpty) {
-      super.transform(dataset)
-    } else {
-      super
-        .transform(dataset)
-        .withColumn(
-          targetMovingState,
-          when(
-            col(gapStateColumn)
-              .equalTo(ArlasMovingStates.GAP),
-            lit(ArlasMovingStates.GAP)
-          ).otherwise(col(targetMovingState))
-        )
+    gapStateColumn match {
+      case Some(gapState) =>
+        super
+          .transform(dataset)
+          .withColumn(
+            targetMovingState,
+            when(
+              col(gapState)
+                .equalTo(ArlasMovingStates.GAP),
+              lit(ArlasMovingStates.GAP)
+            ).otherwise(col(targetMovingState))
+          )
+      case None => super.transform(dataset)
     }
-
   }
 
   override def transformSchema(schema: StructType): StructType = {

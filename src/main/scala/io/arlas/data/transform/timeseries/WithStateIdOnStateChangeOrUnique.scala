@@ -36,16 +36,19 @@ class WithStateIdOnStateChangeOrUnique(idColumn: String,
                                        stateColumn: String,
                                        orderColumn: String = arlasTimestampColumn,
                                        targetIdColumn: String,
-                                       uniqueState: String = "")
+                                       uniqueState: Option[String])
     extends WithStateId(
       idColumn,
       orderColumn,
       targetIdColumn, {
         val window = Window.partitionBy(idColumn).orderBy(orderColumn)
-        lag(stateColumn, 1)
+        val isNewId = lag(stateColumn, 1)
           .over(window)
           .notEqual(col(stateColumn))
           .or(lag(stateColumn, 1).over(window).isNull)
-          .or(col(stateColumn).equalTo(uniqueState))
+        uniqueState match {
+          case Some(uniqueStateValue) => isNewId.or(col(stateColumn).equalTo(uniqueStateValue))
+          case None                   => isNewId
+        }
       }
     )
