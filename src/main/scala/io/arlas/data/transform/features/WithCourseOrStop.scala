@@ -29,15 +29,16 @@ import org.apache.spark.sql.{DataFrame, Dataset}
   * Determine if a fragment is a course or a stop (still during a duration longer than a threshold)
   * Requires the moving state produced by transformers "WithMovingState"
   * Requires the motion duration columns, produced by the "WithDurationFromId" transformer
-  * @param courseTimeout Minimum duration (s) for a still to be considered as a stop
+  * Create a column "arlas_course_or_stop"
+  * @param courseTimeoutS Minimum duration (s) for a still to be considered as a stop
   */
-class WithCourseOrStop(courseTimeout: Int = 600) extends ArlasTransformer(Vector(arlasMovingStateColumn, arlasMotionDurationColumn)) {
+class WithCourseOrStop(courseTimeoutS: Int = 600) extends ArlasTransformer(Vector(arlasMovingStateColumn, arlasMotionDurationColumn)) {
 
   override def transform(dataset: Dataset[_]): DataFrame = {
 
     val courseState = when(
       col(arlasMovingStateColumn).equalTo(lit(ArlasMovingStates.STILL)),
-      when(col(arlasMotionDurationColumn) < courseTimeout, lit(ArlasCourseOrStop.COURSE))
+      when(col(arlasMotionDurationColumn) < courseTimeoutS, lit(ArlasCourseOrStop.COURSE))
         .otherwise(lit(ArlasCourseOrStop.STOP))
     ).otherwise(when(col(arlasMovingStateColumn).equalTo(ArlasMovingStates.GAP), lit(ArlasCourseOrStop.GAP))
       .otherwise(lit(ArlasCourseOrStop.COURSE)))

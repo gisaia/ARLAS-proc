@@ -34,7 +34,16 @@ import org.slf4j.LoggerFactory
 import scala.collection.mutable.ArrayBuffer
 import scala.util.{Failure, Success}
 
-class HmmProcessor(sourceColumn: String, hmmModel: MLModel, partitionColumn: String, resultColumn: String, hmmWindowSize: Int)
+/**
+  * Apply an HMM (Hidden Markov Model) to predict states from the sequence of a variable input
+  *
+  * @param sourceColumn Column containing values used as input of the HMM
+  * @param hmmModel MLModel object containing the hmm model (state observation and transition probabilities)
+  * @param partitionColumn Column used to group data to create the timeseries (ex: objectId)
+  * @param resultColumn Column to store the hmm predicted states
+  * @param hmmWindowSize Max size of the hmm time series (split if data are longer than the threshold)
+  */
+class HmmProcessor(sourceColumn: String, hmmModel: MLModel, partitionColumn: String, resultColumn: String, hmmWindowSize: Int = 5000)
     extends ArlasTransformer(Vector(partitionColumn, arlasTimestampColumn)) {
 
   @transient lazy val logger = LoggerFactory.getLogger(this.getClass)
