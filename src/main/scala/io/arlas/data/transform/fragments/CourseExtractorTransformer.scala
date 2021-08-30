@@ -111,7 +111,7 @@ class CourseExtractorTransformer(spark: SparkSession,
       arlasDepartureTimestamp -> first(arlasTrackTimestampStart).over(window),
       arlasArrivalTimestamp -> last(arlasTrackTimestampEnd).over(window),
       arlasTrackPausesTrail -> getPauseTrailUDF(
-        collect_list(when(col(arlasCourseStateColumn).equalTo(ArlasCourseStates.PAUSE), col(arlasTrackLocationPrecisionGeometry)))
+        collect_list(when(col(arlasCourseStateColumn).equalTo(ArlasCourseStates.PAUSE), col(arlasTrackTrail)))
           .over(window)),
       arlasTrackPausesLocation -> collect_list(
         when(col(arlasCourseStateColumn).equalTo(ArlasCourseStates.PAUSE),
@@ -155,20 +155,23 @@ class CourseExtractorTransformer(spark: SparkSession,
           .and(lag(arlasCourseOrStopColumn, 1).over(window).equalTo(lit(ArlasCourseOrStop.STOP))),
         lag(prevCol, 1).over(window)
     )
-
-    df.withColumn(arlasArrivalStopAfterDuration, whenIsCourseGetNext(arlasTrackDuration))
+    (if (computePrecision) {
+       df.withColumn(arlasArrivalStopAfterLocationPrecisionValueLat, whenIsCourseGetNext(arlasTrackLocationPrecisionValueLat))
+         .withColumn(arlasArrivalStopAfterLocationPrecisionValueLon, whenIsCourseGetNext(arlasTrackLocationPrecisionValueLon))
+         .withColumn(arlasArrivalStopAfterLocationPrecisionGeometry, whenIsCourseGetNext(arlasTrackLocationPrecisionGeometry))
+         .withColumn(arlasDepartureStopBeforeLocationPrecisionValueLat, whenIsCourseGetPrev(arlasTrackLocationPrecisionValueLat))
+         .withColumn(arlasDepartureStopBeforeLocationPrecisionValueLon, whenIsCourseGetPrev(arlasTrackLocationPrecisionValueLon))
+         .withColumn(arlasDepartureStopBeforeLocationPrecisionGeometry, whenIsCourseGetPrev(arlasTrackLocationPrecisionGeometry))
+     } else {
+       df
+     })
+      .withColumn(arlasArrivalStopAfterDuration, whenIsCourseGetNext(arlasTrackDuration))
       .withColumn(arlasArrivalStopAfterLocationLon, whenIsCourseGetNext(arlasTrackLocationLon))
       .withColumn(arlasArrivalStopAfterLocationLat, whenIsCourseGetNext(arlasTrackLocationLat))
-      .withColumn(arlasArrivalStopAfterLocationPrecisionValueLat, whenIsCourseGetNext(arlasTrackLocationPrecisionValueLat))
-      .withColumn(arlasArrivalStopAfterLocationPrecisionValueLon, whenIsCourseGetNext(arlasTrackLocationPrecisionValueLon))
-      .withColumn(arlasArrivalStopAfterLocationPrecisionGeometry, whenIsCourseGetNext(arlasTrackLocationPrecisionGeometry))
       .withColumn(arlasArrivalStopAfterVisibilityProportion, whenIsCourseGetNext(arlasTrackVisibilityProportion))
       .withColumn(arlasDepartureStopBeforeDuration, whenIsCourseGetPrev(arlasTrackDuration))
       .withColumn(arlasDepartureStopBeforeLocationLon, whenIsCourseGetPrev(arlasTrackLocationLon))
       .withColumn(arlasDepartureStopBeforeLocationLat, whenIsCourseGetPrev(arlasTrackLocationLat))
-      .withColumn(arlasDepartureStopBeforeLocationPrecisionValueLat, whenIsCourseGetPrev(arlasTrackLocationPrecisionValueLat))
-      .withColumn(arlasDepartureStopBeforeLocationPrecisionValueLon, whenIsCourseGetPrev(arlasTrackLocationPrecisionValueLon))
-      .withColumn(arlasDepartureStopBeforeLocationPrecisionGeometry, whenIsCourseGetPrev(arlasTrackLocationPrecisionGeometry))
       .withColumn(arlasDepartureStopBeforeVisibilityProportion, whenIsCourseGetPrev(arlasTrackVisibilityProportion))
       .filter(col(arlasCourseOrStopColumn).notEqual(ArlasCourseOrStop.STOP))
       .drop(tmpTrailData, tmpIsVisible)
@@ -201,7 +204,17 @@ class CourseExtractorTransformer(spark: SparkSession,
 
   override def transformSchema(schema: StructType): StructType = {
     checkRequiredColumns(schema, Vector(arlasTrackVisibilityProportion))
-    checkSchema(schema)
+    (if (computePrecision) {
+       checkSchema(schema)
+         .add(StructField(arlasArrivalStopAfterLocationPrecisionValueLat, DoubleType, true))
+         .add(StructField(arlasArrivalStopAfterLocationPrecisionValueLon, DoubleType, true))
+         .add(StructField(arlasArrivalStopAfterLocationPrecisionGeometry, StringType, true))
+         .add(StructField(arlasDepartureStopBeforeLocationPrecisionValueLat, DoubleType, true))
+         .add(StructField(arlasDepartureStopBeforeLocationPrecisionValueLon, DoubleType, true))
+         .add(StructField(arlasDepartureStopBeforeLocationPrecisionGeometry, StringType, true))
+     } else {
+       checkSchema(schema)
+     })
       .add(StructField(arlasTrackMotionsVisibleDuration, LongType, true))
       .add(StructField(arlasTrackMotionsVisibleLength, DoubleType, true))
       .add(StructField(arlasTrackMotionsInvisibleDuration, LongType, true))
@@ -226,16 +239,10 @@ class CourseExtractorTransformer(spark: SparkSession,
       .add(StructField(arlasArrivalStopAfterDuration, LongType, true))
       .add(StructField(arlasArrivalStopAfterLocationLon, DoubleType, true))
       .add(StructField(arlasArrivalStopAfterLocationLat, DoubleType, true))
-      .add(StructField(arlasArrivalStopAfterLocationPrecisionValueLat, DoubleType, true))
-      .add(StructField(arlasArrivalStopAfterLocationPrecisionValueLon, DoubleType, true))
-      .add(StructField(arlasArrivalStopAfterLocationPrecisionGeometry, StringType, true))
       .add(StructField(arlasArrivalStopAfterVisibilityProportion, DoubleType, true))
       .add(StructField(arlasDepartureStopBeforeDuration, LongType, true))
       .add(StructField(arlasDepartureStopBeforeLocationLon, DoubleType, true))
       .add(StructField(arlasDepartureStopBeforeLocationLat, DoubleType, true))
-      .add(StructField(arlasDepartureStopBeforeLocationPrecisionValueLat, DoubleType, true))
-      .add(StructField(arlasDepartureStopBeforeLocationPrecisionValueLon, DoubleType, true))
-      .add(StructField(arlasDepartureStopBeforeLocationPrecisionGeometry, StringType, true))
       .add(StructField(arlasDepartureStopBeforeVisibilityProportion, DoubleType, true))
   }
 }
