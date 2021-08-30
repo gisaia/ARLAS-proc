@@ -185,11 +185,11 @@ abstract class FragmentSummaryTransformer(spark: SparkSession,
         })
     )
 
-    val tempoSeq = if (tempoProportionColumns.isEmpty) {
-      Seq((arlasTrackTempoEmissionIsMulti, BooleanType), (arlasTempoColumn, StringType))
-    } else {
-      Seq()
+    val tempoSeq = tempoProportionColumns match {
+      case Some(value) => Seq((arlasTrackTempoEmissionIsMulti, BooleanType), (arlasTempoColumn, StringType))
+      case None        => Seq()
     }
+
     val precisionSeq = if (computePrecision) {
       Seq((arlasTrackLocationPrecisionValueLat, DoubleType),
           (arlasTrackLocationPrecisionValueLon, DoubleType),

@@ -36,7 +36,7 @@ class WithStateIdOnStateChangeOrUnique(idColumn: String,
                                        stateColumn: String,
                                        orderColumn: String = arlasTimestampColumn,
                                        targetIdColumn: String,
-                                       uniqueState: Option[String])
+                                       uniqueState: Option[String] = None)
     extends WithStateId(
       idColumn,
       orderColumn,
