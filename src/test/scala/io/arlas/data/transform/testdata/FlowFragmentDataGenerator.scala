@@ -113,6 +113,8 @@ class FlowFragmentDataGenerator(
                 arlasPartition,
                 latMean,
                 lonMean,
+                curLat,
+                curLon,
                 latStd,
                 lonStd,
                 GeoTool
@@ -150,6 +152,8 @@ class FlowFragmentDataGenerator(
       .add(StructField(arlasPartitionColumn, IntegerType, true))
       .add(StructField(arlasTrackLocationLat, DoubleType, true))
       .add(StructField(arlasTrackLocationLon, DoubleType, true))
+      .add(StructField(arlasTrackEndLocationLat, DoubleType, true))
+      .add(StructField(arlasTrackEndLocationLon, DoubleType, true))
       .add(StructField(arlasTrackLocationPrecisionValueLat, DoubleType, true))
       .add(StructField(arlasTrackLocationPrecisionValueLon, DoubleType, true))
       .add(StructField(arlasTrackLocationPrecisionGeometry, StringType, true))

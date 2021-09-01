@@ -179,9 +179,9 @@ trait ArlasTest extends AnyFlatSpec with Matchers with TestSparkSession with Dat
         )
       )
       .enrichWithArlas(
-        new WithStateIdOnStateChangeOrUnique(dataModel, arlasMovingStateColumn, arlasTrackTimestampStart, arlasMotionIdColumn),
+        new WithStateIdOnStateChangeOrUnique(dataModel.idColumn, arlasMovingStateColumn, arlasTrackTimestampStart, arlasMotionIdColumn),
         new WithDurationFromId(arlasMotionIdColumn, arlasMotionDurationColumn),
-        new WithStateIdOnStateChangeOrUnique(dataModel, arlasCourseOrStopColumn, arlasTrackTimestampStart, arlasCourseIdColumn),
+        new WithStateIdOnStateChangeOrUnique(dataModel.idColumn, arlasCourseOrStopColumn, arlasTrackTimestampStart, arlasCourseIdColumn),
         new WithDurationFromId(arlasCourseIdColumn, arlasCourseDurationColumn)
       )
 
@@ -210,7 +210,7 @@ trait ArlasTest extends AnyFlatSpec with Matchers with TestSparkSession with Dat
       )
       .enrichWithArlas(
         new WithFragmentVisibilityFromTempo(dataModel, spark, tempoIrregular),
-        new WithFragmentSampleId(dataModel, spark, arlasMotionIdColumn, 60l)
+        new WithFragmentSampleId(dataModel, arlasMotionIdColumn, 60l)
       )
 
   val movingFragmentSampleSummarizerDF = new MovingFragmentSampleSummarizerDataGenerator(

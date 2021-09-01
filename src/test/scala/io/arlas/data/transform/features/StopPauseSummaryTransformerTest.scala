@@ -30,10 +30,10 @@ class StopPauseSummaryTransformerTest extends ArlasTest {
       new StopPauseSummaryTransformer(
         spark,
         dataModel,
-        standardDeviationEllipsisNbPoints,
-        tempoIrregular,
-        tempoProportionsColumns,
-        averagedColumns
+        propagatedColumns = None,
+        weightAveragedColumns = Some(averagedColumns),
+        irregularTempo = tempoIrregular,
+        tempoProportionColumns = Some(tempoProportionsColumns)
       ))
 
   "StopPauseSummaryTransformer transformation" should "aggregate the stop-pause fragments against dataframe's timeseries" in {

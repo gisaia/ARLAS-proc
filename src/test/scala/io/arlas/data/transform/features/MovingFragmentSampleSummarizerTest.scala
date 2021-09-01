@@ -30,10 +30,9 @@ class MovingFragmentSampleSummarizerTest extends ArlasTest {
       new MovingFragmentSampleSummarizer(
         spark,
         dataModel,
-        standardDeviationEllipsisNbPoints,
         tempoIrregular,
-        tempoProportionsColumns,
-        averagedColumns
+        Some(tempoProportionsColumns),
+        Some(averagedColumns)
       ))
 
   "MovingFragmentSampleSummarizer transformation" should "aggregate moving fragments with the same arlas_track_sample_id against dataframe's timeseries" in {

@@ -27,12 +27,15 @@ class CourseExtractorTransformerTest extends ArlasTest {
 
   val transformedDF = courseExtractorBaseDF
     .enrichWithArlas(
-      new CourseExtractorTransformer(spark,
-                                     dataModel,
-                                     standardDeviationEllipsisNbPoints,
-                                     tempoIrregular,
-                                     tempoProportionsColumns,
-                                     averagedColumns))
+      new CourseExtractorTransformer(
+        spark,
+        dataModel,
+        propagatedColumns = None,
+        irregularTempo = tempoIrregular,
+        tempoColumns = Some(tempoProportionsColumns),
+        weightAveragedColumns = Some(averagedColumns)
+      )
+    )
 
   "CourseExtractorTransformer transformation" should "aggregate the course fragments against dataframe's timeseries" in {
 

@@ -53,7 +53,7 @@ class WithSupportValueTest extends ArlasTest {
     val expectedDF =
       testDF.withColumnRenamed("expected" + speedColumn + "_array", speedColumn + "_array")
 
-    val transformedDF = baseDF.enrichWithArlas(new WithSupportValues(speedColumn, 5, 8, "tempo_irregular", "distance"))
+    val transformedDF = baseDF.enrichWithArlas(new WithSupportValues(speedColumn, speedColumn + "_array", 120, 10, arlasTrackDuration))
 
     assertDataFrameEquality(transformedDF, expectedDF)
   }

@@ -17,10 +17,11 @@
  * under the License.
  */
 
-package io.arlas.data.transform
+package io.arlas.data.transform.timeseries
 
 import io.arlas.data.model.DataModel
 import io.arlas.data.sql._
+import io.arlas.data.transform.ArlasTest
 import io.arlas.data.transform.ArlasTestHelper._
 import io.arlas.data.transform.timeseries.WithStateIdFromState
 import org.apache.spark.sql.functions._
@@ -58,7 +59,7 @@ class WithStateIdFromStateTest extends ArlasTest {
     val transformedDF = baseDF
       .enrichWithArlas(
         new WithStateIdFromState(
-          DataModel(),
+          DataModel().idColumn,
           "state",
           "timestamp",
           "new",
@@ -75,7 +76,7 @@ class WithStateIdFromStateTest extends ArlasTest {
     val transformedDF = baseDF
       .enrichWithArlas(
         new WithStateIdFromState(
-          DataModel(),
+          DataModel().idColumn,
           "state",
           "timestamp",
           "new",
@@ -86,7 +87,7 @@ class WithStateIdFromStateTest extends ArlasTest {
                     .otherwise(col("state_id")))
       .enrichWithArlas(
         new WithStateIdFromState(
-          DataModel(),
+          DataModel().idColumn,
           "state",
           "timestamp",
           "new",
