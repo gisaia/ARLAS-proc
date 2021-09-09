@@ -33,7 +33,8 @@ class CourseExtractorTransformerTest extends ArlasTest {
         propagatedColumns = None,
         irregularTempo = tempoIrregular,
         tempoColumns = Some(tempoProportionsColumns),
-        weightAveragedColumns = Some(averagedColumns)
+        weightAveragedColumns = Some(averagedColumns),
+        computePrecision=true
       )
     )
 

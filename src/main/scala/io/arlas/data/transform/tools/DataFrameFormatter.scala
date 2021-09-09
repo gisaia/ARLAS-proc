@@ -44,21 +44,6 @@ class DataFrameFormatter(dataModel: DataModel, doubleColumns: Vector[String] = V
       .transform(withValidDoubleColumns())
   }
 
-  def withValidColumnNames()(df: DataFrame): DataFrame = {
-    df.select(df.columns.map { c =>
-      df.col(c)
-        .as(getValidColumnName(c))
-    }: _*)
-  }
-
-  def getValidColumnName(columnName: String): String = {
-    columnName
-      .replaceAll("\\s", "_") // replace whitespaces with '_'
-      .replaceAll("[^A-Za-z0-9_]", "") // remove special characters
-      .replaceAll("^_", "") // replace strings that start with '_' with empty char
-      .toLowerCase()
-  }
-
   def withNoDuplicates()(df: DataFrame): DataFrame = {
     df.dropDuplicates(dataModel.idColumn, dataModel.timestampColumn)
   }
@@ -88,4 +73,23 @@ class DataFrameFormatter(dataModel: DataModel, doubleColumns: Vector[String] = V
         } else dataframe
       }
   }
+}
+
+object DataFrameFormatter {
+
+  def withValidColumnNames()(df: DataFrame): DataFrame = {
+    df.select(df.columns.map { c =>
+      df.col(c)
+        .as(getValidColumnName(c))
+    }: _*)
+  }
+
+  def getValidColumnName(columnName: String): String = {
+    columnName
+      .replaceAll("\\s", "_") // replace whitespaces with '_'
+      .replaceAll("[^A-Za-z0-9_]", "") // remove special characters
+      .replaceAll("^_", "") // replace strings that start with '_' with empty char
+      .toLowerCase()
+  }
+
 }

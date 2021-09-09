@@ -21,7 +21,6 @@ package io.arlas.data.transform
 
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
-
 import io.arlas.data.model.DataModel
 import io.arlas.data.sql._
 import io.arlas.data.transform.ArlasTestHelper._
@@ -30,6 +29,7 @@ import io.arlas.data.transform.features._
 import io.arlas.data.transform.testdata._
 import io.arlas.data.transform.timeseries._
 import io.arlas.data.{DataFrameTester, TestSparkSession}
+import org.apache.spark.sql.expressions.Window
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types._
 import org.scalatest.matchers.should._
@@ -242,4 +242,15 @@ trait ArlasTest extends AnyFlatSpec with Matchers with TestSparkSession with Dat
     tempoIrregular,
     standardDeviationEllipsisNbPoints
   ).get()
+    .drop("arlas_arrival_address_city", "arlas_arrival_address_country", "arlas_arrival_address_country_code", "arlas_arrival_address_county", "arlas_arrival_address_postcode", "arlas_arrival_address_state")
+    .drop("arlas_arrival_stop_after_location_precision_geometry", "arlas_arrival_stop_after_location_precision_value_lat", "arlas_arrival_stop_after_location_precision_value_lon")
+    .drop("arlas_departure_address_city", "arlas_departure_address_country", "arlas_departure_address_country_code", "arlas_departure_address_county", "arlas_departure_address_postcode", "arlas_departure_address_state")
+    .drop("arlas_departure_stop_before_location_precision_geometry", "arlas_departure_stop_before_location_precision_value_lat", "arlas_departure_stop_before_location_precision_value_lon")
+    .withColumn(arlasTrackPausesLocation, when(col(arlasCourseStateColumn).isNotNull,collect_list(
+      when(col(arlasCourseStateColumn).equalTo(ArlasCourseStates.PAUSE),
+        concat(col(arlasTrackLocationLat), lit(","), col(arlasTrackLocationLon))).otherwise(lit(null)))
+      .over(Window
+        .partitionBy(col(dataModel.idColumn),col(arlasCourseOrStopColumn).notEqual(lit(ArlasCourseOrStop.STOP))))
+      ).otherwise(lit(null))
+      .cast(ArrayType(StringType,true)))
 }
