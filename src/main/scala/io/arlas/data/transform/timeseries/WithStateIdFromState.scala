@@ -19,15 +19,14 @@
 
 package io.arlas.data.transform.timeseries
 
-import io.arlas.data.model.DataModel
 import org.apache.spark.sql.functions._
 
 /**
   * Compute ID column, the same ID is set for all consecutive rows between 2 occurences of fromState, for a same object
-  * @param dataModel
-  * @param stateColumn
-  * @param fromState
-  * @param targetIdColumn
+  * @param idColumn Column containing the id used to create sequences
+  * @param stateColumn Column containing the state to use
+  * @param orderColumn Column containing the field to order sequences (usually timestamp)
+  * @param targetIdColumn Column to store the new created id
   */
-class WithStateIdFromState(dataModel: DataModel, stateColumn: String, orderColumn: String, fromState: String, targetIdColumn: String)
-    extends WithStateId(dataModel, orderColumn, targetIdColumn, col(stateColumn).equalTo(fromState))
+class WithStateIdFromState(idColumn: String, stateColumn: String, orderColumn: String, fromState: String, targetIdColumn: String)
+    extends WithStateId(idColumn, orderColumn, targetIdColumn, col(stateColumn).equalTo(fromState))

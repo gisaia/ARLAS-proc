@@ -17,10 +17,11 @@
  * under the License.
  */
 
-package io.arlas.data.transform
+package io.arlas.data.transform.timeseries
 
 import io.arlas.data.model.DataModel
 import io.arlas.data.sql._
+import io.arlas.data.transform.ArlasTest
 import io.arlas.data.transform.ArlasTestHelper._
 import io.arlas.data.transform.ArlasTransformerColumns._
 import io.arlas.data.transform.timeseries._

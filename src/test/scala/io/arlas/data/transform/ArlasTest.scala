@@ -21,7 +21,6 @@ package io.arlas.data.transform
 
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
-
 import io.arlas.data.model.DataModel
 import io.arlas.data.sql._
 import io.arlas.data.transform.ArlasTestHelper._
@@ -30,6 +29,7 @@ import io.arlas.data.transform.features._
 import io.arlas.data.transform.testdata._
 import io.arlas.data.transform.timeseries._
 import io.arlas.data.{DataFrameTester, TestSparkSession}
+import org.apache.spark.sql.expressions.Window
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types._
 import org.scalatest.matchers.should._
@@ -148,8 +148,7 @@ trait ArlasTest extends AnyFlatSpec with Matchers with TestSparkSession with Dat
     ).withColumn(arlasTimestampColumn, timestampUDF(col("timestamp")))
   }
 
-  val flowFragmentTestDF =
-    new FlowFragmentDataGenerator(spark, baseTestDF, dataModel, averagedColumns, standardDeviationEllipsisNbPoints).get()
+  val flowFragmentTestDF = new FlowFragmentDataGenerator(spark, baseTestDF, dataModel, averagedColumns, standardDeviationEllipsisNbPoints).get()
 
   val getStopPauseSummaryBaseDF =
     flowFragmentTestDF
@@ -179,9 +178,9 @@ trait ArlasTest extends AnyFlatSpec with Matchers with TestSparkSession with Dat
         )
       )
       .enrichWithArlas(
-        new WithStateIdOnStateChange(dataModel, arlasMovingStateColumn, arlasTrackTimestampStart, arlasMotionIdColumn),
+        new WithStateIdOnStateChangeOrUnique(dataModel.idColumn, arlasMovingStateColumn, arlasTrackTimestampStart, arlasMotionIdColumn),
         new WithDurationFromId(arlasMotionIdColumn, arlasMotionDurationColumn),
-        new WithStateIdOnStateChange(dataModel, arlasCourseOrStopColumn, arlasTrackTimestampStart, arlasCourseIdColumn),
+        new WithStateIdOnStateChangeOrUnique(dataModel.idColumn, arlasCourseOrStopColumn, arlasTrackTimestampStart, arlasCourseIdColumn),
         new WithDurationFromId(arlasCourseIdColumn, arlasCourseDurationColumn)
       )
 
@@ -210,7 +209,7 @@ trait ArlasTest extends AnyFlatSpec with Matchers with TestSparkSession with Dat
       )
       .enrichWithArlas(
         new WithFragmentVisibilityFromTempo(dataModel, spark, tempoIrregular),
-        new WithFragmentSampleId(dataModel, spark, arlasMotionIdColumn, 60l)
+        new WithFragmentSampleId(dataModel, arlasMotionIdColumn, 60l)
       )
 
   val movingFragmentSampleSummarizerDF = new MovingFragmentSampleSummarizerDataGenerator(
@@ -242,4 +241,13 @@ trait ArlasTest extends AnyFlatSpec with Matchers with TestSparkSession with Dat
     tempoIrregular,
     standardDeviationEllipsisNbPoints
   ).get()
+    .drop("arlas_arrival_address_city", "arlas_arrival_address_country", "arlas_arrival_address_country_code", "arlas_arrival_address_county", "arlas_arrival_address_postcode", "arlas_arrival_address_state")
+    .drop("arlas_departure_address_city", "arlas_departure_address_country", "arlas_departure_address_country_code", "arlas_departure_address_county", "arlas_departure_address_postcode", "arlas_departure_address_state")
+    .withColumn(arlasTrackPausesLocation, when(col(arlasCourseStateColumn).isNotNull,collect_list(
+      when(col(arlasCourseStateColumn).equalTo(ArlasCourseStates.PAUSE),
+        concat(col(arlasTrackLocationLat), lit(","), col(arlasTrackLocationLon))).otherwise(lit(null)))
+      .over(Window
+        .partitionBy(col(dataModel.idColumn),col(arlasCourseOrStopColumn).notEqual(lit(ArlasCourseOrStop.STOP))))
+      ).otherwise(lit(null))
+      .cast(ArrayType(StringType,true)))
 }

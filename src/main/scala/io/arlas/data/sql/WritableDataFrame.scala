@@ -61,12 +61,16 @@ class WritableDataFrame(df: DataFrame) extends TransformableDataFrame(df) {
       }
   }
 
-  def writeToParquet(spark: SparkSession, target: String): Unit = {
+  /**
+    * @param target Path of the parquet file to store data
+    * @param saveMode Mode of storage: "SaveMode.Append" (add data to parquet file) or "SaveMode.Overwrite" (erase existing data)
+    */
+  def writeToParquet(target: String, saveMode: SaveMode = SaveMode.Append): Unit = {
     df.repartition(col(arlasPartitionColumn))
       .write
       .option("compression", "snappy")
       .option("parquet.block.size", PARQUET_BLOCK_SIZE.toString)
-      .mode(SaveMode.Append)
+      .mode(saveMode)
       .partitionBy(arlasPartitionColumn)
       .parquet(target)
   }

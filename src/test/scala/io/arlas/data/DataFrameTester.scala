@@ -35,7 +35,7 @@ trait DataFrameTester {
     //Check scheme equality
     if (!a.schema.equals(e.schema)) {
       throw DataFrameMismatchException(
-        schemeMismatchMessage(actualDF, expectedDF)
+        schemeMismatchMessage(a, e)
       )
     }
 

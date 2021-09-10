@@ -20,35 +20,34 @@
 package io.arlas.data.transform.features
 
 import io.arlas.data.transform.ArlasTransformer
-import io.arlas.data.transform.ArlasTransformerColumns._
-import org.apache.spark.sql.expressions.Window
+import io.arlas.data.transform.ArlasTransformerColumns.{arlasTrackDuration, arlasTrackVisibilityProportion}
 import org.apache.spark.sql.functions._
-import org.apache.spark.sql.types.{LongType, StructField, StructType}
+import org.apache.spark.sql.types.{DoubleType, StructField, StructType}
 import org.apache.spark.sql.{DataFrame, Dataset}
 
 /**
-  * For a ID that is hold by multiple rows, it computes the 'duration of this id'
-  * i.a. <oldest row with this id> - <earlier row with this id>
-  * It requires the fragment start and end timestamps, created by the transformer
-  * @param idColumn Column containing the identifier of the group
-  * @param targetDurationColumn Column to store the computed duration
+  * Identify a fragment as "invisible" if the duration between its two measures is longer than a threshold
+  *
+  * @param visibilityProportionColumn Name of the target gap state column
+  * @param durationSecondsColumn      Name of the duration (s) column
+  * @param durationThreshold          Minimum duration (s) between observation to be considered as a gap
   */
-class WithDurationFromId(idColumn: String, targetDurationColumn: String)
-    extends ArlasTransformer(Vector(idColumn, arlasTrackTimestampStart, arlasTrackTimestampEnd)) {
+class WithVisibilityProportion(visibilityProportionColumn: String = arlasTrackVisibilityProportion,
+                               durationSecondsColumn: String = arlasTrackDuration,
+                               durationThreshold: Long = 1800)
+    extends ArlasTransformer(Vector(durationSecondsColumn)) {
 
   override def transform(dataset: Dataset[_]): DataFrame = {
 
-    val window = Window
-      .partitionBy(idColumn)
-      .orderBy(arlasTrackTimestampStart)
-      .rowsBetween(Window.unboundedPreceding, Window.unboundedFollowing)
-
     dataset
       .toDF()
-      .withColumn(targetDurationColumn, last(arlasTrackTimestampEnd).over(window) - first(arlasTrackTimestampStart).over(window))
+      .withColumn(visibilityProportionColumn,
+                  when(col(durationSecondsColumn).gt(lit(durationThreshold)), lit(0.0d))
+                    .otherwise(lit(1.0d)))
   }
 
   override def transformSchema(schema: StructType): StructType = {
-    super.transformSchema(schema).add(StructField(targetDurationColumn, LongType, true))
+    checkSchema(schema)
+      .add(StructField(visibilityProportionColumn, DoubleType, false))
   }
 }

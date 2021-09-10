@@ -35,7 +35,7 @@ import org.apache.spark.sql.types._
   * @param aggregationColumnName aggregation column to group fragments
   * @param sampling target sampling duration for fragments
   */
-class WithFragmentSampleId(dataModel: DataModel, spark: SparkSession, aggregationColumnName: String, sampling: Long)
+class WithFragmentSampleId(dataModel: DataModel, aggregationColumnName: String, sampling: Long)
     extends ArlasTransformer(Vector(arlasTrackTimestampCenter, arlasTrackDuration, aggregationColumnName)) {
 
   override def transform(dataset: Dataset[_]): DataFrame = {

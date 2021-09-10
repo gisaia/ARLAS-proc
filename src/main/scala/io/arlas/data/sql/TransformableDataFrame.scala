@@ -21,20 +21,33 @@ package io.arlas.data.sql
 
 import io.arlas.data.model.DataModel
 import io.arlas.data.transform.ArlasTransformerColumns._
-import io.arlas.data.transform._
+import io.arlas.data.transform.{ArlasTransformer}
 import io.arlas.data.transform.features._
 import io.arlas.data.transform.tools.DataFrameFormatter
 import org.apache.spark.ml.Pipeline
 import org.apache.spark.sql.DataFrame
-import org.apache.spark.sql.functions.{col, date_format, lit, to_date}
-import org.apache.spark.sql.types.{DataType, IntegerType, StringType}
+import org.apache.spark.sql.functions.{lit}
+import org.apache.spark.sql.types.{DataType, StringType}
 
+/**
+  * Reformat the input dataframe to make it processable:
+  *  - Transform columns name to lower case without special characters
+  *  - Drop duplicated observation (same identifier and timestamp)
+  *  - Make sure basic columns are available (id, lat, lon, timestamp)
+  *  - Store double type column in the correct type
+  *  - Create unix timestamp from datetime
+  *  - Create arlas partition, used to store data in parquet format
+  * @param dataModel Data model containing names of structuring columns (id, lat, lon, time)
+  * @param doubleColumns Vector containing the names of column containing double type field
+  */
 class TransformableDataFrame(df: DataFrame) {
 
   def asArlasFormattedData(dataModel: DataModel, doubleColumns: Vector[String] = Vector()): DataFrame = {
-    df.enrichWithArlas(new DataFrameFormatter(dataModel, doubleColumns), new WithArlasTimestamp(dataModel))
-      .withColumn(arlasPartitionColumn,
-                  date_format(to_date(col(dataModel.timestampColumn), dataModel.timeFormat), arlasPartitionFormat).cast(IntegerType))
+    df.enrichWithArlas(
+      new DataFrameFormatter(dataModel, doubleColumns),
+      new WithArlasTimestamp(dataModel),
+      new WithArlasPartition(arlasTimestampColumn)
+    )
   }
 
   def enrichWithArlas(transformers: ArlasTransformer*): DataFrame = {

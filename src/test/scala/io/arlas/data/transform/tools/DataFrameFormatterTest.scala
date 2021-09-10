@@ -20,6 +20,7 @@
 package io.arlas.data.transform.tools
 
 import io.arlas.data.sql._
+import io.arlas.data.transform.tools.DataFrameFormatter._
 import io.arlas.data.transform.ArlasTestHelper._
 import io.arlas.data.transform.{ArlasTest, DataFrameException}
 import org.apache.spark.sql.DataFrame
@@ -56,6 +57,7 @@ class DataFrameFormatterTest extends ArlasTest {
       .withColumn("start_with_underscore", lit(2).cast(IntegerType))
 
     val transformedDF: DataFrame = baseDF
+      .transform(withValidColumnNames())
       .enrichWithArlas(new DataFrameFormatter(dataModel))
 
     assertDataFrameEquality(transformedDF, expectedDF)

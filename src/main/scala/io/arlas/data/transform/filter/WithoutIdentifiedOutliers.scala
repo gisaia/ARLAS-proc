@@ -17,27 +17,24 @@
  * under the License.
  */
 
-package io.arlas.data.transform.timeseries
+package io.arlas.data.transform.filter
 
-import io.arlas.data.model.DataModel
-import org.apache.spark.sql.expressions.Window
+import io.arlas.data.transform.ArlasTransformer
 import org.apache.spark.sql.functions._
+import org.apache.spark.sql.{DataFrame, Dataset}
 
 /**
-  * Compute ID column, the same ID is set for all consecutive rows with the same state
-  * @param dataModel
-  * @param stateColumn
-  * @param targetIdColumn
+  * Remove outliers and clean outlier column
+  *
+  * @param outlierColumn Name of boolean column containing outlier identification (True: outlier)
   */
-class WithStateIdOnStateChange(dataModel: DataModel, stateColumn: String, orderColumn: String, targetIdColumn: String)
-    extends WithStateId(
-      dataModel,
-      orderColumn,
-      targetIdColumn, {
-        val window = Window.partitionBy(dataModel.idColumn).orderBy(orderColumn)
-        lag(stateColumn, 1)
-          .over(window)
-          .notEqual(col(stateColumn))
-          .or(lag(stateColumn, 1).over(window).isNull)
-      }
-    )
+class WithoutIdentifiedOutliers(outlierColumn: String) extends ArlasTransformer(Vector(outlierColumn)) {
+
+  override def transform(dataset: Dataset[_]): DataFrame = {
+
+    dataset
+      .toDF()
+      .filter(not(col(outlierColumn)))
+      .drop(outlierColumn)
+  }
+}

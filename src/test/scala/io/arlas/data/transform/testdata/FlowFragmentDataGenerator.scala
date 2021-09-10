@@ -113,6 +113,8 @@ class FlowFragmentDataGenerator(
                 arlasPartition,
                 latMean,
                 lonMean,
+                curLat,
+                curLon,
                 latStd,
                 lonStd,
                 GeoTool
@@ -150,13 +152,15 @@ class FlowFragmentDataGenerator(
       .add(StructField(arlasPartitionColumn, IntegerType, true))
       .add(StructField(arlasTrackLocationLat, DoubleType, true))
       .add(StructField(arlasTrackLocationLon, DoubleType, true))
+      .add(StructField(arlasTrackEndLocationLat, DoubleType, true))
+      .add(StructField(arlasTrackEndLocationLon, DoubleType, true))
       .add(StructField(arlasTrackLocationPrecisionValueLat, DoubleType, true))
       .add(StructField(arlasTrackLocationPrecisionValueLon, DoubleType, true))
       .add(StructField(arlasTrackLocationPrecisionGeometry, StringType, true))
       .add(StructField(arlasTrackDistanceGpsTravelled, DoubleType, true))
       .add(StructField(arlasTrackDistanceGpsStraigthLine, DoubleType, true))
       .add(StructField(arlasTrackDistanceGpsStraigthness, DoubleType, true))
-      .add(StructField(arlasTrackDynamicsGpsSpeedKmh, DoubleType, true))
+      .add(StructField(arlasTrackDynamicsGpsSpeed, DoubleType, true))
       .add(StructField(arlasTrackDynamicsGpsBearing, DoubleType, true))
 
     averagedColumns.foldLeft(schema) { (s, c) =>

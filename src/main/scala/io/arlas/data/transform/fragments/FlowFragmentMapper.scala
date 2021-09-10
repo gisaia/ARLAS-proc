@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package io.arlas.data.transform.timeseries
+package io.arlas.data.transform.fragments
 
 import io.arlas.data.model.DataModel
 import io.arlas.data.transform.ArlasTransformer
@@ -28,13 +28,22 @@ import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types._
 import org.apache.spark.sql.{Column, DataFrame, Dataset, SparkSession}
 
+/**
+  * Create basic fragments from geopoints. Each fragment correspond to the interval between two observations.
+  * @param dataModel Data model containing names of structuring columns (id, lat, lon, time)
+  * @param spark Spark Session
+  * @param aggregationColumnName Name of the column containing the identifier of the object
+  * @param averageNumericColumns Numeric columns that will be averaged to estimate value over the fragment: mean of the two observations
+  * @param standardDeviationEllipsisNbPoints Number of points to compute the standard deviation ellipses
+  */
 class FlowFragmentMapper(dataModel: DataModel,
                          spark: SparkSession,
                          aggregationColumnName: String,
-                         averageColumns: List[String] = Nil,
-                         standardDeviationEllipsisNbPoints: Int = 12)
+                         averageNumericColumns: List[String] = Nil,
+                         standardDeviationEllipsisNbPoints: Int = 12,
+                         computePrecision: Boolean = false)
     extends ArlasTransformer(
-      Vector(arlasTimestampColumn, aggregationColumnName, dataModel.latColumn, dataModel.lonColumn) ++ averageColumns.toVector) {
+      Vector(arlasTimestampColumn, aggregationColumnName, dataModel.latColumn, dataModel.lonColumn) ++ averageNumericColumns.toVector) {
 
   override def transform(dataset: Dataset[_]): DataFrame = {
 
@@ -91,8 +100,10 @@ class FlowFragmentMapper(dataModel: DataModel,
       .withColumn(arlasPartitionColumn, // compute new arlas partition value
                   from_unixtime(col(arlasTrackTimestampCenter), arlasPartitionFormat).cast(IntegerType))
 
-//    coalesce force field in schema to be not null
+      //    coalesce force field in schema to be not null
       .withColumn(arlasTimestampColumn, coalesce(col(arlasTrackTimestampCenter), lit(0)))
+      .withColumn(arlasTrackEndLocationLat, col(dataModel.latColumn))
+      .withColumn(arlasTrackEndLocationLon, col(dataModel.lonColumn))
       .withColumn( // track_location_lat = mean(latitude start, latitude end)
         arlasTrackLocationLat,
         whenPreviousPointExists(round(mean(dataModel.latColumn).over(window.rowsBetween(-1, 0)), GeoTool.LOCATION_DIGITS))
@@ -100,24 +111,6 @@ class FlowFragmentMapper(dataModel: DataModel,
       .withColumn( // track_location_lon = mean(longitude start, longitude end)
         arlasTrackLocationLon,
         whenPreviousPointExists(round(mean(dataModel.lonColumn).over(window.rowsBetween(-1, 0)), GeoTool.LOCATION_DIGITS))
-      )
-      .withColumn( // track_location_precision_value_lat = standard deviation of latitude
-        arlasTrackLocationPrecisionValueLat,
-        whenPreviousPointExists(stddev_pop(dataModel.latColumn).over(window.rowsBetween(-1, 0)))
-      )
-      .withColumn( // track_location_precision_value_lon = standard deviation of longitude
-        arlasTrackLocationPrecisionValueLon,
-        whenPreviousPointExists(stddev_pop(dataModel.lonColumn).over(window.rowsBetween(-1, 0)))
-      )
-      .withColumn( // track_location_precision_geometry = ellipsis of standard deviation around the geocenter
-        arlasTrackLocationPrecisionGeometry,
-        whenPreviousPointExists(callUDF(
-          "getStandardDeviationEllipsis",
-          col(arlasTrackLocationLat),
-          col(arlasTrackLocationLon),
-          col(arlasTrackLocationPrecisionValueLat),
-          col(arlasTrackLocationPrecisionValueLon)
-        ))
       )
       .withColumn( //track_distance_travelled_m = distance between previous and current point
         arlasTrackDistanceGpsTravelled,
@@ -137,7 +130,7 @@ class FlowFragmentMapper(dataModel: DataModel,
                   arlasTrackDistanceGpsStraigthness,
                   whenPreviousPointExists(lit(1.0)))
       .withColumn( // track_dynamics_gps_speed_kmh = track_distance_travelled_m / arlas_track_duration_s / 1000 * 3600
-        arlasTrackDynamicsGpsSpeedKmh,
+        arlasTrackDynamicsGpsSpeed,
         whenPreviousPointExists((col(arlasTrackDistanceGpsTravelled) / col(arlasTrackDuration)) / lit(1000) * lit(3600))
       )
       .withColumn( // track_dynamics_gps_bearing = getGPSBearing previous_point current_point
@@ -152,17 +145,45 @@ class FlowFragmentMapper(dataModel: DataModel,
           ))
       )
 
-    // Averaged track columns addition
-    val trackDFWithAveragedColumns = averageColumns.foldLeft(trackDF) { (dataframe, columnName) =>
-      {
-        dataframe.withColumn(
-          arlasTrackPrefix + columnName,
-          whenPreviousPointExists(mean(columnName).over(window.rowsBetween(-1, 0)))
+    val trackDF2 = if (computePrecision) {
+      trackDF
+        .withColumn( // track_location_precision_value_lat = standard deviation of latitude
+          arlasTrackLocationPrecisionValueLat,
+          whenPreviousPointExists(stddev_pop(dataModel.latColumn).over(window.rowsBetween(-1, 0)))
         )
+        .withColumn( // track_location_precision_value_lon = standard deviation of longitude
+          arlasTrackLocationPrecisionValueLon,
+          whenPreviousPointExists(stddev_pop(dataModel.lonColumn).over(window.rowsBetween(-1, 0)))
+        )
+        .withColumn( // track_location_precision_geometry = ellipsis of standard deviation around the geocenter
+          arlasTrackLocationPrecisionGeometry,
+          whenPreviousPointExists(
+            callUDF(
+              "getStandardDeviationEllipsis",
+              col(arlasTrackLocationLat),
+              col(arlasTrackLocationLon),
+              col(arlasTrackLocationPrecisionValueLat),
+              col(arlasTrackLocationPrecisionValueLon)
+            ))
+        )
+    } else {
+      trackDF
+    }
+
+    // Averaged track columns addition
+    val trackDFWithAveragedColumns = averageNumericColumns.foldLeft(trackDF2) { (dataframe, columnName) =>
+      {
+        dataframe
+          .withColumn(
+            arlasTrackPrefix + columnName,
+            whenPreviousPointExists(mean(columnName).over(window.rowsBetween(-1, 0)))
+          )
+          .drop(columnName)
       }
     }
 
-    trackDFWithAveragedColumns.filter(col(arlasTrackId).isNotNull) // remove first points that are not considered as fragment
+    trackDFWithAveragedColumns
+      .filter(col(arlasTrackId).isNotNull) // remove first points that are not considered as fragment
   }
 
   private def registerUDF() = {
@@ -195,9 +216,9 @@ class FlowFragmentMapper(dataModel: DataModel,
       .add(StructField(arlasTrackDistanceGpsTravelled, DoubleType, true))
       .add(StructField(arlasTrackDistanceGpsStraigthLine, DoubleType, true))
       .add(StructField(arlasTrackDistanceGpsStraigthness, DoubleType, true))
-      .add(StructField(arlasTrackDynamicsGpsSpeedKmh, DoubleType, true))
+      .add(StructField(arlasTrackDynamicsGpsSpeed, DoubleType, true))
       .add(StructField(arlasTrackDynamicsGpsBearing, DoubleType, true))
-    averageColumns.foldLeft(s) { (currentSchema, columnName) =>
+    averageNumericColumns.foldLeft(s) { (currentSchema, columnName) =>
       {
         currentSchema.add(StructField(arlasTrackPrefix + columnName, DoubleType, true))
       }
