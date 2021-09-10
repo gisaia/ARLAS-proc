@@ -69,7 +69,7 @@ class WithRoutingDataTest extends ArlasTest with ArlasMockServer {
       .withColumnRenamed("expected_refined_duration", arlasTrackRoutingDuration)
 
     val transformedDF =
-      baseDF.enrichWithArlas(new WithRoutingData("http://localhost:8080/route?%s&vehicle=car&locale=en&calc_points=true&instructions=false&points_encoded=false&type=json",
+      baseDF.process(new WithRoutingData("http://localhost:8080/route?%s&vehicle=car&locale=en&calc_points=true&instructions=false&points_encoded=false&type=json",
         "trail"))
 
     assertDataFrameEquality(transformedDF, expectedDF)
@@ -81,7 +81,7 @@ class WithRoutingDataTest extends ArlasTest with ArlasMockServer {
 
     val transformedDF = baseDF
       .withColumn("condition", isId1)
-      .enrichWithArlas(new WithRoutingData("http://localhost:8080/route?%s&vehicle=car&locale=en&calc_points=true&instructions=false&points_encoded=false&type=json",
+      .process(new WithRoutingData("http://localhost:8080/route?%s&vehicle=car&locale=en&calc_points=true&instructions=false&points_encoded=false&type=json",
         "trail", Some("condition")))
       .drop("condition")
 
@@ -101,7 +101,7 @@ class WithRoutingDataTest extends ArlasTest with ArlasMockServer {
       .withColumn("trail",
                   //reverted lat and lon
                   invalidTrail)
-      .enrichWithArlas(new WithRoutingData("http://localhost:8080/route?%s&vehicle=car&locale=en&calc_points=true&instructions=false&points_encoded=false&type=json",
+      .process(new WithRoutingData("http://localhost:8080/route?%s&vehicle=car&locale=en&calc_points=true&instructions=false&points_encoded=false&type=json",
         "trail"))
       .drop("trail")
 

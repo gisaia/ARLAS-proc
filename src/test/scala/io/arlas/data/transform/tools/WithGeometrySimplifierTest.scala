@@ -51,7 +51,7 @@ class WithGeometrySimplifierTest extends ArlasTest {
 
     val transformedDF = testDF
       .drop(expectedGeometryCol)
-      .enrichWithArlas(
+      .process(
         new WithGeometrySimplifier(inputGeometryCol, outputGeometryCol)
       )
 

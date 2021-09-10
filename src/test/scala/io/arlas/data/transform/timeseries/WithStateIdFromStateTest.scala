@@ -57,7 +57,7 @@ class WithStateIdFromStateTest extends ArlasTest {
     val expectedDF = testDF.withColumnRenamed("expected_state_id", "state_id")
 
     val transformedDF = baseDF
-      .enrichWithArlas(
+      .process(
         new WithStateIdFromState(
           DataModel().idColumn,
           "state",
@@ -74,7 +74,7 @@ class WithStateIdFromStateTest extends ArlasTest {
     val expectedDF = testDF.withColumnRenamed("expected_state_id", "state_id")
 
     val transformedDF = baseDF
-      .enrichWithArlas(
+      .process(
         new WithStateIdFromState(
           DataModel().idColumn,
           "state",
@@ -85,7 +85,7 @@ class WithStateIdFromStateTest extends ArlasTest {
       .withColumn("state_id",
                   when(col("id").equalTo("id1").and(col("timestamp").lt(5)), lit(null))
                     .otherwise(col("state_id")))
-      .enrichWithArlas(
+      .process(
         new WithStateIdFromState(
           DataModel().idColumn,
           "state",

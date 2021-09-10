@@ -51,7 +51,7 @@ class WithDurationFromIdTest extends ArlasTest {
   "WithDurationFromId transformation " should " compute duration of visibility sequences" in {
 
     val expectedDF = testDF.withColumnRenamed("expected_duration", "duration")
-    val transformedDF = baseDF.enrichWithArlas(new WithDurationFromId("id", "duration"))
+    val transformedDF = baseDF.process(new WithDurationFromId("id", "duration"))
 
     assertDataFrameEquality(transformedDF, expectedDF)
   }

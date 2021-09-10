@@ -43,14 +43,14 @@ import org.apache.spark.sql.types.{DataType, StringType}
 class TransformableDataFrame(df: DataFrame) {
 
   def asArlasFormattedData(dataModel: DataModel, doubleColumns: Vector[String] = Vector()): DataFrame = {
-    df.enrichWithArlas(
+    df.process(
       new DataFrameFormatter(dataModel, doubleColumns),
       new WithArlasTimestamp(dataModel),
       new WithArlasPartition(arlasTimestampColumn)
     )
   }
 
-  def enrichWithArlas(transformers: ArlasTransformer*): DataFrame = {
+  def process(transformers: ArlasTransformer*): DataFrame = {
     doPipelineTransform(df, transformers: _*)
   }
 

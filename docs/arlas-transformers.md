@@ -2,26 +2,28 @@
 
 ## Usage
 A processing pipeline relying on ARLAS-proc would look like :
+
 ```scala
-    import io.arlas.data.sql._
-    import io.arlas.data.model._
-    import io.arlas.data.transform._
+import io.arlas.data.sql._
+import io.arlas.data.model._
+import io.arlas.data.transform._
 
-    val dataModel = DataModel(
-      idColumn = "id",
-      latColumn = "latitude",
-      lonColumn = "longitude",
-      timestampColumn = "timestamp",
-      timeFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSX"
-    )
+val dataModel = DataModel(
+  idColumn = "id",
+  latColumn = "latitude",
+  lonColumn = "longitude",
+  timestampColumn = "timestamp",
+  timeFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSX"
+)
 
-    val actionable_data = readFromCsv(spark, ",", "/opt/proc/your-raw-data.csv")
-      .asArlasFormattedData(dataModel)
-      .enrichWithArlas(new FlowFragmentMapper(dataModel, spark, dataModel.idColumn, List("speed","bearing"))) 
-      ...
+val actionable_data = readFromCsv(spark, ",", "/opt/proc/your-raw-data.csv")
+  .asArlasFormattedData(dataModel)
+  .process(new FlowFragmentMapper(dataModel, spark, dataModel.idColumn, List("speed", "bearing")))
+.
+..
 ```
 
-The parameters of `enrichWithArlas` method must extend `ArlasTransformer` abstract class.
+The parameters of `process` method must extend `ArlasTransformer` abstract class.
 With this method, you can chain as many transformers as you want to create a data processing pipeline.
 
 ARLAS-proc library provides ready to use ArlasTransformers in `io.arlas.dfata.transform` package to easily build a data pipeline

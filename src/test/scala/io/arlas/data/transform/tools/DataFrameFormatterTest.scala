@@ -58,7 +58,7 @@ class DataFrameFormatterTest extends ArlasTest {
 
     val transformedDF: DataFrame = baseDF
       .transform(withValidColumnNames())
-      .enrichWithArlas(new DataFrameFormatter(dataModel))
+      .process(new DataFrameFormatter(dataModel))
 
     assertDataFrameEquality(transformedDF, expectedDF)
   }
@@ -70,7 +70,7 @@ class DataFrameFormatterTest extends ArlasTest {
 
     val thrown = intercept[DataFrameException] {
       baseDF
-        .enrichWithArlas(new DataFrameFormatter(dataModel))
+        .process(new DataFrameFormatter(dataModel))
     }
     assert(thrown.getMessage === "The lat columns are not included in the DataFrame with the following columns: id, timestamp, lon")
   }
@@ -78,7 +78,7 @@ class DataFrameFormatterTest extends ArlasTest {
   "DataFrameFormatter " should " fail with missing double columns" in {
 
     val thrown = intercept[DataFrameException] {
-      testDF.enrichWithArlas(new DataFrameFormatter(dataModel, Vector("notExistingCol")))
+      testDF.process(new DataFrameFormatter(dataModel, Vector("notExistingCol")))
     }
     assert(
       thrown.getMessage === "The notExistingCol columns are not included in the DataFrame with the following columns: id, timestamp, lat, lon")
@@ -96,7 +96,7 @@ class DataFrameFormatterTest extends ArlasTest {
       .withColumn("stringeuropeandouble", when(lit(true), lit(0.5)).otherwise(null))
 
     val transformedDF: DataFrame = baseDF
-      .enrichWithArlas(new DataFrameFormatter(dataModel, Vector("stringdouble", "stringeuropeandouble")))
+      .process(new DataFrameFormatter(dataModel, Vector("stringdouble", "stringeuropeandouble")))
 
     assertDataFrameEquality(transformedDF, expectedDF)
   }

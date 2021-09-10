@@ -186,14 +186,14 @@ val raw_data = readFromCsv(spark, ",", "/opt/data/extract_2_ids.csv").select("# 
   "Length")
 raw_data.show()
 
-// Format data by setting numeric variable types and processing unix timestamp  
+// Format data by setting numeric variable types and processing unix timestamp
 val formatted_data = raw_data.asArlasFormattedData(dataModel, doubleColumns = Vector("SOG", "COG", "Heading"))
 formatted_data.sort("MMSI", "arlas_timestamp").show()
 // We can see two new columns: arlas_timestamp which is the unix timestamp corresponding to '# Timestamp'
 // And arlas_partion, corresponding to the day
 
 // Fill the missing vessel properties when they are available in at least one observation for a given vessel identified with its MMSI
-val static_filled_data = formatted_data.enrichWithArlas(
+val static_filled_data = formatted_data.process(
   new StaticColumnsStandardizer(
     "MMSI",
     Map(
@@ -209,7 +209,7 @@ val static_filled_data = formatted_data.enrichWithArlas(
 )
 static_filled_data.sort("MMSI", "arlas_timestamp").show()
 
-val fragment_data = static_filled_data.enrichWithArlas(
+val fragment_data = static_filled_data.process(
   // Create basic fragments and compute associated fields:
   //   - arlas_track_id: Unique fragment identifier
   //   - arlas_track_nb_geopoints: Number of ais message (geopoint) summarized in the fragment (2 at this step)
@@ -236,7 +236,7 @@ val fragment_data = static_filled_data.enrichWithArlas(
 )
 fragment_data.sort("MMSI", "arlas_timestamp").show()
 
-val visibility_data = fragment_data.enrichWithArlas(
+val visibility_data = fragment_data.process(
   // Identify fragment as invisible when duration since previous observation is higher than 30min
   new WithVisibilityProportion(durationThreshold = 1800),
   // Detect visibility change ("appear": invisible->visible, "disappear": visible->invisible)
@@ -247,7 +247,7 @@ visibility_data
         .sort("MMSI", "arlas_timestamp")
         .show()
 
-val moving_data = visibility_data.enrichWithArlas(
+val moving_data = visibility_data.process(
   // Detect if the boat is still or moving with an hmm model based on speed
   new WithMovingState(spark,
     idColumn = "MMSI",
@@ -269,7 +269,7 @@ moving_data
         .sort("MMSI", "arlas_timestamp")
         .show()
 
-val course_data = moving_data.enrichWithArlas(
+val course_data = moving_data.process(
   // Identify fragment as a STOP if the vessel is still for more than 10 minutes, as COURSE else
   // The result is stored in a column "arlas_course_or_stop"
   new WithCourseOrStop(courseTimeoutS = 600),
@@ -301,26 +301,27 @@ course_data
         .sort("MMSI", "arlas_timestamp")
         .show(false)
 
-val zipped_stop = course_data.enrichWithArlas(
+val zipped_stop = course_data.process(
   // Concatenated the Pauses and Stops into single fragments
   new StopPauseSummaryTransformer(
     spark,
     dataModel,
-    weightAveragedColumns = Some(Seq(
-      "arlas_track_dynamics_gps_speed",
-      "arlas_track_dynamics_gps_bearing",
-      "arlas_track_SOG",
-      "arlas_track_COG",
-      "arlas_track_Heading",
-      "arlas_track_visibility_proportion"
-    )),
+    weightAveragedColumns = Some(
+      Seq(
+        "arlas_track_dynamics_gps_speed",
+        "arlas_track_dynamics_gps_bearing",
+        "arlas_track_SOG",
+        "arlas_track_COG",
+        "arlas_track_Heading",
+        "arlas_track_visibility_proportion"
+      )),
     propagatedColumns = Some(Seq("IMO", "Callsign", "Name", "Ship type", "Cargo type", "Width", "Length"))
   )
 )
 zipped_stop
-  .select(
-    "MMSI",
-    "arlas_timestamp",
+        .select(
+          "MMSI",
+          "arlas_timestamp",
     "arlas_track_duration_s",
     "arlas_moving_state",
     "arlas_motion_id",
@@ -329,22 +330,24 @@ zipped_stop
     "arlas_course_state",
     "arlas_course_id",
     "arlas_course_duration",
-    "arlas_track_trail")
+    "arlas_track_trail"
+  )
   .sort("MMSI", "arlas_timestamp")
   .show()
 
-val course_extracted = zipped_stop.enrichWithArlas(
+val course_extracted = zipped_stop.process(
   new CourseExtractorTransformer(
     spark,
     dataModel,
-    weightAveragedColumns = Some(Seq(
-      "arlas_track_dynamics_gps_speed",
-      "arlas_track_dynamics_gps_bearing",
-      "arlas_track_SOG",
-      "arlas_track_COG",
-      "arlas_track_Heading",
-      "arlas_track_visibility_proportion"
-    )),
+    weightAveragedColumns = Some(
+      Seq(
+        "arlas_track_dynamics_gps_speed",
+        "arlas_track_dynamics_gps_bearing",
+        "arlas_track_SOG",
+        "arlas_track_COG",
+        "arlas_track_Heading",
+        "arlas_track_visibility_proportion"
+      )),
     propagatedColumns = Some(Seq("IMO", "Callsign", "Name", "Ship type", "Cargo type", "Width", "Length"))
   )
 )
@@ -361,8 +364,10 @@ course_extracted
     "arlas_course_state",
     "arlas_course_id",
     "arlas_course_duration",
-    "arlas_track_trail")
-  .sort("MMSI", "arlas_timestamp").show()
+    "arlas_track_trail"
+  )
+  .sort("MMSI", "arlas_timestamp")
+  .show()
 
 ```
 

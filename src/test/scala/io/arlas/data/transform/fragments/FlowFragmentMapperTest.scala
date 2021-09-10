@@ -31,7 +31,7 @@ class FlowFragmentMapperTest extends ArlasTest {
       .drop(averagedColumns :_*)
 
     val transformedDF: DataFrame = baseTestDF
-      .enrichWithArlas(new FlowFragmentMapper(dataModel, spark, dataModel.idColumn, averagedColumns, standardDeviationEllipsisNbPoints,true))
+      .process(new FlowFragmentMapper(dataModel, spark, dataModel.idColumn, averagedColumns, standardDeviationEllipsisNbPoints,true))
 
     assertDataFrameEquality(transformedDF, expectedDF)
   }

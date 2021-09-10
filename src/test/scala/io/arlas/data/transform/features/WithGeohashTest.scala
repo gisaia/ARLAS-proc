@@ -57,7 +57,7 @@ class WithGeohashTest extends ArlasTest {
       .withColumnRenamed("expected_geohash", arlasTrackTrailGeohashes)
 
     val transformedDF =
-      baseDF.enrichWithArlas(new WithGeohash("trail", arlasTrackTrailGeohashes, 6))
+      baseDF.process(new WithGeohash("trail", arlasTrackTrailGeohashes, 6))
 
     assertDataFrameEquality(transformedDF, expectedDF)
   }
@@ -67,7 +67,7 @@ class WithGeohashTest extends ArlasTest {
     val transformedDF =
       testDF
         .withColumn("trail", lit(null))
-        .enrichWithArlas(new WithGeohash("trail", arlasTrackTrailGeohashes, 6))
+        .process(new WithGeohash("trail", arlasTrackTrailGeohashes, 6))
 
     assert(
       transformedDF

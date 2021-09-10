@@ -25,7 +25,7 @@ import io.arlas.data.transform.ArlasTest
 class CourseExtractorTransformerTest extends ArlasTest {
 
   val transformedDF = courseExtractorBaseDF
-    .enrichWithArlas(
+    .process(
       new CourseExtractorTransformer(
         spark,
         dataModel,
