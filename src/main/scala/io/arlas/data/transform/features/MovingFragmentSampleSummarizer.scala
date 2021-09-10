@@ -21,6 +21,7 @@ package io.arlas.data.transform.features
 
 import io.arlas.data.model.DataModel
 import io.arlas.data.transform.ArlasTransformerColumns._
+import io.arlas.data.transform.fragments.FragmentSummaryTransformer
 import io.arlas.data.transform.{ArlasMovingStates, VisibilityChange}
 import io.arlas.data.utils.GeoTool
 import org.apache.spark.sql.expressions.WindowSpec
@@ -30,16 +31,24 @@ import org.apache.spark.sql.{Column, SparkSession}
 import scala.collection.immutable.ListMap
 import scala.collection.mutable.WrappedArray
 
+/**
+  * Merge fragments sharing a same "sample id" winthin a single fragment (used for resampling)
+  * Require the arlas_track_sample_id produced by the transformer WithFragmentSampleId
+  * Require arlas_moving_state produced by the transformer WithMovingState
+  * @param spark                 SparkSession
+  * @param dataModel             Data model containing names of structuring columns (id, lat, lon, time)
+  * @param irregularTempo        Value of the irregular tempo (i.a. greater than defined tempos, so there were probably pauses)
+  * @param tempoPropotionColumns Map of (tempo proportion column -> related tempo column)
+  * @param weightAveragedColumns columns to weight average over track duration, in aggregations
+  */
 class MovingFragmentSampleSummarizer(spark: SparkSession,
                                      dataModel: DataModel,
-                                     standardDeviationEllipsisNbPoint: Int,
-                                     irregularTempo: String,
-                                     tempoPropotionColumns: Map[String, String],
-                                     weightAveragedColumns: Seq[String])
+                                     irregularTempo: String = "irregular_tempo",
+                                     tempoPropotionColumns: Option[Map[String, String]] = None,
+                                     weightAveragedColumns: Option[Seq[String]] = None)
     extends FragmentSummaryTransformer(
       spark,
       dataModel,
-      standardDeviationEllipsisNbPoint,
       irregularTempo,
       tempoPropotionColumns,
       weightAveragedColumns

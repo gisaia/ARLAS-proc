@@ -7,7 +7,7 @@
  * not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *  http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
@@ -17,27 +17,21 @@
  * under the License.
  */
 
-package io.arlas.data.transform.features
+package io.arlas.data.transform.fragments
 
 import io.arlas.data.sql._
-import io.arlas.data.transform._
+import io.arlas.data.transform.ArlasTest
+import org.apache.spark.sql.DataFrame
 
-class StopPauseSummaryTransformerTest extends ArlasTest {
+class FlowFragmentMapperTest extends ArlasTest {
 
-  val transformedDF = getStopPauseSummaryBaseDF
-    .enrichWithArlas(
-      new StopPauseSummaryTransformer(
-        spark,
-        dataModel,
-        standardDeviationEllipsisNbPoints,
-        tempoIrregular,
-        tempoProportionsColumns,
-        averagedColumns
-      ))
+  "FlowFragmentMapper transformation" should "fill the arlas_track* columns against dataframe's timeseries" in {
 
-  "StopPauseSummaryTransformer transformation" should "aggregate the stop-pause fragments against dataframe's timeseries" in {
+    val expectedDF = flowFragmentTestDF
+      .drop(averagedColumns :_*)
 
-    val expectedDF = stopPauseSummaryDF
+    val transformedDF: DataFrame = baseTestDF
+      .enrichWithArlas(new FlowFragmentMapper(dataModel, spark, dataModel.idColumn, averagedColumns, standardDeviationEllipsisNbPoints,true))
 
     assertDataFrameEquality(transformedDF, expectedDF)
   }

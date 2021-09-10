@@ -65,7 +65,7 @@ class WithFragmentSampleIdTest extends ArlasTest {
 
     val transformedDF: DataFrame = testDF
       .drop(arlasTrackSampleId)
-      .enrichWithArlas(new WithFragmentSampleId(dataModel, spark, arlasMotionIdColumn, 10l))
+      .enrichWithArlas(new WithFragmentSampleId(dataModel, arlasMotionIdColumn, 10l))
 
     assertDataFrameEquality(transformedDF, expectedDF)
   }

@@ -17,17 +17,17 @@
  * under the License.
  */
 
-package io.arlas.data.transform.features
+package io.arlas.data.transform.fragments
 
 import io.arlas.data.model.DataModel
 import io.arlas.data.transform.ArlasTransformer
 import io.arlas.data.transform.ArlasTransformerColumns.{arlasTrackTimestampStart, _}
 import io.arlas.data.utils.GeoTool
+import org.apache.spark.sql._
 import org.apache.spark.sql.catalyst.encoders.RowEncoder
 import org.apache.spark.sql.expressions.{Window, WindowSpec}
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types._
-import org.apache.spark.sql._
 
 import scala.collection.immutable.ListMap
 
@@ -53,33 +53,39 @@ import scala.collection.immutable.ListMap
   * A a consequence, a problem with the duplicated row is that not-aggregated fields keep their originating value, which is not reliable.
   * Our solution is to set null to every columns, except columns that are aggregated + columns from the so-called "propagated columns"
   *
-  * @param dataModel the input Datamodel
-  * @param standardDeviationEllipsisNbPoint number of points to compute the standard deviation ellipses
+  * @param dataModel Data model containing names of structuring columns (id, lat, lon, time)
   * @param irregularTempo value of the irregular tempo (i.a. greater than defined tempos, so there were probably pauses)
   * @param tempoProportionColumns Map of (tempo proportion column -> related tempo column)
-  * @param weightAveragedColumns columns to weight average over track duration, in aggregations
+  * @param weightAveragedColumns Columns to weight average over track duration, in aggregations
   */
 abstract class FragmentSummaryTransformer(spark: SparkSession,
                                           dataModel: DataModel,
-                                          standardDeviationEllipsisNbPoint: Int,
-                                          irregularTempo: String,
-                                          tempoProportionColumns: Map[String, String],
-                                          weightAveragedColumns: Seq[String])
+                                          irregularTempo: String = "tempo_irregular",
+                                          tempoProportionColumns: Option[Map[String, String]] = None,
+                                          weightAveragedColumns: Option[Seq[String]] = None,
+                                          computePrecision: Boolean = false)
     extends ArlasTransformer(
       Vector(
         arlasTimestampColumn,
         arlasTrackTimestampStart,
         arlasTrackTimestampEnd,
         arlasTrackDuration,
-        arlasTrackDynamicsGpsSpeedKmh,
+        arlasTrackDynamicsGpsSpeed,
         arlasTrackDynamicsGpsBearing,
         arlasTrackTrail,
         arlasTrackDistanceGpsTravelled,
         arlasTrackNbGeopoints,
         arlasTrackLocationLat,
         arlasTrackLocationLon,
-        arlasTrackDistanceSensorTravelled
-      ) ++ weightAveragedColumns ++ tempoProportionColumns.keys) {
+        arlasTrackEndLocationLat,
+        arlasTrackEndLocationLon
+      ) ++ (weightAveragedColumns match {
+        case Some(weightAverageColumnsSeq) => weightAverageColumnsSeq
+        case None                          => Seq()
+      }) ++ (tempoProportionColumns match {
+        case Some(tempoProportionColumnsMap) => tempoProportionColumnsMap.keys
+        case None                            => Seq()
+      })) {
 
   val tmpAggRowOrder = "tmp_agg_row_order"
 
@@ -123,7 +129,30 @@ abstract class FragmentSummaryTransformer(spark: SparkSession,
     * @param window
     * @return a ListMap (target field -> related Column instance)
     */
-  private def getFragmentAggregatedRowsColumns(window: WindowSpec): ListMap[String, Column] =
+  private def getFragmentAggregatedRowsColumns(window: WindowSpec): ListMap[String, Column] = {
+
+    val listMapTempo = tempoProportionColumns match {
+      case Some(tempoProportionColumnsMap) =>
+        ListMap(
+          arlasTrackTempoEmissionIsMulti ->
+            when(getNbTemposWithSignificantProportions(tempoProportionColumnsMap.filter(_._2 != irregularTempo).keys.toSeq, lit(0))
+                   .gt(1),
+                 lit(true))
+              .otherwise(lit(false)),
+          arlasTempoColumn -> getMainTempo(tempoProportionColumnsMap)
+        )
+      case None => ListMap.empty[String, Column]
+    }
+
+    val listMapPrecision = if (computePrecision) {
+      ListMap(
+        arlasTrackLocationPrecisionValueLat -> round(stddev_pop(arlasTrackLocationLat).over(window), GeoTool.LOCATION_PRECISION_DIGITS),
+        arlasTrackLocationPrecisionValueLon -> round(stddev_pop(arlasTrackLocationLon).over(window), GeoTool.LOCATION_PRECISION_DIGITS)
+      )
+    } else {
+      ListMap.empty[String, Column]
+    }
+
     ListMap(
       arlasTrackDistanceGpsStraigthLine -> getStraightLineDistanceUDF(first(arlasTrackTrail).over(window),
                                                                       last(arlasTrackTrail).over(window)),
@@ -132,42 +161,48 @@ abstract class FragmentSummaryTransformer(spark: SparkSession,
       arlasTrackNbGeopoints -> (sum(arlasTrackNbGeopoints).over(window) - count(lit(1))
         .over(window) + lit(1)).cast(IntegerType),
       arlasTrackTimestampStart -> min(arlasTrackTimestampStart).over(window),
-      arlasTrackTimestampEnd -> (max(arlasTrackTimestampEnd).over(window)).cast(LongType),
+      arlasTrackTimestampEnd -> max(arlasTrackTimestampEnd).over(window),
       arlasTrackDuration -> sum(arlasTrackDuration).over(window),
-      arlasTrackLocationPrecisionValueLat -> round(stddev_pop(arlasTrackLocationLat).over(window), GeoTool.LOCATION_PRECISION_DIGITS),
-      arlasTrackLocationPrecisionValueLon -> round(stddev_pop(arlasTrackLocationLon).over(window), GeoTool.LOCATION_PRECISION_DIGITS),
       arlasTrackLocationLat -> round(mean(arlasTrackLocationLat).over(window), GeoTool.LOCATION_DIGITS),
       arlasTrackLocationLon -> round(mean(arlasTrackLocationLon).over(window), GeoTool.LOCATION_DIGITS),
-      arlasTrackDistanceSensorTravelled -> sum(arlasTrackDistanceSensorTravelled).over(window),
+      arlasTrackEndLocationLat -> last(arlasTrackEndLocationLat).over(window),
+      arlasTrackEndLocationLon -> last(arlasTrackEndLocationLon).over(window),
       arlasTrackTimestampCenter -> ((col(arlasTrackTimestampStart) + col(arlasTrackTimestampEnd)) / 2)
         .cast(LongType),
       arlasTimestampColumn -> col(arlasTrackTimestampCenter),
       arlasTrackId -> concat(col(dataModel.idColumn), lit("#"), col(arlasTrackTimestampStart), lit("_"), col(arlasTrackTimestampEnd)),
-      arlasTrackLocationPrecisionGeometry -> getStandardDeviationEllipsis(col(arlasTrackLocationLat),
-                                                                          col(arlasTrackLocationLon),
-                                                                          col(arlasTrackLocationPrecisionValueLat),
-                                                                          col(arlasTrackLocationPrecisionValueLon)),
-      arlasTrackTempoEmissionIsMulti ->
-        when(getNbTemposWithSignificantProportions(tempoProportionColumns.filter(_._2 != irregularTempo).keys.toSeq, lit(0))
-               .gt(1),
-             lit(true))
-          .otherwise(lit(false)),
-      arlasTempoColumn -> getMainTempo(tempoProportionColumns)
-    )
+    ) ++ listMapPrecision ++ listMapTempo
+  }
 
   override def transformSchema(schema: StructType): StructType = {
-    checkRequiredColumns(schema, Vector(getAggregationColumn()) ++ getPropagatedColumns() ++ tempoProportionColumns.keys)
+    checkRequiredColumns(
+      schema,
+      Vector(getAggregationColumn()) ++
+        getPropagatedColumns() ++
+        (tempoProportionColumns match {
+          case Some(tempoProportionColumnsMap) => tempoProportionColumnsMap.keys
+          case None                            => Seq()
+        })
+    )
 
-    Seq(
+    val tempoSeq = tempoProportionColumns match {
+      case Some(value) => Seq((arlasTrackTempoEmissionIsMulti, BooleanType), (arlasTempoColumn, StringType))
+      case None        => Seq()
+    }
+
+    val precisionSeq = if (computePrecision) {
+      Seq((arlasTrackLocationPrecisionValueLat, DoubleType),
+          (arlasTrackLocationPrecisionValueLon, DoubleType),
+          (arlasTrackLocationPrecisionGeometry, StringType))
+    } else {
+      Seq()
+    }
+
+    (precisionSeq ++ tempoSeq ++ Seq(
       (arlasTrackDistanceGpsStraigthLine, DoubleType),
       (arlasTrackDistanceGpsStraigthness, DoubleType),
-      (arlasTrackLocationPrecisionValueLat, DoubleType),
-      (arlasTrackLocationPrecisionValueLon, DoubleType),
-      (arlasTrackId, StringType),
-      (arlasTrackLocationPrecisionGeometry, StringType),
-      (arlasTrackTempoEmissionIsMulti, BooleanType),
-      (arlasTempoColumn, StringType)
-    ).foldLeft(checkSchema(schema)) { (sc, c) =>
+      (arlasTrackId, StringType)
+    )).foldLeft(checkSchema(schema)) { (sc, c) =>
       if (sc.fieldNames.contains(c._1)) sc
       else sc.add(StructField(c._1, c._2, true))
     }
@@ -223,26 +258,34 @@ abstract class FragmentSummaryTransformer(spark: SparkSession,
         } else Seq(r)
       })(RowEncoder(allColsNullableSchema))
 
-    //weight average the columns by track_duration
-    val weightAveragedDF = weightAveragedColumns.foldLeft(withAggResultRowDF) { (df, spec) =>
-      df.withColumn(
-        spec,
-        whenAggregateAndKeep((sum(col(spec) * col(arlasTrackDuration)).over(window) / sum(arlasTrackDuration).over(window)).as(spec))
-          .otherwise(col(spec)))
+    // Weight average the columns by track_duration
+    val weightAveragedDF = weightAveragedColumns match {
+      case Some(weightAverageColumnsSeq) =>
+        weightAverageColumnsSeq.foldLeft(withAggResultRowDF) { (df, spec) =>
+          df.withColumn(
+            spec,
+            whenAggregateAndKeep((sum(col(spec) * col(arlasTrackDuration)).over(window) / sum(arlasTrackDuration).over(window)).as(spec))
+              .otherwise(col(spec)))
+        }
+      case None => withAggResultRowDF
     }
 
     //process tempo proportions columns
-    val tempoProportionsDF = tempoProportionColumns.keys.foldLeft(weightAveragedDF) { (df, spec) =>
-      df.withColumn(
-        spec,
-        whenAggregateAndKeep(
-          sum(col(spec) * col(arlasTrackDuration))
-            .over(window)
-            .divide(sum(arlasTrackDuration).over(window))
-            .as(spec)).otherwise(
-          col(spec)
-        )
-      )
+    val tempoProportionsDF = tempoProportionColumns match {
+      case Some(tempoProportionColumnsMap) =>
+        tempoProportionColumnsMap.keys.foldLeft(weightAveragedDF) { (df, spec) =>
+          df.withColumn(
+            spec,
+            whenAggregateAndKeep(
+              sum(col(spec) * col(arlasTrackDuration))
+                .over(window)
+                .divide(sum(arlasTrackDuration).over(window))
+                .as(spec)).otherwise(
+              col(spec)
+            )
+          )
+        }
+      case None => weightAveragedDF
     }
 
     val aggregatedDF =
@@ -258,6 +301,7 @@ abstract class FragmentSummaryTransformer(spark: SparkSession,
               else lit(null))
           )
         }
+        .withColumn(arlasTrackDynamicsGpsSpeed, col(arlasTrackDistanceGpsTravelled) / col(arlasTrackDuration)) // Recompute gps speed for the new created fragments
 
     //keep only one result row for aggregations
     val transformedDF = aggregatedDF
@@ -285,7 +329,7 @@ abstract class FragmentSummaryTransformer(spark: SparkSession,
   }
 
   val getStandardDeviationEllipsis = udf((latCenter: Double, lonCenter: Double, latStd: Double, lonStd: Double) => {
-    GeoTool.getStandardDeviationEllipsis(latCenter, lonCenter, latStd, lonStd, standardDeviationEllipsisNbPoint)
+    GeoTool.getStandardDeviationEllipsis(latCenter, lonCenter, latStd, lonStd, 12)
   })
 
   val getStraightLineDistanceUDF = udf(

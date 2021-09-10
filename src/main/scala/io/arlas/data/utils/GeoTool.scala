@@ -27,6 +27,7 @@ import org.locationtech.jts.simplify.DouglasPeuckerSimplifier
 
 import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 import scala.collection.{immutable, mutable}
+import scala.math.{min, max}
 
 object GeoTool {
 
@@ -36,14 +37,16 @@ object GeoTool {
 
   //instantiate some geotools objects as constant to avoid unnecessry memory footprint
   //these are supposed to be thread safe; to the contrary GeodeticCalculator isn't (so it is re-instantiated when needed)
-  val GEOMETRY_FACTORY = new GeometryFactory(new PrecisionModel(Math.pow(10, LOCATION_DIGITS)), 4326)
+  val GEOMETRY_FACTORY =
+    new GeometryFactory(new PrecisionModel(Math.pow(10, LOCATION_DIGITS)), 4326)
   val WKT_READER = new WKTReader(GEOMETRY_FACTORY)
   val WKT_WRITER = new WKTWriter()
   val DEFAULT_SIMPLIFY_DISTANCE_TOLERANCE = 0.0002
 
   private val GEOHASH_BITS = Array(16, 8, 4, 2, 1)
-  private val GEOHASH_BASE_32 = Array('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'j', 'k', 'm',
-    'n', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z') //note: this is sorted
+  private val GEOHASH_BASE_32 =
+    Array('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'j', 'k', 'm', 'n', 'p', 'q', 'r', 's', 't',
+      'u', 'v', 'w', 'x', 'y', 'z') //note: this is sorted
 
   /**
     * Compute track geometry WKT between 2 geopoints (LineString)
@@ -305,4 +308,92 @@ object GeoTool {
 
   case class TrailData(trail: String, departureLat: Double, departureLon: Double, arrivalLat: Double, arrivalLon: Double)
 
+  def fixAntimeridianCrossingGeometries[T](trail: String) = {
+    // Take a wkt geometry and apply the antimeridian checking if its a LineString
+
+    //    val coordinates = WKT_READER.read(trail).getCoordinates.toList
+    // TODO: Test if the the linestring is a candidate (cross antimeridian) to avoid parse all geometries?
+
+    var returnedTrail: Option[String] = null
+    if (WKT_READER.read(trail).getGeometryType == "LineString") {
+      returnedTrail = splitLinestringAntimeridian(trail)
+    } else {
+      returnedTrail = Some(trail)
+    }
+    returnedTrail
+  }
+
+  def splitLinestringAntimeridian(trail: String): Option[String] = {
+    // Take a wkt LineString and transform it into a continuous wkt MultiLineString when it cross the antimeridian
+
+    //the use of a ListBuffer instead of an immutable list + the use of a variable with last element, instead of checking the last list element,
+    //have strong performance benefits
+
+    val originalCoordinateList = WKT_READER.read(trail).getCoordinates.toList
+
+    var prevCoord: Coordinate = null
+
+    var oldX: Double = 0
+    var X: Double = 0
+    var joinY: Double = 0
+
+    var linestringList: ListBuffer[String] = ListBuffer.empty[String]
+
+    val lastCorrectedCoordinateList = originalCoordinateList
+      .foldLeft(ListBuffer.empty[Coordinate]) {
+        case (currentCoordsList, coord) =>
+          val minX = if (prevCoord == null) { 0 } else { min(coord.x, prevCoord.x) }
+          val maxX = if (prevCoord == null) { 0 } else { max(coord.x, prevCoord.x) }
+          if (prevCoord == null || ((maxX - minX).abs < (maxX - (minX + 360)).abs)) {
+            // Normal Case: coords are added to the current linestring
+            prevCoord = coord
+            currentCoordsList += coord
+          } else {
+            // The antimeridian is crossed, the linestring is split in two linestrings linked by their join point
+            var firstJoinPoint: Coordinate = new Coordinate()
+            var secondJoinPoint: Coordinate = new Coordinate()
+
+            // The order of the Join point depend on the way the antimeridian is crossed (from west or east)
+            val isByLeftCrossing = coord.x < 0
+            if (isByLeftCrossing) {
+              oldX = prevCoord.x
+              X = coord.x + 360
+              firstJoinPoint.x = 180.0
+              secondJoinPoint.x = -180.0
+            } else {
+              oldX = prevCoord.x + 360
+              X = coord.x
+              firstJoinPoint.x = -180.0
+              secondJoinPoint.x = 180.0
+            }
+            // The latitude of the Join points (identical) is computed by linear interpolation
+            joinY = prevCoord.y + (180 - oldX) / (X - oldX) * (coord.y - prevCoord.y)
+            firstJoinPoint.y = joinY
+            secondJoinPoint.y = joinY
+
+            // The current linestring ends with the correct join point and is stored in the linestring list
+            currentCoordsList += firstJoinPoint
+            linestringList += WKT_WRITER.write(GEOMETRY_FACTORY.createLineString(currentCoordsList.toArray))
+
+            // A new linestring is initialized and linked to the previous by the correct joint point
+            currentCoordsList.clear()
+            currentCoordsList += secondJoinPoint
+            currentCoordsList += coord
+            prevCoord = coord
+          }
+          currentCoordsList
+      }
+      .toList
+
+    // The last Linestring is added to the list
+    linestringList += WKT_WRITER.write(GEOMETRY_FACTORY.createLineString(lastCorrectedCoordinateList.toArray))
+
+    // The list of Linestrings is merged in a multilinestring object which is returned
+    if (linestringList.size == 1) {
+      Some(linestringList.head)
+    } else {
+      lineStringsToSingleMultiLineString(linestringList.toArray)
+    }
+
+  }
 }

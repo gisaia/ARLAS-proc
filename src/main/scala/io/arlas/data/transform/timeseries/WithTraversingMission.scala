@@ -37,8 +37,8 @@ import scala.collection.mutable.ListBuffer
   * - consider the next row, and compute the distance between first row's departure and second row's arrival
   * - if this distance is greater than first distance, do the same with the third row
   * - otherwise the mission is over. As a consequence start a new mission, and apply the same algorithm again...
-  * @param spark
-  * @param dataModel
+  * @param spark Spark session
+  * @param dataModel Data model containing names of structuring columns (id, lat, lon, time)
   */
 class WithTraversingMission(spark: SparkSession, dataModel: DataModel, sensorDistanceCol: String, gpsDistanceCol: String)
     extends ArlasTransformer(

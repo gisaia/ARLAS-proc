@@ -33,9 +33,9 @@ class WithSupportValueTest extends ArlasTest {
     spark,
     List(
       Seq(10l, 4.0d, 0.1d, "tempo_other", Seq(0.1d)),
-      Seq(10l, 4.0d, 0.2d, "tempo_irregular", Seq(0.4d, 0.4d)),
+      Seq(10l, 4.0d, 0.2d, "tempo_irregular", Seq(0.2d)),
       Seq(100l, 10.0d, 0.3d, "tempo_other", Seq(0.3d)),
-      Seq(100l, 10.0d, 0.4d, "tempo_irregular", Seq.fill(8)(0.1d))
+      Seq(1400l, 10.0d, 0.4d, "tempo_irregular", Seq.fill(10)(0.4d))
     ),
     ListMap(
       arlasTrackDuration -> (LongType, true),
@@ -53,7 +53,7 @@ class WithSupportValueTest extends ArlasTest {
     val expectedDF =
       testDF.withColumnRenamed("expected" + speedColumn + "_array", speedColumn + "_array")
 
-    val transformedDF = baseDF.enrichWithArlas(new WithSupportValues(speedColumn, 5, 8, "tempo_irregular", "distance"))
+    val transformedDF = baseDF.enrichWithArlas(new WithSupportValues(speedColumn, speedColumn + "_array", 120, 10, arlasTrackDuration))
 
     assertDataFrameEquality(transformedDF, expectedDF)
   }

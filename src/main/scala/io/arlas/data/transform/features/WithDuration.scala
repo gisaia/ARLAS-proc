@@ -20,35 +20,39 @@
 package io.arlas.data.transform.features
 
 import io.arlas.data.transform.ArlasTransformer
-import io.arlas.data.transform.ArlasTransformerColumns._
 import org.apache.spark.sql.expressions.Window
 import org.apache.spark.sql.functions._
-import org.apache.spark.sql.types.{LongType, StructField, StructType}
-import org.apache.spark.sql.{DataFrame, Dataset}
+import org.apache.spark.sql.types.{IntegerType, StructField, StructType}
+import org.apache.spark.sql.{Column, DataFrame, Dataset}
 
 /**
-  * For a ID that is hold by multiple rows, it computes the 'duration of this id'
-  * i.a. <oldest row with this id> - <earlier row with this id>
-  * It requires the fragment start and end timestamps, created by the transformer
-  * @param idColumn Column containing the identifier of the group
-  * @param targetDurationColumn Column to store the computed duration
+  * Compute the duration since last observation of the same object
+  * @param idColumn Column containing the object identifier
+  * @param timestampColumn Column containing the timestamp of observations
+  * @param targetDurationColumn Name of the column to store computed duration (s)
   */
-class WithDurationFromId(idColumn: String, targetDurationColumn: String)
-    extends ArlasTransformer(Vector(idColumn, arlasTrackTimestampStart, arlasTrackTimestampEnd)) {
+class WithDuration(idColumn: String, timestampColumn: String, targetDurationColumn: String)
+    extends ArlasTransformer(Vector(idColumn, timestampColumn)) {
 
   override def transform(dataset: Dataset[_]): DataFrame = {
-
+    // spark window
     val window = Window
       .partitionBy(idColumn)
-      .orderBy(arlasTrackTimestampStart)
-      .rowsBetween(Window.unboundedPreceding, Window.unboundedFollowing)
+      .orderBy(timestampColumn)
+
+    def whenPreviousPointExists(expression: Column, offset: Int = 1, default: Any = null) =
+      when(lag(timestampColumn, offset).over(window).isNull, default)
+        .otherwise(expression)
 
     dataset
       .toDF()
-      .withColumn(targetDurationColumn, last(arlasTrackTimestampEnd).over(window) - first(arlasTrackTimestampStart).over(window))
+      .withColumn( // track_duration_s = ts(start) - ts(end)
+                  targetDurationColumn,
+                  whenPreviousPointExists(col(timestampColumn) - lag(timestampColumn, 1).over(window)))
   }
 
   override def transformSchema(schema: StructType): StructType = {
-    super.transformSchema(schema).add(StructField(targetDurationColumn, LongType, true))
+    checkSchema(schema)
+      .add(StructField(targetDurationColumn, IntegerType, false))
   }
 }

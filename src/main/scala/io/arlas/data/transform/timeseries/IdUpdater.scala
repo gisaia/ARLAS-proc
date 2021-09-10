@@ -29,8 +29,9 @@ import org.apache.spark.sql.{DataFrame, Dataset}
 /**
   * For a ID that is hold by multiple rows, it updates the id value as follows
   * <dataModel.idColumn>#<earliest timestamp with this id>_<oldest timestamp with this id>
-  * @param dataModel
-  * @param idColumn
+  * Requires the arlas_track_timestamp_start and arlas_track_timestamp_end columns, produced by the FlowFragmentMapper transformer
+  * @param dataModel Data model containing names of structuring columns (id, lat, lon, time)
+  * @param idColumn Column containing the identifier to update
   */
 class IdUpdater(dataModel: DataModel, idColumn: String)
     extends ArlasTransformer(Vector(idColumn, arlasTrackTimestampStart, arlasTrackTimestampEnd, dataModel.idColumn)) {
