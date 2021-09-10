@@ -19,12 +19,12 @@
 
 package io.arlas.data.transform.testdata
 import java.text.SimpleDateFormat
-
 import io.arlas.data.model.DataModel
 import io.arlas.data.transform.ArlasTestHelper.{mean, stdDev, _}
 import io.arlas.data.transform.ArlasTransformerColumns.{arlasTempoColumn, _}
 import io.arlas.data.utils.GeoTool
 import org.apache.spark.sql.catalyst.expressions.GenericRowWithSchema
+import org.apache.spark.sql.functions.col
 import org.apache.spark.sql.types.{BooleanType, StringType, StructField, StructType}
 import org.apache.spark.sql.{DataFrame, Row, SparkSession}
 
@@ -87,7 +87,7 @@ class FragmentSummaryDataGenerator(spark: SparkSession,
       .createDataFrame(
         spark.sparkContext.parallelize(data),
         afterTransformSchema
-      )
+      ).withColumn(arlasTrackDynamicsGpsSpeed, col(arlasTrackDistanceGpsTravelled) / col(arlasTrackDuration))
   }
 
   private def rowsWithNullForNewFields(rows: Array[Row], previousSchema: StructType, newSchema: StructType) = {

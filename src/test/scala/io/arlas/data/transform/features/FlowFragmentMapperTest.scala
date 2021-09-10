@@ -29,9 +29,10 @@ class FlowFragmentMapperTest extends ArlasTest {
   "FlowFragmentMapper transformation" should "fill the arlas_track* columns against dataframe's timeseries" in {
 
     val expectedDF = flowFragmentTestDF
+      .drop(averagedColumns :_*)
 
     val transformedDF: DataFrame = baseTestDF
-      .enrichWithArlas(new FlowFragmentMapper(dataModel, spark, dataModel.idColumn, averagedColumns, standardDeviationEllipsisNbPoints))
+      .enrichWithArlas(new FlowFragmentMapper(dataModel, spark, dataModel.idColumn, averagedColumns, standardDeviationEllipsisNbPoints,true))
 
     assertDataFrameEquality(transformedDF, expectedDF)
   }
