@@ -1,4 +1,4 @@
-ThisBuild / version      := (version in ThisBuild).value
+ThisBuild / version      := "0.6.1-SNAPSHOT"
 ThisBuild / scalaVersion := "2.12.10"
 ThisBuild / organization := "io.arlas"
 
@@ -55,20 +55,12 @@ ThisBuild / publishTo := { Some("Cloudsmith API" at "https://maven.cloudsmith.io
 ThisBuild / pomIncludeRepository := { x => false }
 ThisBuild / credentials += Credentials("Cloudsmith API", "maven.cloudsmith.io", sys.env.getOrElse("CLOUDSMITH_USER", ""), sys.env.getOrElse("CLOUDSMITH_API_KEY", ""))
 
-//publish also assembly jar
-test in assembly := {}
-lazy val arlasProcAssembly = project
-  .dependsOn(arlasProc)
-  .settings(
-      publishArtifact in (Compile, packageBin) := false,
-      publishArtifact in (Compile, packageDoc) := false,
-      publishArtifact in (Compile, packageSrc) := false,
-      name := "arlas-proc-assembly",
-      artifact in (Compile, assembly) ~= { art =>
-          art.withClassifier(Some("assembly"))
-      },
-      addArtifact(artifact in (Compile, assembly), assembly)
-      )
+//publish assembly jar
+assembly / artifact := {
+  val art = (assembly / artifact).value
+  art.withClassifier(Some("assembly"))
+}
+addArtifact(assembly / artifact, assembly)
 ThisBuild / assemblyMergeStrategy := {
   case "module-info.class" => MergeStrategy.discard
   case x =>

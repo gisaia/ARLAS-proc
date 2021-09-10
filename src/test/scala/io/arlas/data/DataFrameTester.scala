@@ -76,6 +76,7 @@ trait DataFrameTester {
           } else {
             s"'','${r1.mkString("','")}' \n '#','${r2.mkString("','")}'\n"
           }
+        case _ => "\n"
       }
       .mkString("\n") + """  """
   }
