@@ -106,7 +106,7 @@ class WithTraversingMissionTest extends ArlasTest {
 
     val expectedDF: DataFrame = getExpectedDF
     val transformedDF =
-      testDF.enrichWithArlas(new WithTraversingMission(spark, dataModel, sensorDistanceCol, gpsDistanceCol))
+      testDF.process(new WithTraversingMission(spark, dataModel, sensorDistanceCol, gpsDistanceCol))
 
     val comparisonColumns =
       Seq("id", arlasTrackTimestampStart, arlasTrackTimestampEnd) ++ expectedDF.columns.filter(_.contains("mission"))

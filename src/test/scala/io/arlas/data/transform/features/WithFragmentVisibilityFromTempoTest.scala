@@ -66,7 +66,7 @@ class WithFragmentVisibilityFromTempoTest extends ArlasTest {
       .withColumnRenamed("expected_track_visibility_change", arlasTrackVisibilityChange)
 
     val transformedDF =
-      baseDF.enrichWithArlas(new WithFragmentVisibilityFromTempo(dataModel, spark, "irregular"))
+      baseDF.process(new WithFragmentVisibilityFromTempo(dataModel, spark, "irregular"))
 
     assertDataFrameEquality(transformedDF, expectedDF)
 

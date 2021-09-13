@@ -177,7 +177,7 @@ trait ArlasTest extends AnyFlatSpec with Matchers with TestSparkSession with Dat
             .otherwise(lit(ArlasCourseStates.MOTION))
         )
       )
-      .enrichWithArlas(
+      .process(
         new WithStateIdOnStateChangeOrUnique(dataModel.idColumn, arlasMovingStateColumn, arlasTrackTimestampStart, arlasMotionIdColumn),
         new WithDurationFromId(arlasMotionIdColumn, arlasMotionDurationColumn),
         new WithStateIdOnStateChangeOrUnique(dataModel.idColumn, arlasCourseOrStopColumn, arlasTrackTimestampStart, arlasCourseIdColumn),
@@ -207,7 +207,7 @@ trait ArlasTest extends AnyFlatSpec with Matchers with TestSparkSession with Dat
             .otherwise(null)
         )
       )
-      .enrichWithArlas(
+      .process(
         new WithFragmentVisibilityFromTempo(dataModel, spark, tempoIrregular),
         new WithFragmentSampleId(dataModel, arlasMotionIdColumn, 60l)
       )

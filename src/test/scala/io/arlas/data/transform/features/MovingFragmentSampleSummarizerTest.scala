@@ -27,7 +27,7 @@ class MovingFragmentSampleSummarizerTest extends ArlasTest {
   val transformedDF = getMovingFragmentSampleSummarizerBaseDF
     .drop(getMovingFragmentSampleSummarizerBaseDF.columns.filter(_.startsWith("arlas_course")): _*)
     .drop("arlas_track_location_precision_geometry", "arlas_track_distance_sensor_travelled_m", "arlas_track_location_precision_value_lat", "arlas_track_location_precision_value_lon")
-    .enrichWithArlas(
+    .process(
       new MovingFragmentSampleSummarizer(
         spark,
         dataModel,

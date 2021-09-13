@@ -26,7 +26,7 @@ import org.apache.spark.sql.functions.{col, lit, when}
 class StopPauseSummaryTransformerTest extends ArlasTest {
 
   val transformedDF = getStopPauseSummaryBaseDF
-    .enrichWithArlas(
+    .process(
       new StopPauseSummaryTransformer(
         spark,
         dataModel,

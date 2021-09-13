@@ -66,7 +66,7 @@ class StaticColumnsStandardizerTest extends ArlasTest {
 
     val transformedDF = testDF
       .drop("expected_col1", "expected_col2", "expected_col3", "expected_col4")
-      .enrichWithArlas(
+      .process(
         new StaticColumnsStandardizer(dataModel.idColumn,
                                       Map("col1" -> ("default", unknownValues), "col2" -> (null, unknownValues), "col4" -> (0, Seq(-1)))))
 
