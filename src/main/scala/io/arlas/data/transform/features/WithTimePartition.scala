@@ -31,7 +31,7 @@ import org.apache.spark.sql.{DataFrame, Dataset}
   * @param timestampColumn Column containing the timestamp (unix) to use for partition
   * @param partitionFormat Format of the chosen partition, by default it's a daily partition ("yyyyMMdd")
   */
-class WithArlasPartition(timestampColumn: String, partitionFormat: String = arlasPartitionFormat)
+class WithTimePartition(timestampColumn: String, partitionFormat: String = arlasPartitionFormat)
     extends ArlasTransformer(Vector(timestampColumn)) {
 
   override def transform(dataset: Dataset[_]): DataFrame = {

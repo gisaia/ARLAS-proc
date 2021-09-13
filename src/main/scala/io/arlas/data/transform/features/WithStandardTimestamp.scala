@@ -30,7 +30,7 @@ import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types.{LongType, StructField, StructType}
 import org.apache.spark.sql.{DataFrame, Dataset}
 
-class WithArlasTimestamp(dataModel: DataModel) extends ArlasTransformer(Vector(dataModel.timestampColumn)) {
+class WithStandardTimestamp(dataModel: DataModel) extends ArlasTransformer(Vector(dataModel.timestampColumn)) {
 
   override def transform(dataset: Dataset[_]): DataFrame = {
     val timestampConversion = getUdf(dataModel.timeFormat)
