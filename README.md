@@ -123,8 +123,8 @@ libraryDependencies += "io.arlas" % "arlas-proc" % "X.Y.Z"
 ### Test locally through spark-shell
 
 Start an interactive spark-shell session. For example :
+- Build fat jar of ARLAS-PROC project
 ```bash
-# Build fat jar
 docker run --rm \
         -w /opt/work \
         -v ${PWD}:/opt/work \
@@ -132,8 +132,10 @@ docker run --rm \
         -v $HOME/.ivy2:/root/.ivy2 \
         gisaia/sbt:1.5.5_jdk8 \
         /bin/bash -c 'sbt clean assembly; cp target/scala-2.12/arlas-proc-assembly*.jar target/scala-2.12/arlas-proc-assembly.jar'
+```
 
-# Build spark-shell
+- Launch spark-shell with ARLAS-PROC dependency
+```
 docker run -ti \
        -w /opt/work \
        -v ${PWD}/data/ais:/opt/data \
@@ -149,8 +151,17 @@ docker run -ti \
         --jars /opt/proc/target/scala-2.12/arlas-proc-assembly.jar
 ```
 
-Paste (using `:paste`) the following code snippet :
+#### Tutorial with boat location data
 
+This tutorial applies a processing pipeline to vessel location records to extract the real boats trajectories.
+
+We use a sample of AIS (Automatic Identification System) data provided by the Danish Maritime Authority, in accordance with the conditions for the use of Danish public data.
+
+We process the records emitted by two vessels on the 20th of November 2019.
+
+Paste (using `:paste`) the following code snippets in the spark-shell
+
+- Import ARLAS-PROC library modules
 ```scala
 import io.arlas.data.sql._
 import io.arlas.data.model._
@@ -160,7 +171,10 @@ import io.arlas.data.transform.features._
 import io.arlas.data.transform.timeseries._
 import io.arlas.data.transform.ml._
 import io.arlas.data.transform.tools._
+```
 
+- Set the object identifier, latitude, longitude and date column to handle moving object data properly
+```scala
 val dataModel = DataModel(
   idColumn = "MMSI",
   latColumn = "Latitude",
@@ -168,30 +182,26 @@ val dataModel = DataModel(
   timestampColumn = "# Timestamp",
   timeFormat = "dd/MM/yyyy HH:mm:ss"
 )
+```
 
-// extract and format raw data
-val raw_data = readFromCsv(spark, ",", "/opt/data/extract_2_ids.csv").select("# Timestamp",
-  "MMSI",
-  "Latitude",
-  "Longitude",
-  "SOG",
-  "COG",
-  "Heading",
-  "IMO",
-  "Callsign",
-  "Name",
-  "Ship type",
-  "Cargo type",
-  "Width",
-  "Length")
+- Extract raw data from csv
+```scala
+val raw_data = readFromCsv(spark, delimiter=",", sources="/opt/data/extract_2_ids.csv")
+        .select("# Timestamp", "MMSI", "Latitude", "Longitude", "SOG", "COG", "Heading", "IMO", "Callsign", "Name",
+                "Ship type", "Cargo type", "Width", "Length")
 raw_data.show()
+```
 
-// Format data by setting numeric variable types and processing unix timestamp
+- Format data by setting numeric variable types and processing unix timestamp
+```scala
 val formatted_data = raw_data.asArlasFormattedData(dataModel, doubleColumns = Vector("SOG", "COG", "Heading"))
 formatted_data.sort("MMSI", "arlas_timestamp").show()
-// We can see two new columns: arlas_timestamp which is the unix timestamp corresponding to '# Timestamp'
-// And arlas_partion, corresponding to the day
+```
+We can see two new columns: arlas_timestamp which is the unix timestamp corresponding to '# Timestamp'
+and arlas_partition, corresponding to the day
 
+- Fill the missing vessel properties 
+```scala
 // Fill the missing vessel properties when they are available in at least one observation for a given vessel identified with its MMSI
 val static_filled_data = formatted_data.process(
   new StaticColumnsStandardizer(
@@ -208,34 +218,39 @@ val static_filled_data = formatted_data.process(
   )
 )
 static_filled_data.sort("MMSI", "arlas_timestamp").show()
+```
+- Create basic fragments and compute associated fields:
+  - **arlas_track_id**: Unique fragment identifier
+  - **arlas_track_nb_geopoints**: Number of ais messages (geopoints) summarized in the fragment (2 at this step)
+  - **arlas_track_trail**: Geometry of vessel travel over the fragment (a simple line at this step)
+  - **arlas_track_duration_s**: Duration of the fragment (s)
+  - **arlas_track_timestamp_start**: Timestamp of the first observation of the fragment
+  - **arlas_track_timestamp_end**: Timestamp of the last observation of the fragment
+  - **arlas_track_timestamp_center**: Middle timestamp of the fragment
+  - **arlas_track_end_location_lat**: Latitude of the last observation of the fragment
+  - **arlas_track_end_location_lon**: Longitude of the last observation of the fragment
+  - **arlas_track_location_lat**: Latitude of the centroid of the fragment
+  - **arlas_track_location_lon**: Longitude of the centroid of the fragment
+  - **arlas_track_distance_gps_travelled_m**: Distance (m) travelled by the vessel over the fragment
+  - **arlas_track_distance_gps_straight_line_m**: Direct distance (m) between first and last observation of the fragment
+  - **arlas_track_distance_gps_straightness**: Ratio between direct distance and travelled distance over the fragment (1 at this step)
+  - **arlas_track_dynamics_gps_speed**: Computed gps speed over the fragment
+  - **arlas_track_dynamics_gps_bearing**: Computed gps bearing over the fragment
 
+It also transforms numeric column by taking the average of the fragment observations (ex: "SOG" -> "arlas_track_sog")
+
+```scala
 val fragment_data = static_filled_data.process(
-  // Create basic fragments and compute associated fields:
-  //   - arlas_track_id: Unique fragment identifier
-  //   - arlas_track_nb_geopoints: Number of ais message (geopoint) summarized in the fragment (2 at this step)
-  //   - arlas_track_trail: Geometry of vessel travel over the fragment (a simple line at this step)
-  //   - arlas_track_duration_s: Duration of the fragment (s)
-  //   - arlas_track_timestamp_start: Timestamp of the first observation of the fragment
-  //   - arlas_track_timestamp_end: Timestamp of the last observation of the fragment
-  //   - arlas_track_timestamp_center: Middle timestamp of the fragment
-  //   - arlas_track_end_location_lat: Latitude of the last observation of the fragment
-  //   - arlas_track_end_location_lon: Longitude of the last observation of the fragment
-  //   - arlas_track_location_lat: Latitude of the centroid of the fragment
-  //   - arlas_track_location_lon: Longitude of the centroid of the fragment
-  //   - arlas_track_distance_gps_travelled_m: Distance (m) travelled by the vessel over the fragment
-  //   - arlas_track_distance_gps_straigth_line_m: Direct distance (m) between first and last observation of the fragment
-  //   - arlas_track_distance_gps_straigthness: Ratio between direct distance and travelled distance over the fragment (1 at this step)
-  //   - arlas_track_dynamics_gps_speed: Computed gps speed over the fragment
-  //   - arlas_track_dynamics_gps_bearing: Computed gps bearing over the fragment
-  //
-  // It also transform numeric column by taking the average of the fragment observations (ex: "SOG" -> "arlas_track_sog")
   new FlowFragmentMapper(dataModel,
     spark,
     aggregationColumnName = dataModel.idColumn,
     averageNumericColumns = List("SOG", "COG", "Heading"))
 )
 fragment_data.sort("MMSI", "arlas_timestamp").show()
+```
 
+- Add the motion visibility for each fragment
+```scala
 val visibility_data = fragment_data.process(
   // Identify fragment as invisible when duration since previous observation is higher than 30min
   new WithVisibilityProportion(durationThreshold = 1800),
@@ -246,7 +261,10 @@ visibility_data
         .select("MMSI", "arlas_timestamp", "arlas_track_duration_s", "arlas_track_visibility_proportion", "arlas_track_visibility_change")
         .sort("MMSI", "arlas_timestamp")
         .show()
+```
 
+- Identify the moving state of the vessel for each fragment
+```scala
 val moving_data = visibility_data.process(
   // Detect if the boat is still or moving with an hmm model based on speed
   new WithMovingState(spark,
@@ -268,7 +286,10 @@ moving_data
         .select("MMSI", "arlas_timestamp", "arlas_track_SOG", "arlas_moving_state", "arlas_motion_id", "arlas_motion_duration")
         .sort("MMSI", "arlas_timestamp")
         .show()
+```
 
+- Build course information from moving state
+```scala
 val course_data = moving_data.process(
   // Identify fragment as a STOP if the vessel is still for more than 10 minutes, as COURSE else
   // The result is stored in a column "arlas_course_or_stop"
@@ -288,21 +309,16 @@ val course_data = moving_data.process(
 )
 course_data
         .select(
-          "MMSI",
-          "arlas_timestamp",
-          "arlas_moving_state",
-          "arlas_motion_id",
-          "arlas_motion_duration",
-          "arlas_course_or_stop",
-          "arlas_course_state",
-          "arlas_course_id",
-          "arlas_course_duration"
+          "MMSI", "arlas_timestamp", "arlas_moving_state", "arlas_motion_id", "arlas_motion_duration",
+          "arlas_course_or_stop", "arlas_course_state", "arlas_course_id", "arlas_course_duration"
         )
         .sort("MMSI", "arlas_timestamp")
         .show(false)
+```
 
+- Concatenate the Pauses and Stops into single fragments
+```scala
 val zipped_stop = course_data.process(
-  // Concatenated the Pauses and Stops into single fragments
   new StopPauseSummaryTransformer(
     spark,
     dataModel,
@@ -318,23 +334,15 @@ val zipped_stop = course_data.process(
     propagatedColumns = Some(Seq("IMO", "Callsign", "Name", "Ship type", "Cargo type", "Width", "Length"))
   )
 )
-zipped_stop
-        .select(
-          "MMSI",
-          "arlas_timestamp",
-    "arlas_track_duration_s",
-    "arlas_moving_state",
-    "arlas_motion_id",
-    "arlas_motion_duration",
-    "arlas_course_or_stop",
-    "arlas_course_state",
-    "arlas_course_id",
-    "arlas_course_duration",
-    "arlas_track_trail"
-  )
-  .sort("MMSI", "arlas_timestamp")
-  .show()
+zipped_stop.select("MMSI", "arlas_timestamp", "arlas_track_duration_s", "arlas_moving_state", "arlas_motion_id",
+                   "arlas_motion_duration", "arlas_course_or_stop", "arlas_course_state", "arlas_course_id", 
+                   "arlas_course_duration", "arlas_track_trail")
+           .sort("MMSI", "arlas_timestamp")
+           .show()
+```
 
+- Concatenate all fragments associated to a course into a single course fragment
+```scala
 val course_extracted = zipped_stop.process(
   new CourseExtractorTransformer(
     spark,
@@ -353,22 +361,17 @@ val course_extracted = zipped_stop.process(
 )
 course_extracted
   .select(
-    "MMSI",
-    "arlas_timestamp",
-    "arlas_track_duration_s",
-    "arlas_track_nb_geopoints",
-    "arlas_departure_stop_before_duration_s",
-    "arlas_arrival_stop_after_duration_s",
-    "arlas_moving_state",
-    "arlas_course_or_stop",
-    "arlas_course_state",
-    "arlas_course_id",
-    "arlas_course_duration",
-    "arlas_track_trail"
+    "MMSI", "arlas_timestamp", "arlas_track_duration_s", "arlas_track_nb_geopoints", "arlas_departure_stop_before_duration_s",
+    "arlas_arrival_stop_after_duration_s", "arlas_moving_state", "arlas_course_or_stop", "arlas_course_state",
+    "arlas_course_id", "arlas_course_duration", "arlas_track_trail"
   )
   .sort("MMSI", "arlas_timestamp")
   .show()
+```
 
+- Write course result in a csv file
+```scala
+course_extracted.writeToCsv("/opt/data/ais_course_data")
 ```
 
 ## Running tests
