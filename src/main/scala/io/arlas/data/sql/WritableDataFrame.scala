@@ -106,7 +106,7 @@ class WritableDataFrame(df: DataFrame) extends TransformableDataFrame(df) {
                 Map("es.mapping.id" -> esIdColName, "es.mapping.exclude" -> (mappingExcluded :+ "dynamicIndex").mkString(",")))
   }
 
-  def writeToCsv(target: String, delimiter: String = ";", toSingleFile: Boolean = true) = {
+  def writeToCsv(target: String, delimiter: String = ";", toSingleFile: Boolean = true, saveMode: SaveMode = SaveMode.Overwrite) = {
 
     val coalescedDF = if (toSingleFile) df.coalesce(1) else df
 
@@ -122,6 +122,7 @@ class WritableDataFrame(df: DataFrame) extends TransformableDataFrame(df) {
       .format("com.databricks.spark.csv")
       .option("header", "true")
       .option("delimiter", delimiter)
+      .mode(saveMode)
       .save(target)
   }
 
