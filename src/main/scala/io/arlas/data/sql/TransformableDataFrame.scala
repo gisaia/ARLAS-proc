@@ -45,8 +45,8 @@ class TransformableDataFrame(df: DataFrame) {
   def asArlasFormattedData(dataModel: DataModel, doubleColumns: Vector[String] = Vector()): DataFrame = {
     df.process(
       new DataFrameFormatter(dataModel, doubleColumns),
-      new WithArlasTimestamp(dataModel),
-      new WithArlasPartition(arlasTimestampColumn)
+      new WithStandardTimestamp(dataModel),
+      new WithTimePartition(arlasTimestampColumn)
     )
   }
 

@@ -69,7 +69,7 @@ The full scala documentation of ARLAS-proc is available [here](https://gisaia.gi
 | FlowFragmentMapper | geopoints | flow fragments | Aggregate two consecutive geopoints with the same id in a single fragment |
 | MovingFragmentSampleSummarizer | flow fragments  | flow fragments | Aggregate all consecutive moving fragments with the same id in a several fragments sampled on a given duration | 
 | StopPauseSummaryTransformer | flow fragments | flow fragments | Aggregate all consecutive still fragments with the same id in a single fragment |
-| WithArlasTimestamp | geopoints/fragments | geopoints/fragments | Add a standard timestamp field |
+| WithStandardTimestamp | geopoints/fragments | geopoints/fragments | Add a standard timestamp field |
 | WithDurationFromId | geopoints/fragments | geopoints/fragments | Add a duration for consecutive geopoints/fragments with the same id |
 | WithFragmentSampleId | flow fragments | flow fragments | Tag consecutive fragments with the same id so that the sum of fragments duration approximate a given sampling duration |
 | WithFragmentVisibilityFromTempo | fragments | fragments | Tag consecutive fragments with visibility (appear/disappear/appear_disappear) according to tempo |
