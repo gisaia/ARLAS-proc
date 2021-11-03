@@ -135,10 +135,10 @@ docker run --rm \
 ```
 
 - Launch spark-shell with ARLAS-PROC dependency
-```
+```bash
 docker run -ti \
        -w /opt/work \
-       -v ${PWD}/data/ais:/opt/data \
+       -v ${PWD}/data/ais:/opt/ais \
        -v ${PWD}:/opt/proc \
        -v $HOME/.m2:/root/.m2 \
        -v $HOME/.ivy2:/root/.ivy2 \
@@ -186,7 +186,7 @@ val dataModel = DataModel(
 
 - Extract raw data from csv
 ```scala
-val raw_data = readFromCsv(spark, delimiter=",", sources="/opt/data/extract_2_ids.csv")
+val raw_data = readFromCsv(spark, delimiter=",", sources="/opt/ais/data/extract_2_ids.csv")
         .select("# Timestamp", "MMSI", "Latitude", "Longitude", "SOG", "COG", "Heading", "IMO", "Callsign", "Name",
                 "Ship type", "Cargo type", "Width", "Length")
 raw_data.show()
@@ -271,7 +271,7 @@ val moving_data = visibility_data.process(
     idColumn = "MMSI",
     speedColumn = "arlas_track_SOG",
     targetMovingState = "arlas_moving_state",
-    stillMoveModelPath = "/opt/data/hmm_still_move.json"),
+    stillMoveModelPath = "/opt/ais/model/hmm_still_move.json"),
   // Create a common identifier for consecutive fragment sharing the same moving state
   new WithStateIdOnStateChangeOrUnique(idColumn = "MMSI",
     stateColumn = "arlas_moving_state",
@@ -371,7 +371,7 @@ course_extracted
 
 - Write course result in a csv file
 ```scala
-course_extracted.writeToCsv("/opt/data/ais_course_data")
+course_extracted.writeToCsv("/opt/ais/data/ais_course_data")
 ```
 
 ## Running tests
