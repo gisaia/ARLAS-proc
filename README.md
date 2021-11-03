@@ -120,6 +120,35 @@ Specify ARLAS-proc dependency in the dependencies section of your build.sbt file
 libraryDependencies += "io.arlas" % "arlas-proc" % "X.Y.Z"
 ```
 
+### Test locally through Jupyter Notebook
+
+- Build fat jar of ARLAS-PROC project and publish it in local .ivy2
+```bash
+docker run --rm \
+        -w /opt/work \
+        -v ${PWD}:/opt/work \
+        -v $HOME/.m2:/root/.m2 \
+        -v $HOME/.ivy2:/root/.ivy2 \
+        gisaia/sbt:1.5.5_jdk8 \
+        /bin/bash -c 'sbt clean assembly; sbt clean publishLocal; cp -r /root/.ivy2/local/io.arlas/arlas-proc_2.12/. /root/.ivy2/local/io.arlas/arlas-proc/'
+```
+
+- Launch jupyter tutorial notebook
+```bash
+docker run -it --rm \
+       -v ${PWD}/data/ais:/home/jovyan/work/ \
+       -v $HOME/.m2:/home/jovyan/.m2 \
+       -v $HOME/.ivy2:/home/jovyan/.ivy2 \
+       -p "8888:8888" \
+       almondsh/almond:0.9.1-scala-2.12.10
+```
+
+Open the link proposed in terminal to open Jupyter Notebook in a browser: `http://127.0.0.1:8888/?token=...`
+
+![Jupyter](./data/ais/images/notebook.png)
+
+Open `demo_notebook.ipynb` to run the tutorial notebook.
+
 ### Test locally through spark-shell
 
 Start an interactive spark-shell session. For example :
